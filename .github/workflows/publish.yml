@@ -34,26 +34,26 @@ jobs:
       # Copy sources from subprojects into streaming-crypto crate
       - name: Copy core-api sources
         run: |
-          rm -rf streaming-crypto/streaming-crypto/src/core_api
-          mkdir -p streaming-crypto/streaming-crypto/src/core_api
-          cp -r streaming-crypto/core-api/* streaming-crypto/streaming-crypto/src/core_api/
+          rm -rf $GITHUB_WORKSPACE/streaming-crypto/src/core_api
+          mkdir -p $GITHUB_WORKSPACE/streaming-crypto/src/core_api
+          cp -r $GITHUB_WORKSPACE/core-api/* $GITHUB_WORKSPACE/streaming-crypto/src/core_api/
 
       - name: Copy ffi-api sources
         run: |
-          rm -rf streaming-crypto/streaming-crypto/src/ffi_api
-          mkdir -p streaming-crypto/streaming-crypto/src/ffi_api
-          cp -r streaming-crypto/ffi-api/* streaming-crypto/streaming-crypto/src/ffi_api/
+          rm -rf $GITHUB_WORKSPACE/streaming-crypto/src/ffi_api
+          mkdir -p $GITHUB_WORKSPACE/streaming-crypto/src/ffi_api
+          cp -r $GITHUB_WORKSPACE/ffi-api/* $GITHUB_WORKSPACE/streaming-crypto/src/ffi_api/
 
       - name: Copy pyo3-api sources
         run: |
-          rm -rf streaming-crypto/streaming-crypto/src/pyo3_api
-          mkdir -p streaming-crypto/streaming-crypto/src/pyo3_api
-          cp -r streaming-crypto/pyo3-api/* streaming-crypto/streaming-crypto/src/pyo3_api/
+          rm -rf $GITHUB_WORKSPACE/streaming-crypto/src/pyo3_api
+          mkdir -p $GITHUB_WORKSPACE/streaming-crypto/src/pyo3_api
+          cp -r $GITHUB_WORKSPACE/pyo3-api/* $GITHUB_WORKSPACE/streaming-crypto/src/pyo3_api/
 
       # Replace features block with publish version
       - name: Replace features block for publish
         run: |
-          ( cd streaming-crypto/streaming-crypto
+          ( cd $GITHUB_WORKSPACE/streaming-crypto
             test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
             test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
             awk '
@@ -68,7 +68,7 @@ jobs:
       # Replace dependencies block with publish version + common block
       - name: Replace dependencies block for publish
         run: |
-          ( cd streaming-crypto/streaming-crypto
+          ( cd $GITHUB_WORKSPACE/streaming-crypto
             test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
             test -f Cargo.publish.dependencies || { echo "Cargo.publish.dependencies not found"; exit 1; }
             awk '
@@ -76,7 +76,7 @@ jobs:
               /^# --- DEPENDENCIES DEV START ---/ { in_block=1; system("cat Cargo.publish.dependencies"); next }
               /^# --- DEPENDENCIES DEV END ---/ {
                 in_block=0;
-                system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" ../Cargo.toml");
+                system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" $GITHUB_WORKSPACE/Cargo.toml");
                 next
               }
               in_block { next }
@@ -86,7 +86,7 @@ jobs:
 
       - name: Verify version matches tag
         run: |
-          VERSION=$(grep '^version' streaming-crypto/streaming-crypto/Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          VERSION=$(grep '^version' $GITHUB_WORKSPACE/streaming-crypto/Cargo.toml | sed 's/version = "\(.*\)"/\1/')
           TAG=${GITHUB_REF#refs/tags/v}
           if [ "$VERSION" != "$TAG" ]; then
             echo "Version mismatch: Cargo.toml=$VERSION, tag=$TAG"
@@ -94,10 +94,10 @@ jobs:
           fi
 
       - name: Dry-run publish
-        run: cd streaming-crypto/streaming-crypto && cargo publish --dry-run
+        run: cd $GITHUB_WORKSPACE/streaming-crypto && cargo publish --dry-run
 
       - name: Publish crate
-        run: cd streaming-crypto/streaming-crypto && cargo publish
+        run: cd $GITHUB_WORKSPACE/streaming-crypto && cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -123,12 +123,12 @@ jobs:
 
       - name: Build wheel with PyO3 feature
         run: |
-          cd streaming-crypto/streaming-crypto
+          cd $GITHUB_WORKSPACE/streaming-crypto
           maturin build --release --features pyo3-api
 
       - name: Publish to PyPI
         run: |
-          cd streaming-crypto/streaming-crypto
+          cd $GITHUB_WORKSPACE/streaming-crypto
           maturin publish --release --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
 
 ### 🔑 Key points
