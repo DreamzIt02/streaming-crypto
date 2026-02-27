@@ -127,7 +127,7 @@ jobs:
           mv Cargo.toml.tmp Cargo.toml
 
       - name: Verify version matches tag
-        working-directory: streaming-crypto/streaming-crypto
+        working-directory: streaming-crypto
         shell: bash
         run: |
           VERSION=$(grep '^version' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
@@ -138,17 +138,17 @@ jobs:
           fi
 
       - name: Package validation
-        working-directory: streaming-crypto/streaming-crypto
+        working-directory: streaming-crypto
         shell: bash
         run: cargo package --allow-dirty --list
 
       - name: Dry-run publish
-        working-directory: streaming-crypto/streaming-crypto
+        working-directory: streaming-crypto
         shell: bash
         run: cargo publish --dry-run
 
       - name: Publish crate
-        working-directory: streaming-crypto/streaming-crypto
+        working-directory: streaming-crypto
         shell: bash
         run: cargo publish
         env:
@@ -180,12 +180,12 @@ jobs:
         run: pip install maturin
 
       - name: Build wheel with PyO3 feature
-        working-directory: streaming-crypto/streaming-crypto
+        working-directory: streaming-crypto
         shell: bash
         run: maturin build --release --features pyo3-api
 
       - name: Publish to PyPI
-        working-directory: streaming-crypto/streaming-crypto
+        working-directory: streaming-crypto
         shell: bash
         run: maturin publish --release --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
 
