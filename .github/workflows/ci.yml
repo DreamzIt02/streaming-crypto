@@ -15,7 +15,7 @@ jobs:
     name: Build & Test (Rust + FFI + PyO3)
     runs-on: ${{ matrix.os }}
     env:
-      PYO3_PYTHON: python3.12
+      PYO3_PYTHON: ${{ env.pythonLocation }}/python
 
     strategy:
       matrix:
