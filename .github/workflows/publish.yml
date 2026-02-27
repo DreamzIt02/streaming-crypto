@@ -85,24 +85,8 @@ jobs:
           cp pyo3-api/README.md streaming-crypto/streaming-crypto/src/pyo3_api/README.md
           cp pyo3-api/.gitignore streaming-crypto/streaming-crypto/src/pyo3_api/.gitignore
 
-      # Replace features block with publish version
-      - name: Replace features block for publish
-        working-directory: streaming-crypto
-        shell: bash
-        run: |
-          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
-          test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
-          awk '
-            BEGIN { in_block=0 }
-            /^# --- FEATURES DEV START ---/ { in_block=1; system("cat Cargo.publish.features"); next }
-            /^# --- FEATURES DEV END ---/ { in_block=0; next }
-            in_block { next }
-            { print }
-          ' Cargo.toml > Cargo.toml.tmp
-          mv Cargo.toml.tmp Cargo.toml
-
       - name: Replace modules block for publish
-        working-directory: streaming-crypto/streaming-crypto/src
+        working-directory: streaming-crypto/src
         shell: bash
         run: |
           awk '
@@ -129,7 +113,23 @@ jobs:
             in_block { next }
             { print }
           ' lib.rs > lib.rs.tmp && mv lib.rs.tmp lib.rs
-          
+
+      # Replace features block with publish version
+      - name: Replace features block for publish
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+          test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
+          awk '
+            BEGIN { in_block=0 }
+            /^# --- FEATURES DEV START ---/ { in_block=1; system("cat Cargo.publish.features"); next }
+            /^# --- FEATURES DEV END ---/ { in_block=0; next }
+            in_block { next }
+            { print }
+          ' Cargo.toml > Cargo.toml.tmp
+          mv Cargo.toml.tmp Cargo.toml
+
       # Replace dependencies block with publish version + common block
       - name: Replace dependencies block for publish
         working-directory: streaming-crypto
