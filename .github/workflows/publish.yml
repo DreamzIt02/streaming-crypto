@@ -130,7 +130,7 @@ jobs:
         working-directory: streaming-crypto
         shell: bash
         run: |
-          VERSION=$(grep '^version' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          VERSION=$(grep -E '^\s*version\s*=' Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')
           TAG=${GITHUB_REF#refs/tags/v}
           if [ "$VERSION" != "$TAG" ]; then
             echo "Version mismatch: Cargo.toml=$VERSION, tag=$TAG"
