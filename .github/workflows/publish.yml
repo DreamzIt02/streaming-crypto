@@ -53,30 +53,36 @@ jobs:
       # Replace features block with publish version
       - name: Replace features block for publish
         run: |
-          awk '
-            BEGIN { in_block=0 }
-            /^# --- FEATURES DEV START ---/ { in_block=1; system("cat streaming-crypto/streaming-crypto/Cargo.publish.features"); next }
-            /^# --- FEATURES DEV END ---/ { in_block=0; next }
-            in_block { next }
-            { print }
-          ' streaming-crypto/streaming-crypto/Cargo.toml > streaming-crypto/streaming-crypto/Cargo.toml.tmp
-          mv streaming-crypto/streaming-crypto/Cargo.toml.tmp streaming-crypto/streaming-crypto/Cargo.toml
+          ( cd streaming-crypto/streaming-crypto
+            test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+            test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
+            awk '
+              BEGIN { in_block=0 }
+              /^# --- FEATURES DEV START ---/ { in_block=1; system("cat Cargo.publish.features"); next }
+              /^# --- FEATURES DEV END ---/ { in_block=0; next }
+              in_block { next }
+              { print }
+            ' Cargo.toml > Cargo.toml.tmp
+            mv Cargo.toml.tmp Cargo.toml )
 
       # Replace dependencies block with publish version + common block
       - name: Replace dependencies block for publish
         run: |
-          awk '
-            BEGIN { in_block=0 }
-            /^# --- DEPENDENCIES DEV START ---/ { in_block=1; system("cat streaming-crypto/streaming-crypto/Cargo.publish.dependencies"); next }
-            /^# --- DEPENDENCIES DEV END ---/ {
-              in_block=0;
-              system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" streaming-crypto/Cargo.toml");
-              next
-            }
-            in_block { next }
-            { print }
-          ' streaming-crypto/streaming-crypto/Cargo.toml > streaming-crypto/streaming-crypto/Cargo.toml.tmp
-          mv streaming-crypto/streaming-crypto/Cargo.toml.tmp streaming-crypto/streaming-crypto/Cargo.toml
+          ( cd streaming-crypto/streaming-crypto
+            test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+            test -f Cargo.publish.dependencies || { echo "Cargo.publish.dependencies not found"; exit 1; }
+            awk '
+              BEGIN { in_block=0 }
+              /^# --- DEPENDENCIES DEV START ---/ { in_block=1; system("cat Cargo.publish.dependencies"); next }
+              /^# --- DEPENDENCIES DEV END ---/ {
+                in_block=0;
+                system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" ../Cargo.toml");
+                next
+              }
+              in_block { next }
+              { print }
+            ' Cargo.toml > Cargo.toml.tmp
+            mv Cargo.toml.tmp Cargo.toml )
 
       - name: Verify version matches tag
         run: |

@@ -39,25 +39,29 @@ jobs:
       # Ensure dev manifest blocks are in place
       - name: Ensure dev features block
         run: |
-          awk '
-            BEGIN { in_block=0 }
-            /^# --- FEATURES DEV START ---/ { in_block=1; print; next }
-            /^# --- FEATURES DEV END ---/ { in_block=0; print; next }
-            in_block { next }
-            { print }
-          ' streaming-crypto/streaming-crypto/Cargo.toml > streaming-crypto/streaming-crypto/Cargo.toml.tmp
-          mv streaming-crypto/streaming-crypto/Cargo.toml.tmp streaming-crypto/streaming-crypto/Cargo.toml
+          ( cd streaming-crypto/streaming-crypto
+            test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+            awk '
+              BEGIN { in_block=0 }
+              /^# --- FEATURES DEV START ---/ { in_block=1; print; next }
+              /^# --- FEATURES DEV END ---/ { in_block=0; print; next }
+              in_block { next }
+              { print }
+            ' Cargo.toml > Cargo.toml.tmp
+            mv Cargo.toml.tmp Cargo.toml )
 
       - name: Ensure dev dependencies block
         run: |
-          awk '
-            BEGIN { in_block=0 }
-            /^# --- DEPENDENCIES DEV START ---/ { in_block=1; print; next }
-            /^# --- DEPENDENCIES DEV END ---/ { in_block=0; print; next }
-            in_block { next }
-            { print }
-          ' streaming-crypto/streaming-crypto/Cargo.toml > streaming-crypto/streaming-crypto/Cargo.toml.tmp
-          mv streaming-crypto/streaming-crypto/Cargo.toml.tmp streaming-crypto/streaming-crypto/Cargo.toml
+          ( cd streaming-crypto/streaming-crypto
+            test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+            awk '
+              BEGIN { in_block=0 }
+              /^# --- DEPENDENCIES DEV START ---/ { in_block=1; print; next }
+              /^# --- DEPENDENCIES DEV END ---/ { in_block=0; print; next }
+              in_block { next }
+              { print }
+            ' Cargo.toml > Cargo.toml.tmp
+            mv Cargo.toml.tmp Cargo.toml )
 
       - name: Build core-api
         run: cargo build -p core-api
