@@ -56,7 +56,7 @@ jobs:
           cp core-api/.gitignore streaming-crypto/streaming-crypto/src/core_api/.gitignore
 
       # Copy ffi-api
-      - name: Copy ffi-api sources
+      - name: Copy ffi-api sources + metadata
         run: |
           rm -rf streaming-crypto/streaming-crypto/src/ffi_api
           mkdir -p streaming-crypto/streaming-crypto/src/ffi_api
@@ -65,11 +65,11 @@ jobs:
           cp -r ffi-api/src streaming-crypto/streaming-crypto/src/ffi_api/
 
           # copy crate-level metadata (overwrite target crate root files)
-          cp ffi-api/README.md streaming-crypto/streaming-crypto/src/ffi-api/README.md
-          cp ffi-api/.gitignore streaming-crypto/streaming-crypto/src/ffi-api/.gitignore
+          cp ffi-api/README.md streaming-crypto/streaming-crypto/src/ffi_api/README.md
+          cp ffi-api/.gitignore streaming-crypto/streaming-crypto/src/ffi_api/.gitignore
 
       # Copy pyo3-api
-      - name: Copy pyo3-api sources
+      - name: Copy pyo3-api sources + metadata
         run: |
           rm -rf streaming-crypto/streaming-crypto/src/pyo3_api
           mkdir -p streaming-crypto/streaming-crypto/src/pyo3_api
@@ -78,8 +78,8 @@ jobs:
           cp -r pyo3-api/src streaming-crypto/streaming-crypto/src/pyo3_api/
 
           # copy crate-level metadata (overwrite target crate root files)
-          cp pyo3-api/README.md streaming-crypto/streaming-crypto/src/pyo3-api/README.md
-          cp pyo3-api/.gitignore streaming-crypto/streaming-crypto/src/pyo3-api/.gitignore
+          cp pyo3-api/README.md streaming-crypto/streaming-crypto/src/pyo3_api/README.md
+          cp pyo3-api/.gitignore streaming-crypto/streaming-crypto/src/pyo3_api/.gitignore
 
       # Replace features block with publish version
       - name: Replace features block for publish
