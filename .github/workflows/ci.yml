@@ -80,14 +80,26 @@ jobs:
       - name: Test pyo3-api
         run: cargo test -p pyo3-api
 
-      - name: Workspace check
-        run: cargo check --workspace --all-features
+      - name: Workspace check (core-api)
+        run: cargo check --workspace --no-default-features --features core-api
 
-      - name: Test workspace (default features)
-        run: cargo test --workspace
+      - name: Workspace check (ffi-api)
+        run: cargo check --workspace --no-default-features --features ffi-api
+      
+      - name: Workspace check (pyo3-api)
+        run: cargo check --workspace --no-default-features --features pyo3-api
+
+      - name: Test workspace (core-api)
+        run: cargo test --workspace --no-default-features --features core-api
+
+      - name: Test workspace (ffi-api)
+        run: cargo test --workspace --no-default-features --features ffi-api
+
+      - name: Test workspace (pyo3-api)
+        run: cargo test --workspace --no-default-features --features pyo3-api
 
       - name: Build streaming-crypto (Rust API default)
-        run: cargo build -p streaming-crypto --features core-api
+        run: cargo build -p streaming-crypto --no-default-features --features core-api
 
       - name: Build streaming-crypto (FFI API feature)
         run: cargo build -p streaming-crypto --no-default-features --features ffi-api
@@ -96,7 +108,7 @@ jobs:
         run: cargo build -p streaming-crypto --no-default-features --features pyo3-api
 
       - name: Run integration tests streaming-crypto re-exports (Rust API)
-        run: cargo test -p streaming-crypto --features core-api
+        run: cargo test -p streaming-crypto --no-default-features --features core-api
 
       - name: Run integration tests streaming-crypto re-exports (FFI API)
         run: cargo test -p streaming-crypto --no-default-features --features ffi-api
@@ -105,7 +117,7 @@ jobs:
         run: cargo test -p streaming-crypto --no-default-features --features pyo3-api
       
       - name: Run doctests (Rust API)
-        run: cargo test -p streaming-crypto --features core-api --doc
+        run: cargo test -p streaming-crypto --no-default-features --features core-api --doc
 
       - name: Run doctests (FFI API)
         run: cargo test -p streaming-crypto --no-default-features --features ffi-api --doc
