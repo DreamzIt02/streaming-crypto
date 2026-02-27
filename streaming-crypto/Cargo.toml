@@ -22,9 +22,9 @@ pyo3-api = ["dep:pyo3-api"]
 # This block will be replaced with Publish Block, content from Cargo.publish.dependencies
 # Any common dependencies for development and publish must be added at the end of this block
 [dependencies]
-core-api = { path = "../../core-api", optional = true }
-ffi-api  = { path = "../../ffi-api",  optional = true }
-pyo3-api = { path = "../../pyo3-api", optional = true }
+core-api = { path = "../core-api", optional = true }
+ffi-api  = { path = "../ffi-api",  optional = true }
+pyo3-api = { path = "../pyo3-api", optional = true }
 
 pyo3 = { version = "0.22", optional = true, features = ["auto-initialize"] }  # no extension-module
 # --- DEPENDENCIES DEV END ---
