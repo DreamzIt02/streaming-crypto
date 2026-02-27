@@ -89,6 +89,12 @@ jobs:
       - name: Test pyo3-api
         run: cargo test -p pyo3-api
 
+      - name: Build streaming-crypto
+        run: cargo build -p streaming-crypto
+
+      - name: Test streaming-crypto
+        run: cargo test -p streaming-crypto
+
       - name: Run integration tests streaming-crypto re-exports (Rust API)
         working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo test -p streaming-crypto --features core-api
