@@ -14,8 +14,6 @@ jobs:
   build-test:
     name: Build & Test (Rust + FFI + PyO3)
     runs-on: ${{ matrix.os }}
-    env:
-      PYO3_PYTHON: ${{ env.pythonLocation }}/python
 
     strategy:
       matrix:
@@ -32,9 +30,14 @@ jobs:
           toolchain: ${{ matrix.rust }}
 
       - name: Install Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          
+      - name: Export PYO3_PYTHON
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
       - name: Cache cargo registry
         uses: actions/cache@v4
