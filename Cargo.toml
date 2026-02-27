@@ -8,6 +8,7 @@ members = [
 
 resolver = "2"
 
+[workspace.dependencies]
 # --- DEPENDENCIES COMMON START ---
 rand = "0.8"
 aes = "0.7"

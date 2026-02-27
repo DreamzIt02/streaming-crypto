@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       PYO3_PYTHON: python3.12
-      
+
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -90,30 +90,39 @@ jobs:
         run: cargo test -p pyo3-api
 
       - name: Run integration tests streaming-crypto re-exports (Rust API)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo test -p streaming-crypto --features core-api
 
       - name: Run integration tests streaming-crypto re-exports (FFI API)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo test -p streaming-crypto --no-default-features --features ffi-api
 
       - name: Run integration tests streaming-crypto re-exports (PyO3 API)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo test -p streaming-crypto --no-default-features --features pyo3-api
       
       - name: Run doctests (Rust API)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo test -p streaming-crypto --features core-api --doc
 
       - name: Run doctests (FFI API)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo test -p streaming-crypto --no-default-features --features ffi-api --doc
 
       - name: Run doctests (PyO3 API)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo test -p streaming-crypto --no-default-features --features pyo3-api --doc
 
       - name: Build streaming-crypto (Rust API default)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo build -p streaming-crypto --features core-api
 
       - name: Build streaming-crypto (FFI API feature)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo build -p streaming-crypto --no-default-features --features ffi-api
 
       - name: Build streaming-crypto (PyO3 API feature)
+        working-directory: ${{ github.workspace }}/streaming-crypto
         run: cargo build -p streaming-crypto --no-default-features --features pyo3-api
 
 ### 🔑 Key points
