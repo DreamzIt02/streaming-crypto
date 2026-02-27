@@ -1,6 +1,6 @@
 [package]
 name        = "streaming-crypto"
-version     = "0.0.1"
+version     = "0.0.2"
 edition     = "2021"
 license     = "MIT"
 description = "Cryptographic library with optional FFI and Python bindings"
