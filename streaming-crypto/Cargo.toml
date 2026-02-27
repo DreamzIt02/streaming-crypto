@@ -15,7 +15,7 @@ categories  = ["cryptography", "api-bindings"]
 default  = ["core-api"]
 core-api = ["dep:core-api"]
 ffi-api  = ["dep:ffi-api"]
-pyo3-api = ["dep:pyo3-api"]
+pyo3-api = ["dep:pyo3-api", "pyo3"]
 # --- FEATURES DEV END ---
 
 # --- DEPENDENCIES DEV START ---
@@ -28,9 +28,6 @@ pyo3-api = { path = "../pyo3-api", optional = true }
 
 pyo3 = { version = "0.22", optional = true, features = ["auto-initialize"] }  # no extension-module
 # --- DEPENDENCIES DEV END ---
-
-[dev-dependencies]
-pyo3 = { version = "0.22", features = ["auto-initialize"] }
 
 [lib]
 name       = "streaming_crypto"

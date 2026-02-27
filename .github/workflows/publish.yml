@@ -16,15 +16,22 @@ jobs:
     name: Publish to crates.io
     runs-on: ubuntu-latest
 
-    env:
-      PYO3_PYTHON: python3.12
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Export PYO3_PYTHON
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -34,73 +41,116 @@ jobs:
             ~/.cargo/git
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # Copy sources from subprojects into streaming-crypto crate
-      - name: Copy core-api sources
+      # Copy sources from sub-projects into streaming-crypto crate
+      # Copy core-api
+      - name: Copy core-api sources + metadata
         run: |
-          rm -rf $GITHUB_WORKSPACE/streaming-crypto/src/core_api
-          mkdir -p $GITHUB_WORKSPACE/streaming-crypto/src/core_api
-          cp -r $GITHUB_WORKSPACE/core-api/* $GITHUB_WORKSPACE/streaming-crypto/src/core_api/
+          rm -rf streaming-crypto/streaming-crypto/src/core_api
+          mkdir -p streaming-crypto/streaming-crypto/src/core_api
 
+          # copy only source files
+          cp -r core-api/src/* streaming-crypto/streaming-crypto/src/core_api/src/
+
+          # copy crate-level metadata (overwrite target crate root files)
+          cp core-api/README.md streaming-crypto/streaming-crypto/src/core_api/README.md
+          cp core-api/.gitignore streaming-crypto/streaming-crypto/src/core_api/.gitignore
+
+      # Copy ffi-api
       - name: Copy ffi-api sources
         run: |
-          rm -rf $GITHUB_WORKSPACE/streaming-crypto/src/ffi_api
-          mkdir -p $GITHUB_WORKSPACE/streaming-crypto/src/ffi_api
-          cp -r $GITHUB_WORKSPACE/ffi-api/* $GITHUB_WORKSPACE/streaming-crypto/src/ffi_api/
+          rm -rf streaming-crypto/streaming-crypto/src/ffi_api
+          mkdir -p streaming-crypto/streaming-crypto/src/ffi_api
 
+          # copy only source files
+          cp -r ffi-api/src/* streaming-crypto/streaming-crypto/src/ffi_api/src/
+
+          # copy crate-level metadata (overwrite target crate root files)
+          cp ffi-api/README.md streaming-crypto/streaming-crypto/src/ffi-api/README.md
+          cp ffi-api/.gitignore streaming-crypto/streaming-crypto/src/ffi-api/.gitignore
+
+      # Copy pyo3-api
       - name: Copy pyo3-api sources
         run: |
-          rm -rf $GITHUB_WORKSPACE/streaming-crypto/src/pyo3_api
-          mkdir -p $GITHUB_WORKSPACE/streaming-crypto/src/pyo3_api
-          cp -r $GITHUB_WORKSPACE/pyo3-api/* $GITHUB_WORKSPACE/streaming-crypto/src/pyo3_api/
+          rm -rf streaming-crypto/streaming-crypto/src/pyo3_api
+          mkdir -p streaming-crypto/streaming-crypto/src/pyo3_api
+
+          # copy only source files
+          cp -r pyo3-api/src/* streaming-crypto/streaming-crypto/src/pyo3_api/src/
+
+          # copy crate-level metadata (overwrite target crate root files)
+          cp pyo3-api/README.md streaming-crypto/streaming-crypto/src/pyo3-api/README.md
+          cp pyo3-api/.gitignore streaming-crypto/streaming-crypto/src/pyo3-api/.gitignore
 
       # Replace features block with publish version
       - name: Replace features block for publish
+        working-directory: streaming-crypto
+        shell: bash
         run: |
-          ( cd $GITHUB_WORKSPACE/streaming-crypto
-            test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
-            test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
-            awk '
-              BEGIN { in_block=0 }
-              /^# --- FEATURES DEV START ---/ { in_block=1; system("cat Cargo.publish.features"); next }
-              /^# --- FEATURES DEV END ---/ { in_block=0; next }
-              in_block { next }
-              { print }
-            ' Cargo.toml > Cargo.toml.tmp
-            mv Cargo.toml.tmp Cargo.toml )
+          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+          test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
+          awk '
+            BEGIN { in_block=0 }
+            /^# --- FEATURES DEV START ---/ { in_block=1; system("cat Cargo.publish.features"); next }
+            /^# --- FEATURES DEV END ---/ { in_block=0; next }
+            in_block { next }
+            { print }
+          ' Cargo.toml > Cargo.toml.tmp
+          mv Cargo.toml.tmp Cargo.toml
 
       # Replace dependencies block with publish version + common block
       - name: Replace dependencies block for publish
+        working-directory: streaming-crypto
+        shell: bash
         run: |
-          ( cd $GITHUB_WORKSPACE/streaming-crypto
-            test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
-            test -f Cargo.publish.dependencies || { echo "Cargo.publish.dependencies not found"; exit 1; }
-            awk '
-              BEGIN { in_block=0 }
-              /^# --- DEPENDENCIES DEV START ---/ { in_block=1; system("cat Cargo.publish.dependencies"); next }
-              /^# --- DEPENDENCIES DEV END ---/ {
-                in_block=0;
-                system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" $GITHUB_WORKSPACE/Cargo.toml");
-                next
-              }
-              in_block { next }
-              { print }
-            ' Cargo.toml > Cargo.toml.tmp
-            mv Cargo.toml.tmp Cargo.toml )
+          # Ensure files exist
+          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+          test -f Cargo.publish.dependencies || { echo "Cargo.publish.dependencies not found"; exit 1; }
+
+          # Replace dev block with publish version + append common dependencies from workspace
+          awk '
+            BEGIN { in_block=0 }
+            /^# --- DEPENDENCIES DEV START ---/ { 
+              in_block=1
+              system("cat Cargo.publish.dependencies")  # insert publish dependencies
+              next
+            }
+            /^# --- DEPENDENCIES DEV END ---/ {
+              in_block=0
+              # append common dependencies from workspace Cargo.toml
+              system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" ../Cargo.toml")
+              next
+            }
+            in_block { next }
+            { print }
+          ' Cargo.toml > Cargo.toml.tmp
+
+          mv Cargo.toml.tmp Cargo.toml
 
       - name: Verify version matches tag
+        working-directory: streaming-crypto/streaming-crypto
+        shell: bash
         run: |
-          VERSION=$(grep '^version' $GITHUB_WORKSPACE/streaming-crypto/Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          VERSION=$(grep '^version' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
           TAG=${GITHUB_REF#refs/tags/v}
           if [ "$VERSION" != "$TAG" ]; then
             echo "Version mismatch: Cargo.toml=$VERSION, tag=$TAG"
             exit 1
           fi
 
+      - name: Package validation
+        working-directory: streaming-crypto/streaming-crypto
+        shell: bash
+        run: cargo package --allow-dirty --list
+
       - name: Dry-run publish
-        run: cd $GITHUB_WORKSPACE/streaming-crypto && cargo publish --dry-run
+        working-directory: streaming-crypto/streaming-crypto
+        shell: bash
+        run: cargo publish --dry-run
 
       - name: Publish crate
-        run: cd $GITHUB_WORKSPACE/streaming-crypto && cargo publish
+        working-directory: streaming-crypto/streaming-crypto
+        shell: bash
+        run: cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -108,9 +158,6 @@ jobs:
     name: Build & Publish Python Wheel
     runs-on: ubuntu-latest
     needs: publish-cratesio   # ensure crates.io publish succeeds first
-
-    env:
-      PYO3_PYTHON: python3.12
 
     steps:
       - name: Checkout repository
@@ -120,22 +167,27 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
+      - name: Export PYO3_PYTHON
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
       - name: Install maturin
         run: pip install maturin
 
       - name: Build wheel with PyO3 feature
-        run: |
-          cd $GITHUB_WORKSPACE/streaming-crypto
-          maturin build --release --features pyo3-api
+        working-directory: streaming-crypto/streaming-crypto
+        shell: bash
+        run: maturin build --release --features pyo3-api
 
       - name: Publish to PyPI
-        run: |
-          cd $GITHUB_WORKSPACE/streaming-crypto
-          maturin publish --release --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
+        working-directory: streaming-crypto/streaming-crypto
+        shell: bash
+        run: maturin publish --release --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
 
 ### 🔑 Key points
 # - Workspace manifest → `streaming-crypto/Cargo.toml`
