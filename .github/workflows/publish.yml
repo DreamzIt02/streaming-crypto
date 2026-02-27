@@ -48,12 +48,16 @@ jobs:
           rm -rf streaming-crypto/streaming-crypto/src/core_api
           mkdir -p streaming-crypto/streaming-crypto/src/core_api
 
-          # copy the whole `src` folder directly
-          cp -r core-api/src streaming-crypto/streaming-crypto/src/core_api/
+          # Copy the whole src folder into the module
+          cp -r core-api/src/* streaming-crypto/streaming-crypto/src/core_api/
 
           # copy crate-level metadata (overwrite target crate root files)
           cp core-api/README.md streaming-crypto/streaming-crypto/src/core_api/README.md
           cp core-api/.gitignore streaming-crypto/streaming-crypto/src/core_api/.gitignore
+
+          # must rename lib.rs → mod.rs inside that copied folder
+          mv streaming-crypto/streaming-crypto/src/core_api/lib.rs \
+            streaming-crypto/streaming-crypto/src/core_api/mod.rs
 
       # Copy ffi-api
       - name: Copy ffi-api sources + metadata
@@ -61,8 +65,8 @@ jobs:
           rm -rf streaming-crypto/streaming-crypto/src/ffi_api
           mkdir -p streaming-crypto/streaming-crypto/src/ffi_api
 
-          # copy the whole `src` folder directly
-          cp -r ffi-api/src streaming-crypto/streaming-crypto/src/ffi_api/
+          # Copy the whole src folder into the module
+          cp -r ffi-api/src/* streaming-crypto/streaming-crypto/src/ffi_api/
 
           # copy crate-level metadata (overwrite target crate root files)
           cp ffi-api/README.md streaming-crypto/streaming-crypto/src/ffi_api/README.md
@@ -74,8 +78,8 @@ jobs:
           rm -rf streaming-crypto/streaming-crypto/src/pyo3_api
           mkdir -p streaming-crypto/streaming-crypto/src/pyo3_api
 
-          # copy the whole `src` folder directly
-          cp -r pyo3-api/src streaming-crypto/streaming-crypto/src/pyo3_api/
+          # Copy the whole src folder into the module
+          cp -r pyo3-api/src/* streaming-crypto/streaming-crypto/src/pyo3_api/
 
           # copy crate-level metadata (overwrite target crate root files)
           cp pyo3-api/README.md streaming-crypto/streaming-crypto/src/pyo3_api/README.md
@@ -97,6 +101,35 @@ jobs:
           ' Cargo.toml > Cargo.toml.tmp
           mv Cargo.toml.tmp Cargo.toml
 
+      - name: Replace modules block for publish
+        working-directory: streaming-crypto/streaming-crypto/src
+        shell: bash
+        run: |
+          awk '
+            BEGIN { in_block=0 }
+            /^\/\/ --- MODULES DEV START ---/ {
+              in_block=1
+              print "// --- MODULES DEV START ---"
+              # Insert publish modules here
+              print "#[cfg(feature = \"core-api\")]"
+              print "pub mod core_api;"
+              print ""
+              print "#[cfg(feature = \"ffi-api\")]"
+              print "pub mod ffi_api;"
+              print ""
+              print "#[cfg(feature = \"pyo3-api\")]"
+              print "pub mod pyo3_api;"
+              next
+            }
+            /^\/\/ --- MODULES DEV END ---/ {
+              in_block=0
+              print "// --- MODULES DEV END ---"
+              next
+            }
+            in_block { next }
+            { print }
+          ' lib.rs > lib.rs.tmp && mv lib.rs.tmp lib.rs
+          
       # Replace dependencies block with publish version + common block
       - name: Replace dependencies block for publish
         working-directory: streaming-crypto
