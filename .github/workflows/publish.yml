@@ -145,12 +145,12 @@ jobs:
       - name: Dry-run publish
         working-directory: streaming-crypto
         shell: bash
-        run: cargo publish --dry-run
+        run: cargo publish --allow-dirty --dry-run
 
       - name: Publish crate
         working-directory: streaming-crypto
         shell: bash
-        run: cargo publish
+        run: cargo publish --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
