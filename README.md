@@ -1,6 +1,6 @@
 # streaming-crypto
 
-[![CI](https://github.com/username/streaming-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/username/streaming-crypto/actions/workflows/ci.yml)
+[![CI](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/streaming-crypto.svg)](https://crates.io/crates/streaming-crypto)
 [![Docs.rs](https://docs.rs/streaming-crypto/badge.svg)](https://docs.rs/streaming-crypto)
 [![PyPI](https://img.shields.io/pypi/v/streaming-crypto.svg)](https://pypi.org/project/streaming-crypto/)
