@@ -1,0 +1,9 @@
+[package]
+name    = "pyo3-api"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+core-api = { path = "../core-api" }
+pyo3 = { version = "0.22", features = ["auto-initialize"] }  # no extension-module

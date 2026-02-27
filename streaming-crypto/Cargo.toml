@@ -1,0 +1,34 @@
+[package]
+name        = "streaming-crypto"
+version     = "0.0.1"
+edition     = "2021"
+license     = "MIT"
+description = "Cryptographic library with optional FFI and Python bindings"
+repository  = "https://github.com/username/streaming-crypto"
+keywords    = ["crypto", "ffi", "rust", "python", "bindings"]
+categories  = ["cryptography", "api-bindings"]
+
+# --- FEATURES DEV START ---
+# This block will be replaced with Publish Block, content from Cargo.publish.features
+# Any common features for development and publish must be added at the end of this block
+[features] 
+default  = ["core-api"]
+core-api = ["dep:core-api"]
+ffi-api  = ["dep:ffi-api"]
+pyo3-api = ["dep:pyo3-api"]
+# --- FEATURES DEV END ---
+
+# --- DEPENDENCIES DEV START ---
+# This block will be replaced with Publish Block, content from Cargo.publish.dependencies
+# Any common dependencies for development and publish must be added at the end of this block
+[dependencies]
+core-api = { path = "../core-api", optional = true }
+ffi-api  = { path = "../ffi-api",  optional = true }
+pyo3-api = { path = "../pyo3-api", optional = true }
+
+pyo3 = { version = "0.22", optional = true, features = ["auto-initialize"] }  # no extension-module
+# --- DEPENDENCIES DEV END ---
+
+[lib]
+name       = "streaming_crypto"
+crate-type = ["rlib", "cdylib"]

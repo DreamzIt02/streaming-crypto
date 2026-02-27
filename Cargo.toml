@@ -1,0 +1,15 @@
+[workspace]
+members = [
+    "core-api",
+    "ffi-api",
+    "pyo3-api",
+    "streaming-crypto"
+]
+
+resolver = "2"
+
+# --- DEPENDENCIES COMMON START ---
+rand = "0.8"
+aes = "0.7"
+sha2 = "0.10"
+# --- DEPENDENCIES COMMON END ---

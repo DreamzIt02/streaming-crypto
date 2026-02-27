@@ -1,0 +1,4 @@
+# --- DEPENDENCIES PUBLISH START ---
+[dependencies]
+pyo3 = { version = "0.22", optional = true, features = ["auto-initialize"] }
+# --- DEPENDENCIES PUBLISH END ---

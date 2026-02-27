@@ -1,0 +1,109 @@
+# **CI workflow** for our project structure (`workspace = streaming-crypto`, crate at `streaming-crypto/streaming-crypto`).
+# **Build/test commands**: `cargo build -p crate-name` works from the workspace root.
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    name: Build & Test (Rust + FFI + PyO3)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      # Ensure dev manifest blocks are in place
+      - name: Ensure dev features block
+        run: |
+          awk '
+            BEGIN { in_block=0 }
+            /^# --- FEATURES DEV START ---/ { in_block=1; print; next }
+            /^# --- FEATURES DEV END ---/ { in_block=0; print; next }
+            in_block { next }
+            { print }
+          ' streaming-crypto/streaming-crypto/Cargo.toml > streaming-crypto/streaming-crypto/Cargo.toml.tmp
+          mv streaming-crypto/streaming-crypto/Cargo.toml.tmp streaming-crypto/streaming-crypto/Cargo.toml
+
+      - name: Ensure dev dependencies block
+        run: |
+          awk '
+            BEGIN { in_block=0 }
+            /^# --- DEPENDENCIES DEV START ---/ { in_block=1; print; next }
+            /^# --- DEPENDENCIES DEV END ---/ { in_block=0; print; next }
+            in_block { next }
+            { print }
+          ' streaming-crypto/streaming-crypto/Cargo.toml > streaming-crypto/streaming-crypto/Cargo.toml.tmp
+          mv streaming-crypto/streaming-crypto/Cargo.toml.tmp streaming-crypto/streaming-crypto/Cargo.toml
+
+      - name: Build core-api
+        run: cargo build -p core-api
+
+      - name: Test core-api
+        run: cargo test -p core-api
+
+      - name: Build ffi-api
+        run: cargo build -p ffi-api
+
+      - name: Test ffi-api
+        run: cargo test -p ffi-api
+
+      - name: Build pyo3-api
+        run: cargo build -p pyo3-api
+
+      - name: Test pyo3-api
+        run: cargo test -p pyo3-api
+
+      - name: Run integration tests streaming-crypto re-exports (Rust API)
+        run: cargo test -p streaming-crypto --features core-api
+
+      - name: Run integration tests streaming-crypto re-exports (FFI API)
+        run: cargo test -p streaming-crypto --no-default-features --features ffi-api
+
+      - name: Run integration tests streaming-crypto re-exports (PyO3 API)
+        run: cargo test -p streaming-crypto --no-default-features --features pyo3-api
+      
+      - name: Run doctests (Rust API)
+        run: cargo test -p streaming-crypto --features core-api --doc
+
+      - name: Run doctests (FFI API)
+        run: cargo test -p streaming-crypto --no-default-features --features ffi-api --doc
+
+      - name: Run doctests (PyO3 API)
+        run: cargo test -p streaming-crypto --no-default-features --features pyo3-api --doc
+
+      - name: Build streaming-crypto (Rust API default)
+        run: cargo build -p streaming-crypto --features core-api
+
+      - name: Build streaming-crypto (FFI API feature)
+        run: cargo build -p streaming-crypto --no-default-features --features ffi-api
+
+      - name: Build streaming-crypto (PyO3 API feature)
+        run: cargo build -p streaming-crypto --no-default-features --features pyo3-api
+
+### 🔑 Key points
+# - **two steps** (`Ensure dev features block` and `Ensure dev dependencies block`) that guarantee the dev blocks are present in `Cargo.toml` during CI runs.  
+# - This way, CI always tests against the dev configuration with path dependencies.  
+# - The publish workflow will later replace those blocks with the publish versions.
