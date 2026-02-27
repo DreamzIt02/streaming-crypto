@@ -29,6 +29,9 @@ pyo3-api = { path = "../pyo3-api", optional = true }
 pyo3 = { version = "0.22", optional = true, features = ["auto-initialize"] }  # no extension-module
 # --- DEPENDENCIES DEV END ---
 
+[target.'cfg(feature = "pyo3-api")'.dev-dependencies]
+pyo3 = { version = "0.22", features = ["auto-initialize"] }
+
 [lib]
 name       = "streaming_crypto"
 crate-type = ["rlib", "cdylib"]
