@@ -19,6 +19,9 @@ jobs:
       is_prerelease: ${{ steps.prerelease_check.outputs.is_prerelease }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       # -------------------------------------------------
       # 1️⃣ Strict SemVer validation (no leading zeros)
       # -------------------------------------------------
@@ -205,11 +208,16 @@ jobs:
 
           mv Cargo.toml.tmp Cargo.toml
 
+      - name: Prepare crate for publishing
+        run: |
+          mkdir -p streaming-crypto/prepared-crate
+          cp -r streaming-crypto/streaming-crypto/* streaming-crypto/prepared-crate/
+
       - name: Upload prepared crate
         uses: actions/upload-artifact@v4
         with:
           name: prepared-crate
-          path: streaming-crypto
+          path: streaming-crypto/prepared-crate
 
   publish:
     if: startsWith(github.ref, 'refs/tags/')
@@ -218,7 +226,13 @@ jobs:
     needs: prepare-publish
 
     steps:
-      # 1️⃣ Get prepared crate for publishing
+      # 1️⃣ Fresh checkout for changelog
+      - name: Checkout repository (for git history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2️⃣ Get prepared crate for publishing
       - name: Download prepared crate
         uses: actions/download-artifact@v4
         with:
@@ -277,12 +291,6 @@ jobs:
       # -------------------------------------------------
       # 7️⃣ Generate changelog (stable only)
       # -------------------------------------------------
-      # 2️⃣ Fresh checkout for changelog
-      - name: Checkout repository (for git history)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Generate changelog
         if: steps.prerelease_check.outputs.is_prerelease == 'false'
         id: changelog
@@ -314,11 +322,23 @@ jobs:
     needs: [prepare-publish, publish]   # requires both
 
     steps:
+      # 1️⃣ Fresh checkout for changelog
+      - name: Checkout repository (for git history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2️⃣ Get prepared crate for publishing
       - name: Download prepared crate
         uses: actions/download-artifact@v4
         with:
           name: prepared-crate
-          path: streaming-crypto/streaming-crypto
+          path: prepared-crate
+
+      - name: Move prepared crate into repo
+        run: |
+          rm -rf streaming-crypto/streaming-crypto
+          mv prepared-crate streaming-crypto/streaming-crypto
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
