@@ -42,48 +42,65 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       # Copy sources from sub-projects into streaming-crypto crate
-      # Copy core-api
+      - name: Debug directory structure
+        run: |
+          echo "PWD:"
+          pwd
+          echo "Root contents:"
+          ls -la
+          echo "streaming-crypto:"
+          ls -la streaming-crypto
+
+      # Copy core-api into publishable crate
       - name: Copy core-api sources + metadata
         run: |
-          rm -rf streaming-crypto/streaming-crypto/src/core_api
-          mkdir -p streaming-crypto/streaming-crypto/src/core_api
+          rm -rf streaming-crypto/src/core_api
+          mkdir -p streaming-crypto/src/core_api
 
-          # Copy the whole src folder into the module
-          cp -r core-api/src/* streaming-crypto/streaming-crypto/src/core_api/
+          # Copy src folder contents
+          cp -r core-api/src/* streaming-crypto/src/core_api/
 
-          # copy crate-level metadata (overwrite target crate root files)
-          cp core-api/README.md streaming-crypto/streaming-crypto/src/core_api/README.md
-          cp core-api/.gitignore streaming-crypto/streaming-crypto/src/core_api/.gitignore
+          # Copy crate-level metadata (optional)
+          cp core-api/README.md streaming-crypto/src/core_api/README.md || true
+          cp core-api/.gitignore streaming-crypto/src/core_api/.gitignore || true
 
-          # must rename lib.rs → mod.rs inside that copied folder
-          mv streaming-crypto/streaming-crypto/src/core_api/lib.rs \
-            streaming-crypto/streaming-crypto/src/core_api/mod.rs
+          # Rename lib.rs → mod.rs
+          mv streaming-crypto/src/core_api/lib.rs \
+            streaming-crypto/src/core_api/mod.rs
 
-      # Copy ffi-api
+      # Copy ffi-api into publishable crate
       - name: Copy ffi-api sources + metadata
         run: |
-          rm -rf streaming-crypto/streaming-crypto/src/ffi_api
-          mkdir -p streaming-crypto/streaming-crypto/src/ffi_api
+          rm -rf streaming-crypto/src/ffi_api
+          mkdir -p streaming-crypto/src/ffi_api
 
-          # Copy the whole src folder into the module
-          cp -r ffi-api/src/* streaming-crypto/streaming-crypto/src/ffi_api/
+          # Copy src folder contents
+          cp -r ffi-api/src/* streaming-crypto/src/ffi_api/
 
-          # copy crate-level metadata (overwrite target crate root files)
-          cp ffi-api/README.md streaming-crypto/streaming-crypto/src/ffi_api/README.md
-          cp ffi-api/.gitignore streaming-crypto/streaming-crypto/src/ffi_api/.gitignore
+          # Copy crate-level metadata (optional)
+          cp ffi-api/README.md streaming-crypto/src/ffi_api/README.md || true
+          cp ffi-api/.gitignore streaming-crypto/src/ffi_api/.gitignore || true
 
-      # Copy pyo3-api
+          # Rename lib.rs → mod.rs
+          mv streaming-crypto/src/ffi_api/lib.rs \
+            streaming-crypto/src/ffi_api/mod.rs
+
+      # Copy pyo3-api into publishable crate
       - name: Copy pyo3-api sources + metadata
         run: |
-          rm -rf streaming-crypto/streaming-crypto/src/pyo3_api
-          mkdir -p streaming-crypto/streaming-crypto/src/pyo3_api
+          rm -rf streaming-crypto/src/pyo3_api
+          mkdir -p streaming-crypto/src/pyo3_api
 
-          # Copy the whole src folder into the module
-          cp -r pyo3-api/src/* streaming-crypto/streaming-crypto/src/pyo3_api/
+          # Copy src folder contents
+          cp -r pyo3-api/src/* streaming-crypto/src/pyo3_api/
 
-          # copy crate-level metadata (overwrite target crate root files)
-          cp pyo3-api/README.md streaming-crypto/streaming-crypto/src/pyo3_api/README.md
-          cp pyo3-api/.gitignore streaming-crypto/streaming-crypto/src/pyo3_api/.gitignore
+          # Copy crate-level metadata (optional)
+          cp pyo3-api/README.md streaming-crypto/src/pyo3_api/README.md || true
+          cp pyo3-api/.gitignore streaming-crypto/src/pyo3_api/.gitignore || true
+
+          # Rename lib.rs → mod.rs
+          mv streaming-crypto/src/pyo3_api/lib.rs \
+            streaming-crypto/src/pyo3_api/mod.rs
 
       - name: Replace modules block for publish
         working-directory: streaming-crypto/src
