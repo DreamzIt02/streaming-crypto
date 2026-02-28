@@ -1,10 +1,10 @@
 [package]
 name        = "streaming-crypto"
-version     = "0.1.0-alpha.1"
+version     = "0.1.0-alpha.2"
 edition     = "2021"
 license     = "MIT"
 description = "Cryptographic library with optional FFI and Python bindings"
-repository  = "https://github.com/username/streaming-crypto"
+repository  = "https://github.com/DreamzIt02/streaming-crypto"
 keywords    = ["crypto", "ffi", "rust", "python", "bindings"]
 categories  = ["cryptography", "api-bindings"]
 

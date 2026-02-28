@@ -1,6 +1,6 @@
 # streaming-crypto
 
-[![CI](https://github.com/username/streaming-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/username/streaming-crypto/actions/workflows/ci.yml)
+[![CI](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/streaming-crypto.svg)](https://crates.io/crates/streaming-crypto)
 [![Docs.rs](https://docs.rs/streaming-crypto/badge.svg)](https://docs.rs/streaming-crypto)
 [![PyPI](https://img.shields.io/pypi/v/streaming-crypto.svg)](https://pypi.org/project/streaming-crypto/)
@@ -55,52 +55,6 @@ pip install streaming-crypto
 - **Docs.rs badge** → links to auto‑generated Rust documentation.  
 - **PyPI badge** → shows latest published version on PyPI.  
 - **License badge** → signals open‑source license clearly.  
-
----
-
----
-
-### 1. Repository setup
-
-We need to **create the GitHub repository in advance** on GitHub.com.  
-
-- Push our initial codebase there.  
-- In the repo settings, add our **secrets** (`CARGO_REGISTRY_TOKEN`, `PYPI_API_TOKEN`) under **Settings → Secrets and variables → Actions**.  
-- This ensures our workflow has the environment it needs when we eventually tag a release.
-
----
-
-### 2. Controlling publish triggers
-
-Our workflow is configured to run on:
-
-```yaml
-on:
-  push:
-    tags:
-      - 'v*.*.*'
-```
-
-That means **only pushes with a tag like `v0.1.0` or `v1.2.3` will trigger publish**.  
-
-- If we just push commits to `main` (without tags), the publish job won’t run.  
-- Our CI workflow (build/test) runs on `push` and `pull_request` to `main`, but publish is tag‑only.
-
----
-
-### 3. Recommended flow
-
-- **Step 1:** Create the repo on GitHub.  
-- **Step 2:** Push our initial codebase (no tags yet). This will run CI (build/test) but not publish.  
-- **Step 3:** Configure secrets (`CARGO_REGISTRY_TOKEN`, `PYPI_API_TOKEN`).  
-- **Step 4:** Once CI is green and we’re ready for a release, create a version tag locally:  
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-- **Step 5:** That tag push will trigger the publish workflow, which will publish to crates.io and PyPI.
 
 ---
 

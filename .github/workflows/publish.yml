@@ -153,9 +153,9 @@ jobs:
         run: |
           awk '
             BEGIN { in_block=0 }
-            /^\/\/ --- MODULES DEV START ---/ {
+            /^\/\/ --- MODULES PUBLISH START ---/ {
               in_block=1
-              print "// --- MODULES DEV START ---"
+              print "// --- MODULES PUBLISH START ---"
               # Insert publish modules here
               print "#[cfg(feature = \"core-api\")]"
               print "pub mod core_api;"
@@ -167,9 +167,9 @@ jobs:
               print "pub mod pyo3_api;"
               next
             }
-            /^\/\/ --- MODULES DEV END ---/ {
+            /^\/\/ --- MODULES PUBLISH END ---/ {
               in_block=0
-              print "// --- MODULES DEV END ---"
+              print "// --- MODULES PUBLISH END ---"
               next
             }
             in_block { next }
@@ -299,12 +299,12 @@ jobs:
       - name: Build wheel with PyO3 feature
         working-directory: streaming-crypto
         shell: bash
-        run: maturin build --release --features pyo3-api
+        run: maturin build --release --no-default-features --features pyo3-api
 
       - name: Publish to PyPI
         working-directory: streaming-crypto
         shell: bash
-        run: maturin publish --release --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
+        run: maturin publish --release --no-default-features --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
 
 ### 🔑 Key points
 # - Workspace manifest → `streaming-crypto/Cargo.toml`
