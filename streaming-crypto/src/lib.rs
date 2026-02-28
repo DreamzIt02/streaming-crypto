@@ -2,20 +2,21 @@
 
 // --- MODULES PUBLISH START ---
 // (empty in dev mode, because core-api/ffi-api/pyo3-api are separate crates)
+// --- MODULES PUBLISH END ---
 
-// /// Encrypts data by XORing each byte with 0xAA.
-// ///
-// /// # Examples
-// ///
-// /// ```
-// /// use core_api::encrypt;
-// ///
-// /// let data = vec![1, 2, 3];
-// /// let encrypted = encrypt(&data);
-// /// assert_eq!(encrypted[0], 1 ^ 0xAA);
-// /// ```
-// #[cfg(feature = "core-api")]
-// pub use core_api::encrypt; // re-export the FFI wrapper
+/// Encrypts data by XORing each byte with 0xAA.
+///
+/// # Examples
+///
+/// ```
+/// use core_api::encrypt;
+///
+/// let data = vec![1, 2, 3];
+/// let encrypted = encrypt(&data);
+/// assert_eq!(encrypted[0], 1 ^ 0xAA);
+/// ```
+#[cfg(feature = "core-api")]
+pub use core_api::encrypt; // re-export the FFI wrapper
 
 // /// FFI wrapper for encryption.
 // ///
@@ -63,4 +64,3 @@
 
 // #[cfg(feature = "pyo3-api")]
 // pub use pyo3_api::streaming_crypto; // re-export the #[pymodule]
-// --- MODULES PUBLISH END ---
