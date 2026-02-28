@@ -3,5 +3,5 @@
 default  = ["core-api"]
 core-api = []
 ffi-api  = []
-pyo3-api = ["pyo3"]
+pyo3-api = ["pyo3", "pyo3/extension-module"]
 # --- FEATURES PUBLISH END ---

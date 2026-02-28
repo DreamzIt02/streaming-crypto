@@ -1,6 +1,6 @@
 [package]
 name        = "streaming-crypto"
-version     = "0.1.0-alpha.2"
+version     = "0.1.0-alpha.3"
 edition     = "2021"
 license     = "MIT"
 description = "Cryptographic library with optional FFI and Python bindings"
@@ -26,7 +26,7 @@ core-api = { path = "../core-api", optional = true }
 ffi-api  = { path = "../ffi-api",  optional = true }
 pyo3-api = { path = "../pyo3-api", optional = true }
 
-pyo3 = { version = "0.22", optional = true, features = ["auto-initialize"] }  # no extension-module
+pyo3 = { version = "0.22", optional = true, features = ["auto-initialize"] }
 # --- DEPENDENCIES DEV END ---
 
 [lib]

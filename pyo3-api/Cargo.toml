@@ -6,4 +6,4 @@ publish = false
 
 [dependencies]
 core-api = { path = "../core-api" }
-pyo3 = { version = "0.22", features = ["auto-initialize"] }  # no extension-module
+pyo3 = { version = "0.22", features = ["auto-initialize"] }

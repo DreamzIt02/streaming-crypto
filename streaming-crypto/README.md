@@ -68,7 +68,9 @@ pip install streaming-crypto
     export PYTHON_SYS_EXECUTABLE="$(pyenv which python3)"
     export PYO3_PYTHON="$(pyenv which python3)"
     export PYO3_NO_PYTHON_LINK=1
+
     cargo clean
+    cargo test -p pyo3-api
     ```
 
 3. **Result:** Cargo rebuilds PyO3 and all dependent crates from scratch. Now `cargo run --bin check_python` correctly detects Python 3.12.12 and does **not crash on missing libpython3.13.dylib**.
