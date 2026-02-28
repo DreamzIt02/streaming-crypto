@@ -227,8 +227,8 @@ jobs:
 
       - name: Move prepared crate into repo
         run: |
-          rm -rf streaming-crypto
-          mv prepared-crate streaming-crypto
+          rm -rf streaming-crypto/streaming-crypto
+          mv prepared-crate streaming-crypto/streaming-crypto
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -318,7 +318,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: prepared-crate
-          path: streaming-crypto
+          path: streaming-crypto/streaming-crypto
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
