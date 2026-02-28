@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is_prerelease: ${{ steps.prerelease_check.outputs.is_prerelease }}
+      tag_version: ${{ steps.version_detect.outputs.tag_version }}
 
     steps:
       - name: Checkout repository
@@ -61,6 +62,13 @@ jobs:
           else
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
           fi
+
+      # 4️⃣ Capture tag version for later use
+      - name: Capture tag version
+        id: version_detect
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
 
   prepare-publish:
     name: Prepare publishable crate
@@ -356,6 +364,28 @@ jobs:
       - name: Install maturin
         run: pip install maturin
 
+      - name: Replace core dependency block for publish
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+          awk -v version="${{ needs.detect-tag.outputs.tag_version }}" '
+            BEGIN { in_block=0 }
+            /^# --- DEPENDENCIES CORE START ---/ {
+              in_block=1
+              print "# --- DEPENDENCIES CORE START ---"
+              print "core-api = { package = \"streaming-crypto\", version = \"" version "\" }"
+              next
+            }
+            /^# --- DEPENDENCIES CORE END ---/ {
+              in_block=0
+              print "# --- DEPENDENCIES CORE END ---"
+              next
+            }
+            in_block { next }
+            { print }
+          ' Cargo.toml > Cargo.toml.tmp && mv Cargo.toml.tmp Cargo.toml
+
       - name: Build wheel with PyO3 feature
         working-directory: streaming-crypto
         shell: bash
@@ -364,7 +394,7 @@ jobs:
       - name: Publish to PyPI
         working-directory: streaming-crypto
         shell: bash
-        run: maturin publish --release --no-default-features --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
+        run: maturin publish --no-default-features --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
 
 ### 🔑 Key points
 # - Workspace manifest → `streaming-crypto/Cargo.toml`

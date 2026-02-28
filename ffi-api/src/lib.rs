@@ -14,7 +14,6 @@ use core_api::encrypt as core_encrypt;
 /// This function returns a raw pointer. The caller must manage memory.
 ///
 /// # Examples
-///
 /// ```
 /// use std::slice;
 /// use ffi_api::encrypt;
