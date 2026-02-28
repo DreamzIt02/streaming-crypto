@@ -210,14 +210,14 @@ jobs:
 
       - name: Prepare crate for publishing
         run: |
-          mkdir -p streaming-crypto/prepared-crate
-          cp -r streaming-crypto/streaming-crypto/* streaming-crypto/prepared-crate/
+          mkdir -p prepared-crate
+          cp -r streaming-crypto/* prepared-crate/
 
       - name: Upload prepared crate
         uses: actions/upload-artifact@v4
         with:
           name: prepared-crate
-          path: streaming-crypto/prepared-crate
+          path: prepared-crate
 
   publish:
     if: startsWith(github.ref, 'refs/tags/')
@@ -241,8 +241,8 @@ jobs:
 
       - name: Move prepared crate into repo
         run: |
-          rm -rf streaming-crypto/streaming-crypto
-          mv prepared-crate streaming-crypto/streaming-crypto
+          rm -rf streaming-crypto
+          mv prepared-crate streaming-crypto
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -337,8 +337,8 @@ jobs:
 
       - name: Move prepared crate into repo
         run: |
-          rm -rf streaming-crypto/streaming-crypto
-          mv prepared-crate streaming-crypto/streaming-crypto
+          rm -rf streaming-crypto
+          mv prepared-crate streaming-crypto
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
