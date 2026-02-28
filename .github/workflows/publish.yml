@@ -12,38 +12,13 @@ on:
       - 'v*'
 
 jobs:
-  publish:
-    if: startsWith(github.ref, 'refs/tags/')
-    name: Publish to crates.io + github release
+  detect-tag:
+    name: Detect & validate tag
     runs-on: ubuntu-latest
+    outputs:
+      is_prerelease: ${{ steps.prerelease_check.outputs.is_prerelease }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # needed for changelog generation
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-      
-      - name: Install Python
-        id: setup-python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Export PYO3_PYTHON
-        shell: bash
-        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
-
-      - name: Cache cargo registry
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       # -------------------------------------------------
       # 1️⃣ Strict SemVer validation (no leading zeros)
       # -------------------------------------------------
@@ -83,6 +58,15 @@ jobs:
           else
             echo "is_prerelease=false" >> $GITHUB_OUTPUT
           fi
+
+  prepare-publish:
+    name: Prepare publishable crate
+    runs-on: ubuntu-latest
+    needs: detect-tag
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       # -------------------------------------------------
       # 4️⃣ Vendors to publish crate
@@ -221,6 +205,52 @@ jobs:
 
           mv Cargo.toml.tmp Cargo.toml
 
+      - name: Upload prepared crate
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-crate
+          path: streaming-crypto
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    name: Publish to crates.io + github release
+    runs-on: ubuntu-latest
+    needs: prepare-publish
+
+    steps:
+      # 1️⃣ Get prepared crate for publishing
+      - name: Download prepared crate
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-crate
+          path: prepared-crate
+
+      - name: Move prepared crate into repo
+        run: |
+          rm -rf streaming-crypto
+          mv prepared-crate streaming-crypto
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Export PYO3_PYTHON
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       # -------------------------------------------------
       # 5️⃣ Package validation
       # -------------------------------------------------
@@ -247,6 +277,12 @@ jobs:
       # -------------------------------------------------
       # 7️⃣ Generate changelog (stable only)
       # -------------------------------------------------
+      # 2️⃣ Fresh checkout for changelog
+      - name: Checkout repository (for git history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Generate changelog
         if: steps.prerelease_check.outputs.is_prerelease == 'false'
         id: changelog
@@ -272,13 +308,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.CARGO_GITHUB_TOKEN }}
 
   publish-pypi:
+    if: startsWith(github.ref, 'refs/tags/')
     name: Build & Publish Python Wheel
     runs-on: ubuntu-latest
-    needs: publish # ensure crates.io publish succeeds first
+    needs: [prepare-publish, publish]   # requires both
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Download prepared crate
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-crate
+          path: streaming-crypto
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
