@@ -7,10 +7,10 @@ name = "streaming-crypto"
 version = "0.0.0"  # ignored by maturin (taken from Cargo.toml)
 description = "High-performance streaming encryption library powered by Rust"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-    { name = "Your Name" }
+    { name = "Engr. Rejwanul Islam" }
 ]
 classifiers = [
     "Programming Language :: Rust",
