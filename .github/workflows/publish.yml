@@ -137,6 +137,7 @@ jobs:
           # Copy crate-level metadata (optional)
           cp pyo3-api/README.md streaming-crypto/src/pyo3_api/README.md || true
           cp pyo3-api/.gitignore streaming-crypto/src/pyo3_api/.gitignore || true
+          cp pyo3-api/pyproject.toml streaming-crypto/src/pyo3_api/pyproject.toml || true
 
           # Rename lib.rs → mod.rs
           mv streaming-crypto/src/pyo3_api/lib.rs \

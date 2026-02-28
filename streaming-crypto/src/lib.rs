@@ -62,4 +62,3 @@ pub use pyo3_api::encrypt; // re-export the PyO3 wrapper
 
 #[cfg(feature = "pyo3-api")]
 pub use pyo3_api::streaming_crypto; // re-export the #[pymodule]
-
