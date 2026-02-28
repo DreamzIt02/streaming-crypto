@@ -142,16 +142,29 @@ jobs:
           mv streaming-crypto/src/pyo3_api/lib.rs \
             streaming-crypto/src/pyo3_api/mod.rs
 
+      # ✅ 1️⃣ Safe Replace: MODULES block
       - name: Replace modules block for publish
         working-directory: streaming-crypto/src
         shell: bash
         run: |
+          set -e
+
+          FILE="lib.rs"
+          START="// --- MODULES PUBLISH START ---"
+          END="// --- MODULES PUBLISH END ---"
+
+          # ---- Guard: file exists ----
+          test -f "$FILE" || { echo "$FILE not found"; exit 1; }
+
+          # ---- Guard: markers exist exactly once ----
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid END marker"; exit 1; }
+
           awk '
             BEGIN { in_block=0 }
             /^\/\/ --- MODULES PUBLISH START ---/ {
               in_block=1
               print "// --- MODULES PUBLISH START ---"
-              # Insert publish modules here
               print "#[cfg(feature = \"core-api\")]"
               print "pub mod core_api;"
               print ""
@@ -169,39 +182,63 @@ jobs:
             }
             in_block { next }
             { print }
-          ' lib.rs > lib.rs.tmp && mv lib.rs.tmp lib.rs
+          ' "$FILE" > "$FILE.tmp"
 
-      # Replace features block with publish version
+          mv "$FILE.tmp" "$FILE"
+
+      # ✅ 2️⃣ Safe Replace: FEATURES block
       - name: Replace features block for publish
         working-directory: streaming-crypto
         shell: bash
         run: |
-          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+          set -e
+
+          FILE="Cargo.toml"
+          START="# --- FEATURES DEV START ---"
+          END="# --- FEATURES DEV END ---"
+
+          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
           test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
+
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid FEATURES START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid FEATURES END marker"; exit 1; }
+
           awk '
             BEGIN { in_block=0 }
-            /^# --- FEATURES DEV START ---/ { in_block=1; system("cat Cargo.publish.features"); next }
+            /^# --- FEATURES DEV START ---/ {
+              in_block=1
+              system("cat Cargo.publish.features")
+              next
+            }
             /^# --- FEATURES DEV END ---/ { in_block=0; next }
             in_block { next }
             { print }
-          ' Cargo.toml > Cargo.toml.tmp
-          mv Cargo.toml.tmp Cargo.toml
+          ' "$FILE" > "$FILE.tmp"
 
-      # Replace dependencies block with publish version + common block
+          mv "$FILE.tmp" "$FILE"
+
+      # ✅ 3️⃣ Safe Replace: DEPENDENCIES block
       - name: Replace dependencies block for publish
         working-directory: streaming-crypto
         shell: bash
         run: |
-          # Ensure files exist
-          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+          set -e
+
+          FILE="Cargo.toml"
+          START="# --- DEPENDENCIES DEV START ---"
+          END="# --- DEPENDENCIES DEV END ---"
+
+          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
           test -f Cargo.publish.dependencies || { echo "Cargo.publish.dependencies not found"; exit 1; }
 
-          # Replace dev block with publish version + append common dependencies from workspace
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid DEP START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid DEP END marker"; exit 1; }
+
           awk '
             BEGIN { in_block=0 }
-            /^# --- DEPENDENCIES DEV START ---/ { 
+            /^# --- DEPENDENCIES DEV START ---/ {
               in_block=1
-              system("cat Cargo.publish.dependencies")  # insert publish dependencies
+              system("cat Cargo.publish.dependencies")
               next
             }
             /^# --- DEPENDENCIES DEV END ---/ {
@@ -212,9 +249,9 @@ jobs:
             }
             in_block { next }
             { print }
-          ' Cargo.toml > Cargo.toml.tmp
+          ' "$FILE" > "$FILE.tmp"
 
-          mv Cargo.toml.tmp Cargo.toml
+          mv "$FILE.tmp" "$FILE"
 
       - name: Prepare crate for publishing
         run: |
@@ -367,11 +404,22 @@ jobs:
       - name: Debug tag version
         run: echo "TAG_VERSION=${{ needs.detect-tag.outputs.tag_version }}"
 
+      # ✅ 4️⃣ Safe Replace: CORE dependency block
       - name: Replace core dependency block for publish
         working-directory: streaming-crypto
         shell: bash
         run: |
-          test -f Cargo.toml || { echo "Cargo.toml not found"; exit 1; }
+          set -e
+
+          FILE="Cargo.toml"
+          START="# --- DEPENDENCIES CORE START ---"
+          END="# --- DEPENDENCIES CORE END ---"
+
+          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
+
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid CORE START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid CORE END marker"; exit 1; }
+
           awk -v version="${{ needs.detect-tag.outputs.tag_version }}" '
             BEGIN { in_block=0 }
             /^# --- DEPENDENCIES CORE START ---/ {
@@ -387,7 +435,9 @@ jobs:
             }
             in_block { next }
             { print }
-          ' Cargo.toml > Cargo.toml.tmp && mv Cargo.toml.tmp Cargo.toml
+          ' "$FILE" > "$FILE.tmp"
+
+          mv "$FILE.tmp" "$FILE"
 
       - name: Build wheel with PyO3 feature
         working-directory: streaming-crypto

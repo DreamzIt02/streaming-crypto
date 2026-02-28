@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "streaming-crypto"
-version = "0.0.0"  # ignored by maturin (taken from Cargo.toml)
+dynamic = ["version"]  # ignored by maturin (taken from Cargo.toml)
 description = "High-performance streaming encryption library powered by Rust"
 readme = "README.md"
 requires-python = ">=3.12"
