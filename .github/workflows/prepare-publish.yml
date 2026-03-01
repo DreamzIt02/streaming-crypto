@@ -1,0 +1,225 @@
+name: Prepare Publishable Crate
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+jobs:
+  prepare-publish:
+    name: Prepare publishable crate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: require tag_version input
+        run: |
+          if [ -z "${{ inputs.tag }}" ]; then
+            echo "No tag_version provided — refusing to run."
+            exit 0
+          fi
+
+      - name: Mark local run
+        if: ${{ env.ACT == 'true' }}
+        run: echo "IS_LOCAL=true" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -------------------------------------------------
+      # 1️⃣ Vendors to publish crate
+      # -------------------------------------------------
+      - name: Debug directory structure
+        run: |
+          echo "PWD:"; pwd
+          echo "Root contents:"; ls -la
+          echo "streaming-crypto:"; ls -la streaming-crypto
+
+      # -------------------------------------------------
+      # ✅ Copy core-api into publishable crate
+      # -------------------------------------------------
+      - name: Copy core-api sources + metadata
+        run: |
+          rm -rf streaming-crypto/src/core_api
+          mkdir -p streaming-crypto/src/core_api
+
+          # Copy src folder contents
+          cp -r core-api/src/* streaming-crypto/src/core_api/
+
+          # Copy crate-level metadata (optional)
+          cp core-api/README.md streaming-crypto/src/core_api/README.md || true
+          cp core-api/.gitignore streaming-crypto/src/core_api/.gitignore || true
+
+          # Rename lib.rs → mod.rs
+          mv streaming-crypto/src/core_api/lib.rs \
+            streaming-crypto/src/core_api/mod.rs
+
+      # -------------------------------------------------
+      # ✅ Copy ffi-api into publishable crate
+      # -------------------------------------------------
+      - name: Copy ffi-api sources + metadata
+        run: |
+          rm -rf streaming-crypto/src/ffi_api
+          mkdir -p streaming-crypto/src/ffi_api
+
+          # Copy src folder contents
+          cp -r ffi-api/src/* streaming-crypto/src/ffi_api/
+
+          # Copy crate-level metadata (optional)
+          cp ffi-api/README.md streaming-crypto/src/ffi_api/README.md || true
+          cp ffi-api/.gitignore streaming-crypto/src/ffi_api/.gitignore || true
+
+          # Rename lib.rs → mod.rs
+          mv streaming-crypto/src/ffi_api/lib.rs \
+            streaming-crypto/src/ffi_api/mod.rs
+
+      # -------------------------------------------------
+      # ✅ Copy pyo3-api into publishable crate
+      # -------------------------------------------------
+      - name: Copy pyo3-api sources + metadata
+        run: |
+          rm -rf streaming-crypto/src/pyo3_api
+          mkdir -p streaming-crypto/src/pyo3_api
+
+          # Copy src folder contents
+          cp -r pyo3-api/src/* streaming-crypto/src/pyo3_api/
+
+          # Copy crate-level metadata (optional)
+          cp pyo3-api/README.md streaming-crypto/src/pyo3_api/README.md || true
+          cp pyo3-api/.gitignore streaming-crypto/src/pyo3_api/.gitignore || true
+
+          # Rename lib.rs → mod.rs
+          mv streaming-crypto/src/pyo3_api/lib.rs \
+            streaming-crypto/src/pyo3_api/mod.rs
+      
+      # -------------------------------------------------
+      # 2️⃣ ✅ Safe Replace: MODULES block
+      # -------------------------------------------------
+      - name: Replace modules block for publish
+        working-directory: streaming-crypto/src
+        shell: bash
+        run: |
+          set -e
+
+          FILE="lib.rs"
+          START="// --- MODULES PUBLISH START ---"
+          END="// --- MODULES PUBLISH END ---"
+
+          # ---- Guard: file exists ----
+          test -f "$FILE" || { echo "$FILE not found"; exit 1; }
+
+          # ---- Guard: markers exist exactly once ----
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid END marker"; exit 1; }
+
+          awk '
+            BEGIN { in_block=0 }
+            /^\/\/ --- MODULES PUBLISH START ---/ {
+              in_block=1
+              print "// --- MODULES PUBLISH START ---"
+              print "#[cfg(feature = \"core-api\")]"
+              print "pub mod core_api;"
+              print ""
+              print "#[cfg(feature = \"ffi-api\")]"
+              print "pub mod ffi_api;"
+              print ""
+              print "#[cfg(feature = \"pyo3-api\")]"
+              print "pub mod pyo3_api;"
+              next
+            }
+            /^\/\/ --- MODULES PUBLISH END ---/ {
+              in_block=0
+              print "// --- MODULES PUBLISH END ---"
+              next
+            }
+            in_block { next }
+            { print }
+          ' "$FILE" > "$FILE.tmp"
+
+          mv "$FILE.tmp" "$FILE"
+      
+      # -------------------------------------------------
+      # 3️⃣ ✅ Safe Replace: FEATURES block
+      # -------------------------------------------------
+      - name: Replace features block for publish
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          set -e
+
+          FILE="Cargo.toml"
+          START="# --- FEATURES DEV START ---"
+          END="# --- FEATURES DEV END ---"
+
+          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
+          test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
+
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid FEATURES START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid FEATURES END marker"; exit 1; }
+
+          awk '
+            BEGIN { in_block=0 }
+            /^# --- FEATURES DEV START ---/ {
+              in_block=1
+              system("cat Cargo.publish.features")
+              next
+            }
+            /^# --- FEATURES DEV END ---/ { in_block=0; next }
+            in_block { next }
+            { print }
+          ' "$FILE" > "$FILE.tmp"
+
+          mv "$FILE.tmp" "$FILE"
+      
+      # -------------------------------------------------
+      # 3️⃣ ✅ Safe Replace: DEPENDENCIES block
+      # -------------------------------------------------
+      - name: Replace dependencies block for publish
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          set -e
+
+          FILE="Cargo.toml"
+          START="# --- DEPENDENCIES DEV START ---"
+          END="# --- DEPENDENCIES DEV END ---"
+
+          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
+          test -f Cargo.publish.dependencies || { echo "Cargo.publish.dependencies not found"; exit 1; }
+
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid DEP START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid DEP END marker"; exit 1; }
+
+          awk '
+            BEGIN { in_block=0 }
+            /^# --- DEPENDENCIES DEV START ---/ {
+              in_block=1
+              system("cat Cargo.publish.dependencies")
+              next
+            }
+            /^# --- DEPENDENCIES DEV END ---/ {
+              in_block=0
+              # append common dependencies from workspace Cargo.toml
+              system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" ../Cargo.toml")
+              next
+            }
+            in_block { next }
+            { print }
+          ' "$FILE" > "$FILE.tmp"
+
+          mv "$FILE.tmp" "$FILE"
+      
+      # -------------------------------------------------
+      # 4️⃣ Prepare & upload crate for publishing
+      # -------------------------------------------------
+      - name: Prepare crate for publishing
+        run: |
+          mkdir -p prepared-crate
+          cp -r streaming-crypto/* prepared-crate/
+
+      - name: Upload prepared crate
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-crate
+          path: prepared-crate

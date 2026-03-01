@@ -1,0 +1,238 @@
+### The strategy
+# - **Cargo version stays fixed** until we actually change `core-api` (or other Rust sources).
+# - **GitHub tags carry extra suffixes** to distinguish retries for PyPI or crates.io, without altering Cargo.toml.
+# - Each workflow trims the suffix to get the “real” Cargo version for validation, but uses the full tag for uniqueness in GitHub.
+
+### Tag naming convention
+# - Crates.io:  
+#   - `v0.1.0-alpha.0-crates.0` → first attempt  
+#   - `v0.1.0-alpha.0-crates.1` → retry (same Cargo version, different GitHub tag)
+# - PyPI:  
+#   - `v0.1.0-alpha.0-pypi.0` → first attempt  
+#   - `v0.1.0-alpha.0-pypi.1` → retry
+
+# Here:
+# - `0.1.0-alpha.0` = Cargo version (matches Cargo.toml)  
+# - `-crates` or `-pypi` = workflow selector  
+# - `.N` = retry counter (any integer, ensures unique GitHub tag)
+
+### Workflow changes
+# Both workflows need to:
+# 1. **Trim suffixes** (`-crates.N` or `-pypi.N`) to extract the Cargo version.
+# 2. **Validate Cargo.toml version** against that trimmed version.
+# 3. For PyPI, **verify crates.io has published that version** before proceeding.
+
+# ✅ This way:
+# - We can retry PyPI publishes as many times as needed (`-pypi.0`, `-pypi.1`, …) without touching Cargo.toml.
+# - Crates.io publishes only when we actually bump the Cargo version.
+# - Both workflows stay consistent with Cargo.toml, and GitHub tags remain unique.
+
+name: Publish PyPI
+
+on:
+  push:
+    tags:
+      - '*-pypi.?'
+
+jobs:
+  detect-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag_version: ${{ steps.version_detect.outputs.tag_version }}
+      tag_is_valid: ${{ steps.version_detect.outputs.tag_is_valid }}
+      is_prerelease: ${{ steps.prerelease_check.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # -------------------------------------------------
+      # 1️⃣ Strict SemVer validation + capture version (with -pypi.N suffix)
+      # -------------------------------------------------
+      - name: Validate strict SemVer tag (with -pypi.N suffix) & capture tag version
+        id: version_detect
+        run: |
+          RAW_TAG="${GITHUB_REF_NAME}"
+          # Remove leading "v"
+          BASE="${RAW_TAG#v}"
+          # Trim trailing "-pypi.N" (suffix with retry counter)
+          BASE_TAG=$(echo "$BASE" | sed -E 's/-pypi\.[0-9]+$//')
+
+          SEMVER_REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+
+          # Export the trimmed version for later steps
+          if [[ "$BASE_TAG" =~ $SEMVER_REGEX ]]; then
+            echo "tag_version=$BASE_TAG" >> $GITHUB_OUTPUT
+            echo "tag_is_valid=true" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid strict SemVer tag: $RAW_TAG (parsed as $BASE_TAG)"
+            echo "tag_is_valid=false" >> $GITHUB_OUTPUT
+          fi
+
+      # -------------------------------------------------
+      # 2️⃣ Enforce Cargo.toml version match
+      # -------------------------------------------------
+      - name: Ensure tag matches Cargo.toml version
+        if: ${{ steps.version_detect.outputs.tag_is_valid == 'true' }}
+        working-directory: streaming-crypto
+        run: |
+          TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
+          CARGO_VERSION=$(grep '^version' Cargo.toml | head -n1 | cut -d '"' -f2)
+
+          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
+            echo "Tag version -> $TAG_VERSION does not match Cargo.toml-> $CARGO_VERSION"
+            exit 1
+          fi
+      
+      # -------------------------------------------------
+      # 3️⃣ Detect pre-release
+      # -------------------------------------------------
+      - name: Detect pre-release
+        if: ${{ steps.version_detect.outputs.tag_is_valid == 'true' }}
+        id: prerelease_check
+        run: |
+          TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
+          if [[ "$TAG_VERSION" == *-* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+      
+      # -------------------------------------------------
+      # 4️⃣ Verify crates.io version exists
+      # -------------------------------------------------
+      - name: Verify crates.io version exists
+        if: ${{ steps.version_detect.outputs.tag_is_valid == 'true' }}
+        run: |
+          VERSION="${{ steps.version_detect.outputs.tag_version }}"
+          PKG="streaming-crypto"
+          URL="https://crates.io/api/v1/crates/${PKG}/${VERSION}"
+
+          # echo "Checking crates.io for $PKG@$VERSION"
+          echo "Debug: curl -v -H 'User-Agent: act-ci' $URL"
+
+          # RESPONSE=$(curl -s "https://crates.io/api/v1/crates/$PKG/$VERSION")
+          RESPONSE=$(curl -sSf -H "User-Agent: streaming-crypto-ci" "$URL")
+
+          # Print the raw JSON for debugging
+          echo "Raw crates.io response:"
+          echo "$RESPONSE"
+
+          # If crates.io returns an error, version does not exist
+          if echo "$RESPONSE" | jq -e '.errors' > /dev/null; then
+            echo "Version $VERSION not yet published to crates.io"
+            exit 1
+          fi
+
+          NUM=$(echo "$RESPONSE" | jq -r '.version.num')
+          echo "Extracted version.num: $NUM"
+
+          if [ "$NUM" = "$VERSION" ]; then
+            echo "Version $VERSION exists on crates.io"
+          else
+            echo "Unexpected response from crates.io"
+            exit 1
+          fi
+
+
+  # ✅ prepare-publish
+  prepare:
+    if: ${{ needs.detect-tag.outputs.tag_is_valid == 'true' }}
+    needs: [detect-tag]
+    uses: ./.github/workflows/prepare-publish.yml
+    with:
+      tag: ${{ needs.detect-tag.outputs.tag_version }}
+
+  # ✅ publish to pypi.org
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    name: Build & Publish Python Wheel
+    runs-on: ubuntu-latest
+    needs: [detect-tag, prepare] # Require both
+
+    steps:
+      - name: Mark local run
+        if: ${{ env.ACT == 'true' }}
+        run: echo "IS_LOCAL=true" >> $GITHUB_ENV
+      
+      # 1️⃣ Fresh checkout for changelog
+      - name: Checkout repository (for git history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # 2️⃣ Get prepared crate for publishing
+      - name: Download prepared crate
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-crate
+          path: prepared-crate
+
+      - name: Move prepared crate into repo
+        run: |
+          rm -rf streaming-crypto
+          mv prepared-crate streaming-crypto
+      
+      # ✅ 4️⃣ Safe Replace: CORE dependency block
+      - name: Replace core dependency block for publish
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          set -e
+
+          FILE="Cargo.toml"
+          START="# --- DEPENDENCIES CORE START ---"
+          END="# --- DEPENDENCIES CORE END ---"
+
+          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
+
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid CORE START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid CORE END marker"; exit 1; }
+
+          awk -v version="${{ needs.detect-tag.outputs.tag_version }}" '
+            BEGIN { in_block=0 }
+            /^# --- DEPENDENCIES CORE START ---/ {
+              in_block=1
+              print "# --- DEPENDENCIES CORE START ---"
+              print "core-api = { package = \"streaming-crypto\", version = \"" version "\" }"
+              next
+            }
+            /^# --- DEPENDENCIES CORE END ---/ {
+              in_block=0
+              print "# --- DEPENDENCIES CORE END ---"
+              next
+            }
+            in_block { next }
+            { print }
+          ' "$FILE" > "$FILE.tmp"
+
+          mv "$FILE.tmp" "$FILE"
+
+      - name: Install Rust
+        if: ${{ env.IS_LOCAL != 'true' }}
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Python
+        if: ${{ env.IS_LOCAL != 'true' }}
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Export PYO3_PYTHON
+        if: ${{ env.IS_LOCAL != 'true' }}
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+
+      - name: Install maturin
+        if: ${{ env.IS_LOCAL != 'true' }}
+        run: pip install maturin
+
+      - name: Build wheel with PyO3 feature
+        working-directory: streaming-crypto
+        shell: bash
+        run: maturin build --release --no-default-features --features pyo3-api
+
+      - name: Publish to PyPI
+        if: ${{ env.IS_LOCAL != 'true' }}
+        working-directory: streaming-crypto
+        shell: bash
+        run: maturin publish --no-default-features --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}

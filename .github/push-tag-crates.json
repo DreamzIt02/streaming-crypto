@@ -1,0 +1,8 @@
+{
+     "ref": "refs/tags/v0.1.0-alpha.15-crates.0",
+    "repository": {
+    "owner": { "login": "DreamzIt02" },
+    "name": "streaming-crypto"
+    },
+    "pusher": { "name": "DreamzIt02" }
+}

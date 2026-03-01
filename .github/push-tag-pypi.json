@@ -1,0 +1,8 @@
+{
+     "ref": "refs/tags/v0.1.0-alpha.15-pypi.0",
+    "repository": {
+    "owner": { "login": "DreamzIt02" },
+    "name": "streaming-crypto"
+    },
+    "pusher": { "name": "DreamzIt02" }
+}

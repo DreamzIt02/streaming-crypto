@@ -9,14 +9,16 @@
 /// # Examples
 ///
 /// ```
-/// use core_api::encrypt;
+/// use streaming_crypto::encrypt;
 ///
 /// let data = vec![1, 2, 3];
 /// let encrypted = encrypt(&data);
 /// assert_eq!(encrypted[0], 1 ^ 0xAA);
+/// assert_eq!(encrypted[1], 2 ^ 0xAA);
+/// assert_eq!(encrypted[2], 3 ^ 0xAA);
 /// ```
 #[cfg(feature = "core-api")]
-pub use core_api::encrypt; // re-export the FFI wrapper
+pub use core_api::encrypt; // re-export everything from core_api
 
 // /// FFI wrapper for encryption.
 // ///

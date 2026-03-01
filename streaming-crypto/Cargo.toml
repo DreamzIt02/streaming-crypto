@@ -1,6 +1,7 @@
 [package]
 name        = "streaming-crypto"
-version     = "0.1.0-alpha.14"
+# FIXME: For `gh act` test locally, require last released version: 0.1.0-alpha.15
+version     = "0.1.0-alpha.15"
 edition     = "2021"
 license     = "MIT"
 description = "Cryptographic library with optional FFI and Python bindings"

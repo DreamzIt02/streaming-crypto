@@ -24,3 +24,7 @@ classifiers = [
 [tool.maturin]
 features = ["pyo3-api"]
 strip = true
+include = [
+    "streaming_crypto/__init__.pyi",
+    "streaming_crypto/py.typed"
+]
