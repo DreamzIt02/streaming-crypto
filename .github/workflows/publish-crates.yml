@@ -32,7 +32,7 @@ name: Publish Crates.io
 on:
   push:
     tags:
-      - '*-crates.?'
+      - 'v*-crates.[0-9]'
 
 jobs:
   detect-tag:
