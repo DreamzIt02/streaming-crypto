@@ -2,10 +2,9 @@
 #[test]
 fn test_encrypt_ffi_wrapper() {
     use std::slice;
-    use ffi_api::encrypt;
 
     let data = vec![1, 2, 3];
-    let ptr = encrypt(data.as_ptr(), data.len());
+    let ptr = streaming_crypto::encrypt(data.as_ptr(), data.len());
 
     // reconstruct slice from raw pointer
     let encrypted = unsafe { slice::from_raw_parts(ptr, data.len()) };

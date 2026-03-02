@@ -33,26 +33,11 @@ jobs:
         if: ${{ env.ACT == 'true' }}
         run: echo "IS_LOCAL=true" >> $GITHUB_ENV
 
+      # -------------------------------------------------
+      # 1️⃣ Checkout repository
+      # -------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # -------------------------------------------------
-      # 1️⃣ Debug inputs
-      # -------------------------------------------------
-      # - name: Capture inputs
-      #   shell: bash
-      #   run: |
-      #     echo "MODULES_INPUT<<EOF" >> $GITHUB_ENV
-      #     echo "${{ inputs.modules }}" >> $GITHUB_ENV
-      #     echo "EOF" >> $GITHUB_ENV
-
-      #     echo "FEATURES_INPUT<<EOF" >> $GITHUB_ENV
-      #     echo "${{ inputs.features }}" >> $GITHUB_ENV
-      #     echo "EOF" >> $GITHUB_ENV
-
-      #     echo "DEPENDENCIES_INPUT<<EOF" >> $GITHUB_ENV
-      #     echo "${{ inputs.dependencies }}" >> $GITHUB_ENV
-      #     echo "EOF" >> $GITHUB_ENV
 
       # -------------------------------------------------
       # 2️⃣ Vendors to publish crate

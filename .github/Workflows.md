@@ -157,7 +157,7 @@ gh act -j detect-tag --eventpath push-tag.json
 If the workflow uses secrets, create a `.secrets` file:
 
 ```bash
-MY_SECRET=supersecretvalue
+MY_SECRET=super_secret_value
 ```
 
 Run with:
@@ -304,7 +304,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && /root/.cargo/bin/rustup toolchain install stable \
     && /root/.cargo/bin/rustup default stable
 
-# Keep Cargo in PATH if we want Rust tooling available
+# Keep Cargo in PATH, we want Rust tooling available
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Make python3 point to python3.12
