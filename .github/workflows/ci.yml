@@ -81,49 +81,49 @@ jobs:
         run: cargo test -p pyo3-api
 
       - name: Workspace check (core-api)
-        run: cargo check --workspace --features core-api
+        run: cargo check --workspace --no-default-features --features core-api
 
       - name: Workspace check (ffi-api)
-        run: cargo check --workspace --features ffi-api
+        run: cargo check --workspace --no-default-features --features ffi-api
       
       - name: Workspace check (pyo3-api)
-        run: cargo check --workspace --features pyo3-api
+        run: cargo check --workspace --no-default-features --features pyo3-api
 
       - name: Test workspace (core-api)
-        run: cargo test --workspace --features core-api
+        run: cargo test --workspace --no-default-features --features core-api
 
       - name: Test workspace (ffi-api)
-        run: cargo test --workspace --features ffi-api
+        run: cargo test --workspace --no-default-features --features ffi-api
 
       - name: Test workspace (pyo3-api)
-        run: cargo test --workspace --features pyo3-api
+        run: cargo test --workspace --no-default-features --features pyo3-api
 
       - name: Build streaming-crypto (Rust API default)
-        run: cargo build -p streaming-crypto --features core-api
+        run: cargo build -p streaming-crypto --no-default-features --features core-api
 
       - name: Build streaming-crypto (FFI API feature)
-        run: cargo build -p streaming-crypto --features ffi-api
+        run: cargo build -p streaming-crypto --no-default-features --features ffi-api
 
       - name: Build streaming-crypto (PyO3 API feature)
-        run: cargo build -p streaming-crypto --features pyo3-api
+        run: cargo build -p streaming-crypto --no-default-features --features pyo3-api
 
       - name: Run integration tests streaming-crypto re-exports (Rust API)
-        run: cargo test -p streaming-crypto --features core-api
+        run: cargo test -p streaming-crypto --no-default-features --features core-api
 
       - name: Run integration tests streaming-crypto re-exports (FFI API)
-        run: cargo test -p streaming-crypto --features ffi-api
+        run: cargo test -p streaming-crypto --no-default-features --features ffi-api
 
       - name: Run integration tests streaming-crypto re-exports (PyO3 API)
-        run: cargo test -p streaming-crypto --features pyo3-api
+        run: cargo test -p streaming-crypto --no-default-features --features pyo3-api
       
       - name: Run doctests (Rust API)
-        run: cargo test -p streaming-crypto --features core-api --doc
+        run: cargo test -p streaming-crypto --no-default-features --features core-api --doc
 
       - name: Run doctests (FFI API)
-        run: cargo test -p streaming-crypto --features ffi-api --doc
+        run: cargo test -p streaming-crypto --no-default-features --features ffi-api --doc
 
       - name: Run doctests (PyO3 API)
-        run: cargo test -p streaming-crypto --features pyo3-api --doc
+        run: cargo test -p streaming-crypto --no-default-features --features pyo3-api --doc
 
 ### 🔑 Key points
 # - **two steps** (`Ensure dev features block` and `Ensure dev dependencies block`) that guarantee the dev blocks are present in `Cargo.toml` during CI runs.  

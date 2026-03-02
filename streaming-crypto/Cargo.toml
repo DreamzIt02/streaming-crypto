@@ -1,6 +1,6 @@
 [package]
 name        = "streaming-crypto"
-# GITHUB TAG: v0.1.0-alpha.17-crates.0, v0.1.0-alpha.17-pypi.0
+# GITHUB TAG: v0.1.0-alpha.18-crates.0, v0.1.0-alpha.18-pypi.0
 version     = "0.1.0-alpha.17"
 edition     = "2021"
 license     = "MIT"
@@ -9,20 +9,20 @@ repository  = "https://github.com/DreamzIt02/streaming-crypto"
 keywords    = ["crypto", "ffi", "rust", "python", "bindings"]
 categories  = ["cryptography", "api-bindings"]
 
+[features] 
 # --- FEATURES DEV START ---
 # This block will be replaced with Publish Block, content from Cargo.publish.features
 # Any common features for development and publish must be added at the end of this block
-[features] 
-default  = []
+default  = ["core-api"]
 core-api = ["dep:core-api"]
 ffi-api  = ["dep:ffi-api"]
 pyo3-api = ["dep:pyo3-api", "pyo3"]
 # --- FEATURES DEV END ---
 
+[dependencies]
 # --- DEPENDENCIES DEV START ---
 # This block will be replaced with Publish Block, content from Cargo.publish.dependencies
 # Any common dependencies for development and publish must be added at the end of this block
-[dependencies]
 core-api = { path = "../core-api", optional = true }
 ffi-api  = { path = "../ffi-api",  optional = true }
 pyo3-api = { path = "../pyo3-api", optional = true }

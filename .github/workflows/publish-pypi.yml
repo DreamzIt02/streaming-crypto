@@ -192,7 +192,7 @@ jobs:
             /^# --- DEPENDENCIES CORE START ---/ {
               in_block=1
               print "# --- DEPENDENCIES CORE START ---"
-              print "core-api = { package = \"streaming-crypto\", version = \"" version "\" }"
+              print "core-api = { package = \"streaming-crypto\", version = \"" version "\", features = [\"core-api\"] }"
               next
             }
             /^# --- DEPENDENCIES CORE END ---/ {

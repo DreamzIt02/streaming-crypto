@@ -1,5 +1,4 @@
 # --- FEATURES PUBLISH START ---
-[features]
 default  = []
 core-api = []
 ffi-api  = []
