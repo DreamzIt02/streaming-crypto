@@ -6,6 +6,15 @@ on:
       tag:
         required: true
         type: string
+      modules:
+        required: false
+        type: string  # semi-colon separated string,
+      features:
+        required: false
+        type: string  # semi-colon separated string,
+      dependencies:
+        required: false
+        type: string  # semi-colon separated string,
 
 jobs:
   prepare-publish:
@@ -28,7 +37,25 @@ jobs:
         uses: actions/checkout@v4
 
       # -------------------------------------------------
-      # 1️⃣ Vendors to publish crate
+      # 1️⃣ Debug inputs
+      # -------------------------------------------------
+      # - name: Capture inputs
+      #   shell: bash
+      #   run: |
+      #     echo "MODULES_INPUT<<EOF" >> $GITHUB_ENV
+      #     echo "${{ inputs.modules }}" >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
+
+      #     echo "FEATURES_INPUT<<EOF" >> $GITHUB_ENV
+      #     echo "${{ inputs.features }}" >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
+
+      #     echo "DEPENDENCIES_INPUT<<EOF" >> $GITHUB_ENV
+      #     echo "${{ inputs.dependencies }}" >> $GITHUB_ENV
+      #     echo "EOF" >> $GITHUB_ENV
+
+      # -------------------------------------------------
+      # 2️⃣ Vendors to publish crate
       # -------------------------------------------------
       - name: Debug directory structure
         run: |
@@ -94,51 +121,54 @@ jobs:
             streaming-crypto/src/pyo3_api/mod.rs
       
       # -------------------------------------------------
-      # 2️⃣ ✅ Safe Replace: MODULES block
+      # 3️⃣ ✅ Safe Replace: MODULES block
       # -------------------------------------------------
       - name: Replace modules block for publish
         working-directory: streaming-crypto/src
         shell: bash
         run: |
-          set -e
-
           FILE="lib.rs"
-          START="// --- MODULES PUBLISH START ---"
-          END="// --- MODULES PUBLISH END ---"
+          START="// --- MODULES DYNAMIC START ---"
+          END="// --- MODULES DYNAMIC END ---"
 
-          # ---- Guard: file exists ----
-          test -f "$FILE" || { echo "$FILE not found"; exit 1; }
-
-          # ---- Guard: markers exist exactly once ----
+          [ -f "$FILE" ] || { echo "$FILE not found"; exit 1; }
           [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid START marker"; exit 1; }
           [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid END marker"; exit 1; }
 
-          awk '
+          awk -v start="$START" \
+              -v end="$END" \
+              -v dynamic="${{ inputs.modules }}" '
             BEGIN { in_block=0 }
-            /^\/\/ --- MODULES PUBLISH START ---/ {
+
+            $0 ~ start {
               in_block=1
-              print "// --- MODULES PUBLISH START ---"
-              print "#[cfg(feature = \"core-api\")]"
-              print "pub mod core_api;"
-              print ""
-              print "#[cfg(feature = \"ffi-api\")]"
-              print "pub mod ffi_api;"
-              print ""
-              print "#[cfg(feature = \"pyo3-api\")]"
-              print "pub mod pyo3_api;"
+              print start
+
+              # Base publish modules (optional file)
+              if (system("test -f ../Cargo.publish.modules") == 0) {
+                system("cat ../Cargo.publish.modules")
+                print ""     # <-- FORCE newline boundary
+              }
+
+              # Dynamic modules input (optional)
+              if (dynamic != "") {
+                printf "%s\n", dynamic
+              }
+
               next
             }
-            /^\/\/ --- MODULES PUBLISH END ---/ {
+
+            $0 ~ end {
               in_block=0
-              print "// --- MODULES PUBLISH END ---"
+              print end
               next
             }
+
             in_block { next }
             { print }
           ' "$FILE" > "$FILE.tmp"
 
           mv "$FILE.tmp" "$FILE"
-      
       # -------------------------------------------------
       # 3️⃣ ✅ Safe Replace: FEATURES block
       # -------------------------------------------------
@@ -146,72 +176,104 @@ jobs:
         working-directory: streaming-crypto
         shell: bash
         run: |
-          set -e
-
           FILE="Cargo.toml"
-          START="# --- FEATURES DEV START ---"
-          END="# --- FEATURES DEV END ---"
+          START="# --- FEATURES DYNAMIC START ---"
+          END="# --- FEATURES DYNAMIC END ---"
 
-          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
-          test -f Cargo.publish.features || { echo "Cargo.publish.features not found"; exit 1; }
+          [ -f "$FILE" ] || { echo "$FILE not found"; exit 1; }
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid END marker"; exit 1; }
 
-          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid FEATURES START marker"; exit 1; }
-          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid FEATURES END marker"; exit 1; }
-
-          awk '
+          awk -v start="$START" \
+              -v end="$END" \
+              -v dynamic="${{ inputs.features }}" '
             BEGIN { in_block=0 }
-            /^# --- FEATURES DEV START ---/ {
+
+            $0 ~ start {
               in_block=1
-              system("cat Cargo.publish.features")
+              print start
+
+              if (system("test -f Cargo.publish.features") == 0) {
+                system("cat Cargo.publish.features")
+                print ""     # <-- FORCE newline boundary
+              }
+
+              if (dynamic != "") {
+                printf "%s\n", dynamic
+              }
+
               next
             }
-            /^# --- FEATURES DEV END ---/ { in_block=0; next }
+
+            $0 ~ end {
+              in_block=0
+              print end
+              next
+            }
+
             in_block { next }
             { print }
           ' "$FILE" > "$FILE.tmp"
 
           mv "$FILE.tmp" "$FILE"
-      
+
       # -------------------------------------------------
-      # 3️⃣ ✅ Safe Replace: DEPENDENCIES block
+      # 4️⃣ ✅ Safe Replace: DEPENDENCIES block
       # -------------------------------------------------
       - name: Replace dependencies block for publish
         working-directory: streaming-crypto
         shell: bash
         run: |
-          set -e
-
           FILE="Cargo.toml"
-          START="# --- DEPENDENCIES DEV START ---"
-          END="# --- DEPENDENCIES DEV END ---"
+          START="# --- DEPENDENCIES DYNAMIC START ---"
+          END="# --- DEPENDENCIES DYNAMIC END ---"
 
-          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
-          test -f Cargo.publish.dependencies || { echo "Cargo.publish.dependencies not found"; exit 1; }
+          [ -f "$FILE" ] || { echo "Cargo.toml not found"; exit 1; }
+          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid START marker"; exit 1; }
+          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid END marker"; exit 1; }
 
-          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid DEP START marker"; exit 1; }
-          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid DEP END marker"; exit 1; }
-
-          awk '
+          awk -v start="$START" \
+              -v end="$END" \
+              -v dynamic="${{ inputs.dependencies }}" '
             BEGIN { in_block=0 }
-            /^# --- DEPENDENCIES DEV START ---/ {
+
+            $0 ~ start {
               in_block=1
-              system("cat Cargo.publish.dependencies")
+              print start
+
+              if (system("test -f Cargo.publish.dependencies") == 0) {
+                system("cat Cargo.publish.dependencies")
+                print ""     # <-- FORCE newline boundary
+              }
+
+              if (dynamic != "") {
+                printf "%s\n", dynamic
+              }
+
               next
             }
-            /^# --- DEPENDENCIES DEV END ---/ {
+
+            $0 ~ end {
               in_block=0
-              # append common dependencies from workspace Cargo.toml
-              system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" ../Cargo.toml")
+
+              # 3️⃣ Common workspace deps
+              if (system("test -f ../Cargo.toml") == 0) {
+                print ""     # <-- FORCE newline boundary
+                system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" ../Cargo.toml")
+              }
+
+              print end
               next
             }
+
             in_block { next }
             { print }
           ' "$FILE" > "$FILE.tmp"
 
           mv "$FILE.tmp" "$FILE"
-      
+
       # -------------------------------------------------
-      # 4️⃣ Prepare & upload crate for publishing
+      # 5️⃣ Prepare & upload crate for publishing
       # -------------------------------------------------
       - name: Prepare crate for publishing
         run: |

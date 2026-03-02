@@ -1,8 +1,8 @@
 // ## 📝 streaming-crypto/src/lib.rs
 
-// --- MODULES PUBLISH START ---
+// --- MODULES DYNAMIC START ---
 // (empty in dev mode, because core-api/ffi-api/pyo3-api are separate crates)
-// --- MODULES PUBLISH END ---
+// --- MODULES DYNAMIC END ---
 
 /// Encrypts data by XORing each byte with 0xAA.
 ///

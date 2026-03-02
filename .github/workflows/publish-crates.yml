@@ -103,6 +103,12 @@ jobs:
     uses: ./.github/workflows/prepare-publish.yml
     with:
       tag: ${{ needs.detect-tag.outputs.tag_version }}
+      modules: |
+        #[cfg(feature = \"core-api\")] pub mod core_api;
+        #[cfg(feature = \"ffi-api\")]  pub mod ffi_api;
+        #[cfg(feature = \"pyo3-api\")] pub mod pyo3_api;
+      features: |
+        default = [\"core-api\"]
 
   # ✅ publish to crates.io
   publish:
@@ -134,6 +140,7 @@ jobs:
           rm -rf streaming-crypto
           mv prepared-crate streaming-crypto
 
+      # 3️⃣ Install libraries
       - name: Install Rust
         if: ${{ env.IS_LOCAL != 'true' }}
         uses: dtolnay/rust-toolchain@stable
@@ -150,6 +157,7 @@ jobs:
         shell: bash
         run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
+      # 4️⃣ Cache
       - name: Cache cargo registry
         uses: actions/cache@v4
         with:

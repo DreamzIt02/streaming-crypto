@@ -140,6 +140,14 @@ jobs:
     uses: ./.github/workflows/prepare-publish.yml
     with:
       tag: ${{ needs.detect-tag.outputs.tag_version }}
+      modules: |
+        #[cfg(feature = \"core-api\")] pub mod core_api;
+        #[cfg(feature = \"ffi-api\")]  pub mod ffi_api;
+        #[cfg(feature = \"pyo3-api\")] pub mod pyo3_api;
+      features: |
+        default = [\"pyo3-api\"]
+      dependencies: |
+        core-api = { package=\"streaming-crypto\", version = \"${{ needs.detect-tag.outputs.tag_version }}\", features = [] }
 
   # ✅ publish to pypi.org
   publish:
@@ -171,41 +179,7 @@ jobs:
           rm -rf streaming-crypto
           mv prepared-crate streaming-crypto
       
-      # ✅ 4️⃣ Safe Replace: CORE dependency block
-      - name: Replace core dependency block for publish
-        working-directory: streaming-crypto
-        shell: bash
-        run: |
-          set -e
-
-          FILE="Cargo.toml"
-          START="# --- DEPENDENCIES CORE START ---"
-          END="# --- DEPENDENCIES CORE END ---"
-
-          test -f "$FILE" || { echo "Cargo.toml not found"; exit 1; }
-
-          [ "$(grep -cF "$START" "$FILE")" -eq 1 ] || { echo "Invalid CORE START marker"; exit 1; }
-          [ "$(grep -cF "$END" "$FILE")" -eq 1 ] || { echo "Invalid CORE END marker"; exit 1; }
-
-          awk -v version="${{ needs.detect-tag.outputs.tag_version }}" '
-            BEGIN { in_block=0 }
-            /^# --- DEPENDENCIES CORE START ---/ {
-              in_block=1
-              print "# --- DEPENDENCIES CORE START ---"
-              print "core-api = { package = \"streaming-crypto\", version = \"" version "\", features = [\"core-api\"] }"
-              next
-            }
-            /^# --- DEPENDENCIES CORE END ---/ {
-              in_block=0
-              print "# --- DEPENDENCIES CORE END ---"
-              next
-            }
-            in_block { next }
-            { print }
-          ' "$FILE" > "$FILE.tmp"
-
-          mv "$FILE.tmp" "$FILE"
-
+      # 3️⃣ Install libraries
       - name: Install Rust
         if: ${{ env.IS_LOCAL != 'true' }}
         uses: dtolnay/rust-toolchain@stable
@@ -226,13 +200,14 @@ jobs:
         if: ${{ env.IS_LOCAL != 'true' }}
         run: pip install maturin
 
+      # ✅ 4️⃣ Build wheel
       - name: Build wheel with PyO3 feature
         working-directory: streaming-crypto
         shell: bash
-        run: maturin build --release --features pyo3-api
+        run: maturin build --release
 
       - name: Publish to PyPI
         if: ${{ env.IS_LOCAL != 'true' }}
         working-directory: streaming-crypto
         shell: bash
-        run: maturin publish --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
+        run: maturin publish -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}

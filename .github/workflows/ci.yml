@@ -52,15 +52,15 @@ jobs:
         working-directory: streaming-crypto
         shell: bash
         run: |
-          grep -q "# --- FEATURES DEV START ---" Cargo.toml || { echo "Missing FEATURES DEV START block"; exit 1; }
-          grep -q "# --- FEATURES DEV END ---" Cargo.toml || { echo "Missing FEATURES DEV END block"; exit 1; }
+          grep -q "# --- FEATURES DYNAMIC START ---" Cargo.toml || { echo "Missing FEATURES DYNAMIC START block"; exit 1; }
+          grep -q "# --- FEATURES DYNAMIC END ---" Cargo.toml || { echo "Missing FEATURES DYNAMIC END block"; exit 1; }
 
       - name: Ensure dev dependencies block exists
         working-directory: streaming-crypto
         shell: bash
         run: |
-          grep -q "# --- DEPENDENCIES DEV START ---" Cargo.toml || { echo "Missing DEPENDENCIES DEV START block"; exit 1; }
-          grep -q "# --- DEPENDENCIES DEV END ---" Cargo.toml || { echo "Missing DEPENDENCIES DEV END block"; exit 1; }
+          grep -q "# --- DEPENDENCIES DYNAMIC START ---" Cargo.toml || { echo "Missing DEPENDENCIES DYNAMIC START block"; exit 1; }
+          grep -q "# --- DEPENDENCIES DYNAMIC END ---" Cargo.toml || { echo "Missing DEPENDENCIES DYNAMIC END block"; exit 1; }
 
       - name: Build core-api
         run: cargo build -p core-api

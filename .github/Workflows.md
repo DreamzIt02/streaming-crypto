@@ -337,8 +337,8 @@ But only once.
 gh act -j build-test \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
 # Or, Specific workflow
 
@@ -346,8 +346,8 @@ gh act push \
   --workflows .github/workflows/ci.yml \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
   # - IMPORTANT: subsequent run of the above command won't work
   #   - We need to give some time to the docker to refresh metadata after automatically deleting testing container from docker
@@ -363,8 +363,8 @@ gh act push \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --reuse \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
   # - But still subsequent runs (at least 3) failed with error
 
@@ -384,8 +384,8 @@ gh act -j detect-tag \
   -e .github/push-tag-crates.json \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
 # Run only prepare-publish from publish-crates.yml
 gh act -j prepare \
@@ -394,8 +394,8 @@ gh act -j prepare \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --reuse \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
 # Run only publish-crates from publish-crates.yml
 gh act push \
@@ -403,8 +403,8 @@ gh act push \
   -e .github/push-tag-crates.json \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
 rm -rf .act-artifacts/*
 rm -rf .act-cache/*
@@ -422,8 +422,8 @@ gh act -j detect-tag \
   -e .github/push-tag-pypi.json \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
 # Run only prepare-publish from publish-pypi.yml
 gh act -j prepare \
@@ -432,8 +432,8 @@ gh act -j prepare \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --reuse \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
 # Run full publish-pypi.yml
 gh act push\
@@ -441,8 +441,8 @@ gh act push\
   -e .github/push-tag-pypi.json \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
-  -P ubuntu-latest=act-streaming-crypto:latest \
-  --pull=false
+  --pull=false \
+  -P ubuntu-latest=act-streaming-crypto:latest
 
 rm -rf .act-artifacts/*
 rm -rf .act-cache/*
