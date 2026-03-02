@@ -1,6 +1,6 @@
 # --- FEATURES PUBLISH START ---
 [features]
-default  = ["core-api"]
+default  = []
 core-api = []
 ffi-api  = []
 pyo3-api = ["pyo3"]

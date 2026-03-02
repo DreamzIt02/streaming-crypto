@@ -334,13 +334,13 @@ But only once.
 ### Push main without tag (run ci.yml)
 
 ```bash
-gh act push \
+gh act -j build-test \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   -P ubuntu-latest=act-streaming-crypto:latest \
   --pull=false
 
-Or, Specific workflow
+# Or, Specific workflow
 
 gh act push \
   --workflows .github/workflows/ci.yml \
@@ -348,6 +348,28 @@ gh act push \
   --cache-server-path .act-cache \
   -P ubuntu-latest=act-streaming-crypto:latest \
   --pull=false
+
+  # - IMPORTANT: subsequent run of the above command won't work
+  #   - We need to give some time to the docker to refresh metadata after automatically deleting testing container from docker
+  #   - We need to run below commands to clear local cache, this still needs few failed tries for above command
+
+rm -rf .act-artifacts/*
+rm -rf .act-cache/*
+
+  #   - We also can run the command with `--reuse`, to use the same container for subsequent run to work
+
+gh act push \
+  --workflows .github/workflows/ci.yml \
+  --artifact-server-path .act-artifacts \
+  --cache-server-path .act-cache \
+  --reuse \
+  -P ubuntu-latest=act-streaming-crypto:latest \
+  --pull=false
+
+  # - But still subsequent runs (at least 3) failed with error
+
+rm -rf .act-artifacts/*
+rm -rf .act-cache/*
 ```
 
 ### Push main with tag [vN.N.N-*-crates.N] (run publish-crates.yml)

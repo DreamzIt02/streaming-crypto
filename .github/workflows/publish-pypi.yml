@@ -229,10 +229,10 @@ jobs:
       - name: Build wheel with PyO3 feature
         working-directory: streaming-crypto
         shell: bash
-        run: maturin build --release --no-default-features --features pyo3-api
+        run: maturin build --release --features pyo3-api
 
       - name: Publish to PyPI
         if: ${{ env.IS_LOCAL != 'true' }}
         working-directory: streaming-crypto
         shell: bash
-        run: maturin publish --no-default-features --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
+        run: maturin publish --features pyo3-api -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
