@@ -353,6 +353,9 @@ gh act push \
 ### Push main with tag [vN.N.N-*-crates.N] (run publish-crates.yml)
 
 ```bash
+mkdir -p .act-artifacts
+mkdir -p .act-cache
+
 # Run only detect-tag from publish-crates.yml
 gh act -j detect-tag \
   --workflows .github/workflows/publish-crates.yml \
@@ -373,18 +376,24 @@ gh act -j prepare \
   --pull=false
 
 # Run only publish-crates from publish-crates.yml
-gh act -j publish \
+gh act push \
   --workflows .github/workflows/publish-crates.yml \
   -e .github/push-tag-crates.json \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   -P ubuntu-latest=act-streaming-crypto:latest \
   --pull=false
+
+rm -rf .act-artifacts/*
+rm -rf .act-cache/*
 ```
 
 ### Push main with tag [vN.N.N-*-pypi.N] (run publish-pypi.yml)
 
 ```bash
+mkdir -p .act-artifacts
+mkdir -p .act-cache
+
 # Run only detect-tag from publish-pypi.yml
 gh act -j detect-tag \
   --workflows .github/workflows/publish-pypi.yml \
@@ -404,14 +413,17 @@ gh act -j prepare \
   -P ubuntu-latest=act-streaming-crypto:latest \
   --pull=false
 
-# Run only publish-pypi from publish-pypi.yml
-gh act -j publish \
+# Run full publish-pypi.yml
+gh act push\
   --workflows .github/workflows/publish-pypi.yml \
   -e .github/push-tag-pypi.json \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   -P ubuntu-latest=act-streaming-crypto:latest \
   --pull=false
+
+rm -rf .act-artifacts/*
+rm -rf .act-cache/*
 ```
 
 ---
