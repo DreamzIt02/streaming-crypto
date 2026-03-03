@@ -1,0 +1,135 @@
+name: Publish Package (Init)
+
+on:
+  workflow_call:
+    inputs:
+      regex:
+        description: "Tag regex pattern"
+        required: true
+        type: string
+        default: "v*-crates.[0-9]"
+      prefix:
+        description: "Tag prefix (e.g. v, b)"
+        required: true
+        type: string
+        default: "v"
+      suffix:
+        description: "Tag suffix (e.g. crates, pypi)"
+        required: true
+        type: string
+        default: "crates"
+    outputs:
+      tag_version: 
+        value: ${{ jobs.detect-tag.outputs.tag_version }}
+      tag_is_valid: 
+        value: ${{ jobs.detect-tag.outputs.tag_is_valid }}
+      tag_is_matched: 
+        value: ${{ jobs.detect-tag.outputs.tag_is_matched }}
+      is_prerelease: 
+        value: ${{ jobs.detect-tag.outputs.is_prerelease }}
+      tag_is_published: 
+        value: ${{ jobs.detect-tag.outputs.tag_is_published }}
+jobs:
+  detect-tag:
+    name: Initialize publish with tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag_version: ${{ steps.version_detect.outputs.tag_version }}
+      tag_is_valid: ${{ steps.version_detect.outputs.tag_is_valid }}
+      tag_is_matched: ${{ steps.version_match.outputs.tag_is_matched }}
+      is_prerelease: ${{ steps.prerelease_check.outputs.is_prerelease }}
+      tag_is_published: ${{ steps.registry_check.outputs.tag_is_published }}
+
+    steps:
+      - name: Mark local run
+        if: ${{ env.ACT == 'true' }}
+        run: echo "IS_LOCAL=true" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -------------------------------------------------
+      # 1️⃣ Parse tag using prefix/suffix params
+      # -------------------------------------------------
+      - name: Validate tag with prefix/suffix
+        id: version_detect
+        run: |
+          RAW_TAG="${GITHUB_REF_NAME}"
+          PREFIX="${{ inputs.prefix }}"
+          SUFFIX="${{ inputs.suffix }}"
+
+          if [[ "$RAW_TAG" != ${PREFIX}* ]]; then
+            echo "tag_is_valid=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [[ "$RAW_TAG" != *"-${SUFFIX}."* ]]; then
+            echo "tag_is_valid=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Remove prefix (e.g. v, b)
+          BASE="${RAW_TAG#${PREFIX}}"
+
+          # Trim trailing "-suffix.N"
+          BASE_TAG=$(echo "$BASE" | sed -E "s/-${SUFFIX}\.[0-9]+$//")
+
+          SEMVER_REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+
+          if [[ "$BASE_TAG" =~ $SEMVER_REGEX ]]; then
+            echo "tag_version=$BASE_TAG" >> $GITHUB_OUTPUT
+            echo "tag_is_valid=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag_is_valid=false" >> $GITHUB_OUTPUT
+          fi
+
+      # -------------------------------------------------
+      # 2️⃣ Ensure Cargo.toml version matches
+      # -------------------------------------------------
+      - name: Ensure tag matches Cargo.toml version
+        if: ${{ steps.version_detect.outputs.tag_is_valid == 'true' }}
+        id: version_match
+        working-directory: streaming-crypto
+        run: |
+          TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
+          CARGO_VERSION=$(grep '^version' Cargo.toml | head -n1 | cut -d '"' -f2)
+
+          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
+            echo "Tag version -> $TAG_VERSION does not match Cargo.toml-> $CARGO_VERSION"
+            echo "tag_is_matched=false" >> $GITHUB_OUTPUT
+          else
+            echo "tag_is_matched=true" >> $GITHUB_OUTPUT
+          fi
+
+      # -------------------------------------------------
+      # 3️⃣ Detect pre-release
+      # -------------------------------------------------
+      - name: Detect pre-release
+        if: ${{ steps.version_match.outputs.tag_is_matched == 'true' }}
+        id: prerelease_check
+        run: |
+          TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
+          if [[ "$TAG_VERSION" == *-* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+          fi
+      
+      # -------------------------------------------------
+      # 4️⃣ Registry check crates.io 
+      # -------------------------------------------------
+      - name: Registry check
+        if: ${{ steps.version_match.outputs.tag_is_matched == 'true' }}
+        id: registry_check
+        run: |
+          VERSION="${{ steps.version_detect.outputs.tag_version }}"
+          PKG="streaming-crypto"
+          URL="https://crates.io/api/v1/crates/${PKG}/${VERSION}"
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: streaming-crypto-ci" "$URL")
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "tag_is_published=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag_is_published=false" >> $GITHUB_OUTPUT
+          fi

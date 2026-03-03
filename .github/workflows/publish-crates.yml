@@ -36,69 +36,17 @@ on:
 
 jobs:
   detect-tag:
-    runs-on: ubuntu-latest
-    outputs:
-      tag_version: ${{ steps.version_detect.outputs.tag_version }}
-      tag_is_valid: ${{ steps.version_detect.outputs.tag_is_valid }}
-      is_prerelease: ${{ steps.prerelease_check.outputs.is_prerelease }}
-    steps:
-      - uses: actions/checkout@v4
-
-      # -------------------------------------------------
-      # 1️⃣ Strict SemVer validation + capture version (with -crates.N suffix)
-      # -------------------------------------------------
-      - name: Validate strict SemVer tag (with -crates.N suffix) & capture tag version
-        id: version_detect
-        run: |
-          RAW_TAG="${GITHUB_REF_NAME}"
-          # Remove leading "v"
-          BASE="${RAW_TAG#v}"
-          # Trim trailing "-crates.N" (suffix with retry counter)
-          BASE_TAG=$(echo "$BASE" | sed -E 's/-crates\.[0-9]+$//')
-
-          SEMVER_REGEX='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
-
-          # Export the trimmed version for later steps
-          if [[ "$BASE_TAG" =~ $SEMVER_REGEX ]]; then
-            echo "tag_version=$BASE_TAG" >> $GITHUB_OUTPUT
-            echo "tag_is_valid=true" >> $GITHUB_OUTPUT
-          else
-            echo "Invalid strict SemVer tag: $RAW_TAG (parsed as $BASE_TAG)"
-            echo "tag_is_valid=false" >> $GITHUB_OUTPUT
-          fi
-
-      # -------------------------------------------------
-      # 2️⃣ Enforce Cargo.toml version match
-      # -------------------------------------------------
-      - name: Ensure tag matches Cargo.toml version
-        if: ${{ steps.version_detect.outputs.tag_is_valid == 'true' }}
-        working-directory: streaming-crypto
-        run: |
-          TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
-          CARGO_VERSION=$(grep '^version' Cargo.toml | head -n1 | cut -d '"' -f2)
-          
-          if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
-            echo "Tag version -> $TAG_VERSION does not match Cargo.toml-> $CARGO_VERSION"
-            exit 1
-          fi
-      
-      # -------------------------------------------------
-      # 3️⃣ Detect pre-release
-      # -------------------------------------------------
-      - name: Detect pre-release
-        if: ${{ steps.version_detect.outputs.tag_is_valid == 'true' }}
-        id: prerelease_check
-        run: |
-          TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
-          if [[ "$TAG_VERSION" == *-* ]]; then
-            echo "is_prerelease=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_prerelease=false" >> $GITHUB_OUTPUT
-          fi
+    name: Initialize Build (core)
+    uses: ./.github/workflows/init-publish.yml
+    with:
+      regex: 'v*-crates.[0-9]'
+      prefix: 'v'
+      suffix: 'crates'
 
   # ✅ prepare-publish
   prepare:
-    if: ${{ needs.detect-tag.outputs.tag_is_valid == 'true' }}
+    name: Prepare Publish Crate
+    if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' }}
     needs: [detect-tag]
     uses: ./.github/workflows/prepare-publish.yml
     with:
@@ -112,10 +60,10 @@ jobs:
 
   # ✅ publish to crates.io
   publish:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' && needs.detect-tag.outputs.tag_is_published == 'false' }}
     name: Publish to crates.io + github release
-    runs-on: ubuntu-latest
     needs: [detect-tag, prepare] # Require both
+    runs-on: ubuntu-latest
 
     steps:
       - name: Mark local run
@@ -145,18 +93,6 @@ jobs:
         if: ${{ env.IS_LOCAL != 'true' }}
         uses: dtolnay/rust-toolchain@stable
       
-      - name: Install Python
-        if: ${{ env.IS_LOCAL != 'true' }}
-        id: setup-python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Export PYO3_PYTHON
-        if: ${{ env.IS_LOCAL != 'true' }}
-        shell: bash
-        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
-
       # 4️⃣ Cache
       - name: Cache cargo registry
         uses: actions/cache@v4
@@ -164,6 +100,9 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            target
+          # This is fine, but if we ever add multiple workspaces/crates, we may want to scope the hash to each crate’s Cargo.lock. 
+          # Otherwise, unrelated changes can invalidate the cache.
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       
       # -------------------------------------------------
@@ -180,13 +119,13 @@ jobs:
       - name: Dry-run publish
         working-directory: streaming-crypto
         shell: bash
-        run: cargo publish --allow-dirty --dry-run 
+        run: cargo publish --allow-dirty --locked --dry-run
 
       - name: Publish crate
         if: ${{ env.IS_LOCAL != 'true' }}
         working-directory: streaming-crypto
         shell: bash
-        run: cargo publish --allow-dirty 
+        run: cargo publish --allow-dirty --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -197,7 +136,8 @@ jobs:
         if: ${{ needs.detect-tag.outputs.is_prerelease == 'false' }}
         id: changelog
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          # PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          PREV_TAG=$(git describe --tags --match "v*" --abbrev=0 HEAD^ 2>/dev/null || echo "")
           echo "Previous tag: $PREV_TAG"
 
           if [ -z "$PREV_TAG" ]; then
@@ -212,7 +152,11 @@ jobs:
       - name: Create GitHub Release
         if: ${{ env.IS_LOCAL != 'true' && needs.detect-tag.outputs.is_prerelease == 'false' }}
         uses: softprops/action-gh-release@v2
-        with:
-          body_path: CHANGELOG_TEMP.md
         env:
           GITHUB_TOKEN: ${{ secrets.CARGO_GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ needs.detect-tag.outputs.tag_version }}
+          body_path: CHANGELOG_TEMP.md
+          draft: false
+          prerelease: false

@@ -18,7 +18,7 @@
 /// assert_eq!(encrypted[2], 3 ^ 0xAA);
 /// ```
 #[cfg(feature = "core-api")]
-pub use core_api::encrypt; // re-export everything from core_api
+pub use core_api::*; // re-export everything from core_api
 
 /// FFI wrapper for encryption.
 ///
@@ -42,7 +42,7 @@ pub use core_api::encrypt; // re-export everything from core_api
 /// assert_eq!(encrypted[0], 1 ^ 0xAA);
 /// ```
 #[cfg(feature = "ffi-api")]
-pub use ffi_api::encrypt; // re-export the FFI wrapper
+pub use ffi_api::*; // re-export everything from FFI wrapper
 
 /// # Examples
 ///
@@ -62,7 +62,4 @@ pub use ffi_api::encrypt; // re-export the FFI wrapper
 /// });
 /// ```
 #[cfg(feature = "pyo3-api")]
-pub use pyo3_api::encrypt; // re-export the PyO3 wrapper
-
-#[cfg(feature = "pyo3-api")]
-pub use pyo3_api::streaming_crypto; // re-export the #[pymodule]
+pub use pyo3_api::*; // re-export everything from PyO3 wrapper

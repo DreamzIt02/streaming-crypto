@@ -1,7 +1,8 @@
 [package]
 name        = "streaming-crypto"
-# GITHUB TAG: v0.1.0-alpha.18-crates.0, v0.1.0-alpha.18-pypi.0
-version     = "0.1.0-alpha.18"
+# GITHUB BUILD   TAG: b0.1.0-beta.0-core.0, b0.1.0-beta.0-ffi.0, b0.1.0-beta.0-pyo3.0
+# GITHUB PUBLISH TAG: v0.1.0-beta.0-crates.0, v0.1.0-beta.0-pypi.0
+version     = "0.1.0-beta.0"
 edition     = "2021"
 license     = "MIT"
 description = "Cryptographic library with optional FFI and Python bindings"
@@ -18,6 +19,7 @@ core-api = ["dep:core-api"]
 ffi-api  = ["dep:ffi-api"]
 pyo3-api = ["dep:pyo3-api", "pyo3"]
 # --- FEATURES DYNAMIC END ---
+cuda = []
 
 [dependencies]
 # --- DEPENDENCIES DYNAMIC START ---
@@ -33,3 +35,13 @@ pyo3     = { version = "0.22", features = ["auto-initialize"], optional = true }
 [lib]
 name       = "streaming_crypto"
 crate-type = ["rlib", "cdylib"]
+
+[dev-dependencies]
+# 📦 Property‑Based Tests
+proptest.workspace = true
+tempfile.workspace = true
+
+# 📦 Public API Tests
+[[test]]
+name = "public_api"
+path = "tests/core_api/mod.rs"

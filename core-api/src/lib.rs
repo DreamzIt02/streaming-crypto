@@ -35,3 +35,32 @@ mod tests {
         assert_eq!(encrypted[2], 3 ^ 0xAA);
     }
 }
+
+// Shared and top level
+pub mod constants;
+pub mod types;
+pub mod utils;
+
+// Shared and top level module
+pub mod compression;
+pub mod headers;
+pub mod crypto;
+pub mod telemetry;
+
+pub mod recovery;
+pub mod scheduler;
+
+// Stream layers
+pub mod stream_v2;
+
+// Benchmark shared
+pub mod benchmarks;
+
+// -----------------------------------------------------------------------------
+// Prelude (Rust users)
+// -----------------------------------------------------------------------------
+pub mod prelude {
+
+}
+
+pub use stream_v2::*;

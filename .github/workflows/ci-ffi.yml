@@ -1,0 +1,82 @@
+name: CI (ffi-api)
+
+on:
+  push:
+    tags:
+      - 'b*-ffi.[0-9]'
+
+jobs:
+  detect-tag:
+    name: Initialize Build (ffi)
+    uses: ./.github/workflows/init-publish.yml
+    with:
+      regex: 'b*-ffi.[0-9]'
+      prefix: 'b'
+      suffix: 'ffi'
+
+  build-test:
+    name: Build & Test (ffi)
+    if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' }}
+    needs: [detect-tag]
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        rust: [stable]
+
+    steps:
+      - name: Mark local run
+        if: ${{ env.ACT == 'true' }}
+        run: echo "IS_LOCAL=true" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Ensure dev manifest blocks are in place
+      - name: Ensure dev features block exists
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          grep -q "# --- FEATURES DYNAMIC START ---" Cargo.toml || { echo "Missing FEATURES DYNAMIC START block"; exit 1; }
+          grep -q "# --- FEATURES DYNAMIC END ---" Cargo.toml || { echo "Missing FEATURES DYNAMIC END block"; exit 1; }
+
+      - name: Ensure dev dependencies block exists
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          grep -q "# --- DEPENDENCIES DYNAMIC START ---" Cargo.toml || { echo "Missing DEPENDENCIES DYNAMIC START block"; exit 1; }
+          grep -q "# --- DEPENDENCIES DYNAMIC END ---" Cargo.toml || { echo "Missing DEPENDENCIES DYNAMIC END block"; exit 1; }
+
+      - name: Cache Cargo registry and git sources
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Install OpenCL
+        if: ${{ env.IS_LOCAL != 'true' }}
+        run: sudo apt-get update && sudo apt-get install -y ocl-icd-opencl-dev
+
+      # -------------------------------------------------
+      # Test actual crates (real logic)
+      # -------------------------------------------------
+
+      - name: Test ffi-api
+        run: cargo test -p ffi-api
+
+      # -------------------------------------------------
+      # Test published crate (streaming-crypto)
+      # -------------------------------------------------
+
+      - name: Test streaming-crypto (ffi-api only)
+        run: cargo test -p streaming-crypto --no-default-features --features ffi-api

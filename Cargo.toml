@@ -10,7 +10,51 @@ resolver = "2"
 
 [workspace.dependencies]
 # --- DEPENDENCIES COMMON START ---
-rand = "0.8"
-aes  = "0.7"
-sha2 = "0.10"
+# Compression
+flate2   = "1.0"
+lz4_flex = "0.12"
+zstd     = "0.13"
+
+# Crypto
+aes-gcm          = { version= "0.11.0-rc.3", features = ["bytes"]}
+chacha20poly1305 = { version= "0.11.0-rc.3", features = ["bytes"]}
+
+blake3 = "1.8.3"
+hkdf   = "0.13.0-rc.5"
+sha2   = "0.11.0-rc.5"
+sha3   = "0.11.0-rc.8"
+digest = "0.11.1"
+
+# Concurrency (core-safe)
+crossbeam    = "0.8.4"
+
+# Utilities
+async-stream = "0.3.6"
+async-trait  = "0.1.89"
+base64       = "0.22.1"
+bincode      = { version = "2.0.1", features = ["serde"] }
+bitflags     = "2.10.0"
+byteorder    = "1.5"
+bytes        = "1.11.0"
+chrono       = { version = "0.4", features = ["serde"] }
+crc32fast    = "1.5.0"
+futures      = "0.3.31"
+hex          = "0.4"
+hybrid-array = "0.4.5"
+num_cpus     = "1.17.0"
+num_enum     = "0.7"
+ocl          = "0.19.7"
+pollster     = "0.4.0"
+rand         = "0.8"
+serde        = { version = "1.0", features = ["derive"] }
+serde_json   = { version = "1.0", features = [] }
+sysinfo      = "0.37.2"
+tracing      = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid         = { version = "1.19.0", features = ["v4"] }
+wgpu         = "28.0.0"
 # --- DEPENDENCIES COMMON END ---
+
+# 📦 Property‑Based Tests
+proptest     = "1.5"
+tempfile     = "3"

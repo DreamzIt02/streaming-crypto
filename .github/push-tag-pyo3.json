@@ -1,0 +1,8 @@
+{
+     "ref": "refs/tags/b0.1.0-beta.0-pyo3.0",
+    "repository": {
+    "owner": { "login": "DreamzIt02" },
+    "name": "streaming-crypto"
+    },
+    "pusher": { "name": "DreamzIt02" }
+}
