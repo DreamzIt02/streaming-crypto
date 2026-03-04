@@ -12,7 +12,6 @@ pub mod frame_worker;
 pub mod segment_worker;
 pub mod compression_worker;
 
-pub mod parallelism;
 pub mod pipeline;
 pub mod core;
 pub mod io;

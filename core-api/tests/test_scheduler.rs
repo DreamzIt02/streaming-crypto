@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod scheduler_tests {
-    use core_api::stream_v2::parallelism::{Scheduler, WorkerTarget};
+    use core_api::parallelism::{Scheduler, WorkerTarget};
 
 
     #[test]

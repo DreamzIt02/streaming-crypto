@@ -3,11 +3,15 @@ use bytes::Bytes;
 use crossbeam::channel::{Receiver, Sender};
 use tracing::{debug, error};
 
-use crate::{stream_v2::{
-    compression_worker::{CodecInfo, CompressionBackend, CpuCompressionBackend, GpuCompressionBackend, types::CompressionWorkerError}, 
+use crate::{
     parallelism::{Scheduler, WorkerTarget}, segment_worker::{DecryptedSegment, EncryptSegmentInput}, 
-    segmenting::types::SegmentFlags
-}, telemetry::{Stage, StageTimes}, utils::tracing_logger};
+    stream_v2::{
+        compression_worker::{CodecInfo, CompressionBackend, CpuCompressionBackend, GpuCompressionBackend, types::CompressionWorkerError}, 
+        segmenting::types::SegmentFlags
+    }, 
+    telemetry::{Stage, StageTimes}, 
+    utils::tracing_logger
+};
 
 /// Factory: choose backend based on codec + target
 pub fn make_backend(target: WorkerTarget, codec_info: CodecInfo) -> Box<dyn CompressionBackend> {

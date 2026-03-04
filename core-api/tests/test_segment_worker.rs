@@ -10,7 +10,7 @@ use bytes::Bytes;
 use crossbeam::channel::{Receiver, Sender, unbounded};
 use core_api::crypto::{DigestAlg, KEY_LEN_32};
 use core_api::headers::HeaderV1;
-use core_api::stream_v2::parallelism::HybridParallelismProfile;
+use core_api::parallelism::HybridParallelismProfile;
 use core_api::stream_v2::segment_worker::decrypt::DecryptSegmentWorker1;
 use core_api::stream_v2::segment_worker::encrypt::EncryptSegmentWorker1;
 use core_api::stream_v2::segment_worker::{

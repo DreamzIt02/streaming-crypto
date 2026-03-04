@@ -48,7 +48,7 @@ pub mod crypto;
 pub mod telemetry;
 
 pub mod recovery;
-pub mod scheduler;
+pub mod parallelism;
 
 // Stream layers
 pub mod stream_v2;

@@ -1,8 +1,8 @@
-// ## 3. `src/scheduler/policy.rs`
+// ## 3. `src/parallelism/policy.rs`
 
 // Purpose: compaction policy + scheduler cycle.
 
-//! scheduler/policy.rs
+//! parallelism/policy.rs
 //! Hybrid compaction policy and scheduler cycle runner.
 
 pub struct HybridCompactionPolicy {

@@ -8,8 +8,10 @@ use crate::{
     constants::{MASTER_KEY_LENGTHS, MAGIC_DICT, MAX_DICT_LEN, MIN_DICT_LEN, DEFAULT_QUEUE_CAP, DEFAULT_WORKERS, QUEUE_CAPS, WORKERS_COUNT}, 
     crypto::{CryptoError, DigestAlg, derive_session_key_32}, 
     headers::HeaderV1, recovery::AsyncLogManager, 
-    stream_v2::{io::{InputSource, OutputSink, PayloadReader, open_input, open_output}, 
-    parallelism::{HybridParallelismProfile, ParallelismConfig}, pipeline::{PipelineConfig, decrypt_pipeline, encrypt_pipeline}, 
+    parallelism::{HybridParallelismProfile, ParallelismConfig}, 
+    stream_v2::{
+        io::{InputSource, OutputSink, PayloadReader, open_input, open_output}, 
+        pipeline::{PipelineConfig, decrypt_pipeline, encrypt_pipeline}, 
     segment_worker::{DecryptContext, EncryptContext}}, 
     telemetry::TelemetrySnapshot, 
     types::StreamError

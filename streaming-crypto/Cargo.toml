@@ -19,7 +19,6 @@ core-api = ["dep:core-api"]
 ffi-api  = ["dep:ffi-api"]
 pyo3-api = ["dep:pyo3-api", "pyo3"]
 # --- FEATURES DYNAMIC END ---
-cuda = []
 
 [dependencies]
 # --- DEPENDENCIES DYNAMIC START ---
@@ -32,14 +31,14 @@ pyo3-api = { path = "../pyo3-api", optional = true }
 pyo3     = { version = "0.22", features = ["auto-initialize"], optional = true }
 # --- DEPENDENCIES DYNAMIC END ---
 
-[lib]
-name       = "streaming_crypto"
-crate-type = ["rlib", "cdylib"]
-
 [dev-dependencies]
 # 📦 Property‑Based Tests
 proptest.workspace = true
 tempfile.workspace = true
+
+[lib]
+name       = "streaming_crypto"
+crate-type = ["rlib", "cdylib"]
 
 # 📦 Public API Tests
 [[test]]

@@ -6,10 +6,10 @@ use crate::{
     constants::MASTER_KEY_LENGTHS,
     headers::HeaderV1,
     crypto::{CryptoError, DigestAlg, DigestError, KEY_LEN_32},
+    parallelism::HybridParallelismProfile,
     stream_v2::{
         framing::FrameError,
         frame_worker::FrameWorkerError,
-        parallelism::HybridParallelismProfile,
         segmenting::{SegmentHeader, types::{SegmentFlags, SegmentError}}
     },
     telemetry::{StageTimes, TelemetryCounters}

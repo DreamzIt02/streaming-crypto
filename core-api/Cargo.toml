@@ -5,9 +5,15 @@ edition = "2021"
 publish = false
 
 [features]
-cuda = []
+cuda    = ["cudarc"]      # CUDA backend
+metal   = ["wgpu"]        # WGPU backend
+opencl  = ["opencl3"]     # OpenCL backend
 
 [dependencies]
+# Features Gated
+cudarc       = { version = "0.18", optional = true, features = ["cuda-version-from-build-system"] }
+wgpu         = { version = "28.0", optional = true, features = [] }
+opencl3      = { version = "0.12", optional = true, features = [] }
 
 # Compression
 flate2.workspace = true
@@ -42,7 +48,6 @@ hex.workspace = true
 hybrid-array.workspace = true
 num_cpus.workspace = true
 num_enum.workspace = true
-ocl.workspace = true
 pollster.workspace = true
 rand.workspace = true
 serde.workspace = true
@@ -51,7 +56,6 @@ sysinfo.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 uuid.workspace = true
-wgpu.workspace = true
 
 [dev-dependencies]
 # 📦 Property‑Based Tests

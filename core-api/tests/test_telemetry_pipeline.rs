@@ -24,9 +24,9 @@ mod telemetry_pipeline_tests {
         crypto::{DigestAlg, KEY_LEN_32},
         headers::HeaderV1,
         recovery::AsyncLogManager,
+        parallelism::HybridParallelismProfile,
         stream_v2::{
             io::PayloadReader,
-            parallelism::HybridParallelismProfile,
             pipeline::{PipelineConfig, encrypt_pipeline, decrypt_pipeline},
             segment_worker::{EncryptContext, DecryptContext},
         },

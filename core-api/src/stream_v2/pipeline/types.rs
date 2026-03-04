@@ -2,7 +2,7 @@ use std::{any::Any, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}};
 
 use crossbeam::channel::{Receiver, Sender};
 
-use crate::{stream_v2::parallelism::HybridParallelismProfile, types::StreamError};
+use crate::{parallelism::HybridParallelismProfile, types::StreamError};
 
 #[derive(Debug, Clone)]
 pub struct PipelineConfig {

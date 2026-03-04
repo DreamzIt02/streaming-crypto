@@ -5,9 +5,10 @@ mod worker_tests {
     use crossbeam::channel;
 
     use core_api::{compression::{CodecLevel, codec_ids}, 
+        parallelism::Scheduler, 
         stream_v2::{
             compression_worker::{CodecInfo, GpuCompressionBackend, run_compression_worker}, 
-            parallelism::Scheduler, segment_worker::EncryptSegmentInput, segmenting::types::SegmentFlags
+            segment_worker::EncryptSegmentInput, segmenting::types::SegmentFlags
         }, telemetry::StageTimes
     };
 

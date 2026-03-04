@@ -1,6 +1,7 @@
 use crate::{
     compression::{CodecOptions, CompressionError, Compressor, Decompressor, create_compressor, create_decompressor},
-    stream_v2::{compression_worker::CodecInfo, parallelism::GpuInfo}
+    parallelism::GpuInfo,
+    stream_v2::{compression_worker::CodecInfo}
 };
 
 /// GPU compression backend.

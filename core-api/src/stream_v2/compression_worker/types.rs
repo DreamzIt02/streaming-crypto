@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{compression::{CodecLevel, CompressionError}, headers::HeaderV1, stream_v2::parallelism::GpuInfo};
+use crate::{compression::{CodecLevel, CompressionError}, headers::HeaderV1, parallelism::GpuInfo};
 
 #[derive(Debug, Clone)]
 pub struct CodecInfo<'a> {

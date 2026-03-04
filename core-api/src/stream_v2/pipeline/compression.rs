@@ -1,10 +1,12 @@
 use std::sync::{Arc, Mutex};
 use crossbeam::channel::{Receiver, Sender};
 
-use crate::stream_v2::{ 
-    compression_worker::{CodecInfo, CompressionWorkerError, make_backend, run_compression_worker, run_decompression_worker},
+use crate::{
     parallelism::{HybridParallelismProfile, Scheduler, WorkerTarget},
-    segment_worker::{DecryptedSegment, EncryptSegmentInput}
+    stream_v2::{ 
+        compression_worker::{CodecInfo, CompressionWorkerError, make_backend, run_compression_worker, run_decompression_worker},
+        segment_worker::{DecryptedSegment, EncryptSegmentInput}
+    }
 };
 
 pub fn spawn_compression_workers(

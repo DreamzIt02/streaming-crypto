@@ -63,10 +63,6 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - name: Install OpenCL
-        if: ${{ env.IS_LOCAL != 'true' }}
-        run: sudo apt-get update && sudo apt-get install -y ocl-icd-opencl-dev
-
       # -------------------------------------------------
       # Test actual crates (real logic)
       # -------------------------------------------------

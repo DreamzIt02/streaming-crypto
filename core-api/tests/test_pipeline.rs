@@ -17,12 +17,8 @@ mod tests {
     use core_api::crypto::{DigestAlg, KEY_LEN_32};
     use core_api::headers::{HeaderV1, Strategy};
     use core_api::recovery::AsyncLogManager;
-    use core_api::stream_v2::framing::FrameHeader;
-    use core_api::stream_v2::io::{PayloadReader};
-    use core_api::stream_v2::parallelism::{HybridParallelismProfile, ParallelismConfig};
-    use core_api::stream_v2::pipeline::{PipelineConfig, decrypt_pipeline, encrypt_pipeline};
-    use core_api::stream_v2::segment_worker::{EncryptContext, DecryptContext, SegmentWorkerError};
-    use core_api::stream_v2::segmenting::SegmentHeader;
+    use core_api::parallelism::{HybridParallelismProfile, ParallelismConfig};
+    use core_api::stream_v2::{framing::FrameHeader, io::PayloadReader, pipeline::{PipelineConfig, decrypt_pipeline, encrypt_pipeline}, segment_worker::{EncryptContext, DecryptContext, SegmentWorkerError}, segmenting::SegmentHeader};
     use core_api::telemetry::TelemetrySnapshot;
     use core_api::types::StreamError;
 
@@ -107,7 +103,6 @@ mod tests {
 
         Ok((decrypted, enc_snapshot))
     }
-
 
 
     // ------------------------------------------------------------
