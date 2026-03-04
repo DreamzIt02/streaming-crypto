@@ -1,8 +1,10 @@
 # Streaming Crypto
 
-[![CI](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci.yml)
-[![Crates.io](https://img.shields.io/crates/v/streaming-crypto.svg)](https://crates.io/crates/streaming-crypto)
+[![CI core](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci-core.yml/badge.svg)](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci-core.yml)
+[![CI ffi](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci-ffi.yml/badge.svg)](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci-ffi.yml)
+[![CI pyo3](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci-pyo3.yml/badge.svg)](https://github.com/DreamzIt02/streaming-crypto/actions/workflows/ci-pyo3.yml)
 [![Docs.rs](https://docs.rs/streaming-crypto/badge.svg)](https://docs.rs/streaming-crypto)
+[![Crates.io](https://img.shields.io/crates/v/streaming-crypto.svg)](https://crates.io/crates/streaming-crypto)
 [![PyPI](https://img.shields.io/pypi/v/streaming-crypto.svg)](https://pypi.org/project/streaming-crypto/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
