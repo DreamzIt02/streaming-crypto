@@ -73,6 +73,7 @@ jobs:
     steps:
       - name: Mark local run
         if: ${{ env.ACT == 'true' }}
+        shell: bash
         run: echo "IS_LOCAL=true" >> $GITHUB_ENV
       
       # 1️⃣ Fresh checkout for changelog
@@ -89,6 +90,7 @@ jobs:
           path: prepared-crate
 
       - name: Move prepared crate into repo
+        shell: bash
         run: |
           rm -rf streaming-crypto
           mv prepared-crate streaming-crypto

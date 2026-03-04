@@ -27,6 +27,7 @@ jobs:
     steps:
       - name: Mark local run
         if: ${{ env.ACT == true }}
+        shell: bash
         run: |
           echo "IS_LOCAL=true" >> $GITHUB_ENV
 

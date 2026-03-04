@@ -43,6 +43,7 @@ jobs:
     steps:
       - name: Mark local run
         if: ${{ env.ACT == 'true' }}
+        shell: bash
         run: echo "IS_LOCAL=true" >> $GITHUB_ENV
 
       - name: Checkout repository
@@ -53,6 +54,7 @@ jobs:
       # -------------------------------------------------
       - name: Validate tag with prefix/suffix
         id: version_detect
+        shell: bash
         run: |
           RAW_TAG="${GITHUB_REF_NAME}"
           PREFIX="${{ inputs.prefix }}"
@@ -90,6 +92,7 @@ jobs:
         if: ${{ steps.version_detect.outputs.tag_is_valid == 'true' }}
         id: version_match
         working-directory: streaming-crypto
+        shell: bash
         run: |
           TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
           CARGO_VERSION=$(grep '^version' Cargo.toml | head -n1 | cut -d '"' -f2)
@@ -107,6 +110,7 @@ jobs:
       - name: Detect pre-release
         if: ${{ steps.version_match.outputs.tag_is_matched == 'true' }}
         id: prerelease_check
+        shell: bash
         run: |
           TAG_VERSION="${{ steps.version_detect.outputs.tag_version }}"
           if [[ "$TAG_VERSION" == *-* ]]; then
@@ -121,6 +125,7 @@ jobs:
       - name: Registry check
         if: ${{ steps.version_match.outputs.tag_is_matched == 'true' }}
         id: registry_check
+        shell: bash
         run: |
           VERSION="${{ steps.version_detect.outputs.tag_version }}"
           PKG="streaming-crypto"
@@ -132,4 +137,5 @@ jobs:
             echo "tag_is_published=true" >> $GITHUB_OUTPUT
           else
             echo "tag_is_published=false" >> $GITHUB_OUTPUT
+            cat response.json
           fi

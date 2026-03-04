@@ -23,6 +23,7 @@ jobs:
 
     steps:
       - name: require tag_version input
+        shell: bash
         run: |
           if [ -z "${{ inputs.tag }}" ]; then
             echo "No tag_version provided — refusing to run."
@@ -31,6 +32,7 @@ jobs:
 
       - name: Mark local run
         if: ${{ env.ACT == 'true' }}
+        shell: bash
         run: echo "IS_LOCAL=true" >> $GITHUB_ENV
 
       # -------------------------------------------------
@@ -43,6 +45,7 @@ jobs:
       # 2️⃣ Vendors to publish crate
       # -------------------------------------------------
       - name: Debug directory structure
+        shell: bash
         run: |
           echo "PWD:"; pwd
           echo "Root contents:"; ls -la
@@ -52,6 +55,7 @@ jobs:
       # ✅ Copy core-api into publishable crate
       # -------------------------------------------------
       - name: Copy core-api sources + metadata
+        shell: bash
         run: |
           rm -rf streaming-crypto/src/core_api
           mkdir -p streaming-crypto/src/core_api
@@ -71,6 +75,7 @@ jobs:
       # ✅ Copy ffi-api into publishable crate
       # -------------------------------------------------
       - name: Copy ffi-api sources + metadata
+        shell: bash
         run: |
           rm -rf streaming-crypto/src/ffi_api
           mkdir -p streaming-crypto/src/ffi_api
@@ -90,6 +95,7 @@ jobs:
       # ✅ Copy pyo3-api into publishable crate
       # -------------------------------------------------
       - name: Copy pyo3-api sources + metadata
+        shell: bash
         run: |
           rm -rf streaming-crypto/src/pyo3_api
           mkdir -p streaming-crypto/src/pyo3_api
@@ -261,6 +267,7 @@ jobs:
       # 5️⃣ Prepare & upload crate for publishing
       # -------------------------------------------------
       - name: Prepare crate for publishing
+        shell: bash
         run: |
           mkdir -p prepared-crate
           cp -r streaming-crypto/* prepared-crate/

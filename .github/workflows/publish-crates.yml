@@ -72,6 +72,7 @@ jobs:
     steps:
       - name: Mark local run
         if: ${{ env.ACT == 'true' }}
+        shell: bash
         run: echo "IS_LOCAL=true" >> $GITHUB_ENV
 
       # 1️⃣ Fresh checkout for changelog
@@ -88,6 +89,7 @@ jobs:
           path: prepared-crate
 
       - name: Move prepared crate into repo
+        shell: bash,
         run: |
           rm -rf streaming-crypto
           mv prepared-crate streaming-crypto
@@ -139,6 +141,7 @@ jobs:
       - name: Generate changelog
         if: ${{ needs.detect-tag.outputs.is_prerelease == 'false' }}
         id: changelog
+        shell: bash
         run: |
           # PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           PREV_TAG=$(git describe --tags --match "v*" --abbrev=0 HEAD^ 2>/dev/null || echo "")
