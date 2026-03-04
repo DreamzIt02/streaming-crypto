@@ -31,6 +31,13 @@ pub const MAGIC_DICT: &[u8] = b"DICT";
 pub const MIN_DICT_LEN: usize = 8;
 pub const MAX_DICT_LEN: usize = 1 << 20; // 1 MiB cap for sanity
 
+/// Strategy choices for encoder metadata (decoder may still parallelize).
+pub mod strategy_ids {
+    pub const AUTO: u16       = 0x0000;
+    pub const SEQUENTIAL: u16 = 0x0001;
+    pub const PARALLEL: u16   = 0x0002;
+}
+
 /// Cipher suite identifiers (mirrored in headers).
 pub mod cipher_ids {
     pub const AES256_GCM: u16        = 0x0001;
@@ -52,6 +59,35 @@ pub mod prf_ids {
     pub const SHA3_256: u16  = 0x0003;
     pub const SHA3_512: u16  = 0x0004;
     pub const BLAKE3K: u16   = 0x0005; // keyed BLAKE3 (avoid unless policy requires)
+}
+
+/// Algorithm profile bundles cipher + PRF combinations.
+pub mod alg_profile_ids {
+    pub const AES256_GCM_HKDF_SHA256: u16         = 0x0101;
+    pub const AES256_GCM_HKDF_SHA512: u16         = 0x0102;
+    pub const CHACHA20_POLY1305_HKDF_SHA256: u16  = 0x0201;
+    pub const CHACHA20_POLY1305_HKDF_SHA512: u16  = 0x0202;
+    pub const CHACHA20_POLY1305_HKDF_BLAKE3K: u16 = 0x0203;
+}
+
+/// AAD domain identifiers.
+pub mod aad_domain_ids {
+    pub const GENERIC: u16       = 0x0001;
+    pub const FILE_ENVELOPE: u16 = 0x0002;
+    pub const PIPE_ENVELOPE: u16 = 0x0003;
+}
+
+/// DIGEST ALG identifiers (mirrored in headers).
+pub mod digest_ids {
+    // Sha224   = 0x0001,
+    pub const SHA256: u16       = 0x0002;
+    // Sha384   = 0x0003,
+    pub const SHA512: u16       = 0x0004;
+    // Sha3_224 = 0x0101,
+    pub const SHA3_256: u16     = 0x0102;
+    // Sha3_384 = 0x0103,
+    pub const SHA3_512: u16     = 0x0104;
+    pub const BLAKE3K: u16      = 0x0201; // UN-KEYED Blake3
 }
 
 /// Flag bitmask for optional features and metadata presence.

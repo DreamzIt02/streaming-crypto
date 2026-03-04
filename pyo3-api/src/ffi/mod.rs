@@ -1,18 +1,16 @@
 
+// ## 📝 pyo3-api/src/ffi/mod.rs
+
 use pyo3::prelude::*;
 
-mod types;
-mod errors;
 mod ffi_io;
 mod ffi_api;
 
-use ffi_api::*;
-
-#[pymodule]
-pub fn register(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule(name = "api")]
+pub fn register_api(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Register public api
-    let _ = register_api(py, m);
+    let _ = ffi_api::register_api(py, m);
 
     Ok(())
 }

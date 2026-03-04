@@ -1,4 +1,4 @@
-// ## 🧪 Test File: `secure_crypto_rust/core/tests/public_api/test_corrupt_detection.rs`
+// ## 🧪 Test File: `tests/core_api/test_corrupt_detection.rs`
 
 #[cfg(test)]
 mod tests {

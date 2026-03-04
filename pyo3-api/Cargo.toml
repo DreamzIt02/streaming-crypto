@@ -7,3 +7,6 @@ publish = false
 [dependencies]
 core-api = { path = "../core-api" }
 pyo3     = { version = "0.22", features = ["auto-initialize"] }
+
+# Utilities
+num_enum.workspace = true

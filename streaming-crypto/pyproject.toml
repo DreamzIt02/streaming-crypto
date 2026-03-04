@@ -28,4 +28,25 @@ include = [
     "streaming_crypto/__init__.py",
     "streaming_crypto/__init__.pyi",
     "streaming_crypto/py.typed"
+
+    "streaming_crypto/constants.py",
+    "streaming_crypto/constants.pyi",
+
+    "streaming_crypto/crypto.py",
+    "streaming_crypto/crypto.pyi",
+
+    "streaming_crypto/errors.py",
+    "streaming_crypto/errors.pyi",
+
+    "streaming_crypto/headers.py",
+    "streaming_crypto/headers.pyi",
+    
+    "streaming_crypto/parallelism.py",
+    "streaming_crypto/parallelism.pyi",
+
+    "streaming_crypto/telemetry.py",
+    "streaming_crypto/telemetry.pyi",
+
+    "streaming_crypto/api.py",
+    "streaming_crypto/api.pyi",
 ]

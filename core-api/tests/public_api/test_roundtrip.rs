@@ -1,4 +1,4 @@
-// ## 🧪 Test File: `secure_crypto_rust/core/tests/public_api/test_roundtrip.rs`
+// ## 🧪 Test File: `tests/core_api/test_roundtrip.rs`
 #[cfg(test)]
 mod tests {
     use core_api::{headers::HeaderV1, stream_v2::{InputSource, OutputSink, core::{ApiConfig, DecryptParams, EncryptParams, MasterKey}, decrypt_stream_v2, encrypt_stream_v2}, types::StreamError};

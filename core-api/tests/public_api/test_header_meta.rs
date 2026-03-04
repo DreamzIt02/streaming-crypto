@@ -1,4 +1,4 @@
-// ## 🧪 Test File: `secure_crypto_rust/core/tests/public_api/test_header_meta.rs`
+// ## 🧪 Test File: `tests/core_api/test_header_meta.rs`
 
 #[cfg(test)]
 mod tests {

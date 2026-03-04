@@ -5,7 +5,7 @@ use num_enum::TryFromPrimitive;
 use sha2::{Digest as _, Sha256, Sha512};
 use sha3::{Sha3_256, Sha3_512};
 
-use crate::utils::{enum_name_or_hex, to_hex};
+use crate::{constants::digest_ids, utils::{enum_name_or_hex, to_hex}};
 
 /// Digest-related errors.
 #[derive(Debug, Clone)]
@@ -38,14 +38,14 @@ impl fmt::Display for DigestError {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, TryFromPrimitive)]
 pub enum DigestAlg {
     // Sha224   = 0x0001,
-    Sha256   = 0x0002,
+    Sha256   = digest_ids::SHA256,
     // Sha384   = 0x0003,
-    Sha512   = 0x0004,
+    Sha512   = digest_ids::SHA512,
     // Sha3_224 = 0x0101,
-    Sha3_256 = 0x0102,
+    Sha3_256 = digest_ids::SHA3_256,
     // Sha3_384 = 0x0103,
-    Sha3_512 = 0x0104,
-    Blake3   = 0x0201, // UN-KEYED Blake3
+    Sha3_512 = digest_ids::SHA3_512,
+    Blake3   = digest_ids::BLAKE3K, // UN-KEYED Blake3
 }
 
 impl DigestAlg {

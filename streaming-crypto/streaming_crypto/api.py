@@ -1,25 +1,12 @@
-# streaming_crypto/__init__.py
+# streaming_crypto/api.py
 
 # This must be imported from .streaming_crypto, otherwise
 # ImportError: cannot import name 'encrypt' from partially initialized module 'streaming_crypto' (most likely due to a circular import)
-from .streaming_crypto import (
-    encrypt,
-
-    # Header and Types
-    Strategy, CipherSuite, HkdfPrf, AlgProfile, AadDomain, HeaderV1,
-    
+from .streaming_crypto.api import (
     # Params
-    DigestAlg,
-    ParallelismConfig,
     EncryptParams,
     DecryptParams,
     ApiConfig,
-
-    # Telemetry
-    TelemetrySnapshot,
-
-    # Error Types
-    CryptoError,
 
     # Streaming functions
     encrypt_stream_v2,
@@ -28,26 +15,10 @@ from .streaming_crypto import (
 
 # Optional: define __all__ for clean autocompletion
 __all__ = [
-    "encrypt",
-
-    # Header and Types
-    "Strategy",
-    "CipherSuite",
-    "HkdfPrf",
-    "AlgProfile",
-    "AadDomain",
-    "HeaderV1",
-
     # Params
-    "DigestAlg",
-    "ParallelismConfig",
     "EncryptParams",
     "DecryptParams",
     "ApiConfig",
-    # Telemetry
-    "TelemetrySnapshot",
-    # Error Types
-    "CryptoError",
 
     # Streaming functions
     "encrypt_stream_v2",

@@ -63,7 +63,11 @@ jobs:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' && needs.detect-tag.outputs.tag_is_published == 'false' }}
     name: Publish to crates.io + github release
     needs: [detect-tag, prepare] # Require both
-    runs-on: ubuntu-latest
+    strategy: 
+      matrix: 
+        os: [ubuntu-latest, macos-latest, windows-latest] 
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Mark local run

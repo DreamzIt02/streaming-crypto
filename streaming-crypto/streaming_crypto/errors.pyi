@@ -1,0 +1,20 @@
+# streaming_crypto/errors.pyi
+
+class CryptoError(Exception):
+    """
+    Exception type for cryptographic errors.
+
+    Attributes:
+        code    : Error code string.
+        message : Human-readable error message.
+    """
+
+    code: str
+    message: str
+
+    def __init__(self, code: str, message: str) -> None: ...
+
+__all__ = [
+    # Error Types
+    "CryptoError",
+]

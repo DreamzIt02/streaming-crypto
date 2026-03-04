@@ -1,4 +1,4 @@
-// ## 🧪 Test File: `secure_crypto_rust/core/tests/public_api/test_compression_cipher_variants.rs`
+// ## 🧪 Test File: `tests/core_api/test_compression_cipher_variants.rs`
 
 #[cfg(test)]
 mod tests {

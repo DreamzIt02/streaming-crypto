@@ -18,9 +18,6 @@ pub const DEFAULT_LEVEL_ZSTD: i32 = 6;
 pub const DEFAULT_LEVEL_LZ4: i32 = 0; // fast mode
 pub const DEFAULT_LEVEL_DEFLATE: i32 = 6;
 
-// Max chunk size sanity bound (32 MiB).
-// pub const MAX_CHUNK_SIZE: usize = 32 * 1024 * 1024;
-
 /// FFI-safe enum for compression codec identifiers.
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, TryFromPrimitive)]
@@ -519,7 +516,7 @@ impl std::error::Error for CompressionError {}
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, TryFromPrimitive)]
 pub enum ChecksumAlg {
-    Crc32   = 0x0001,
+    Crc32    = 0x0001,
     Blake3   = 0x0201, // UN-KEYED Blake3
 }
 pub fn compute_checksum(data: &[u8], alg: Option<ChecksumAlg>) -> u32 {

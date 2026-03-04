@@ -14,6 +14,9 @@ use num_enum::TryFromPrimitive;
 
 use crate::compression::CodecError;
 use crate::compression::CompressionCodec;
+use crate::constants::aad_domain_ids;
+use crate::constants::alg_profile_ids;
+use crate::constants::strategy_ids;
 use crate::constants::{HEADER_V1, MAGIC_RSE1, DEFAULT_CHUNK_SIZE, MAX_CHUNK_SIZE};
 use crate::constants::{cipher_ids, prf_ids, flags};
 use crate::utils::enum_name_or_hex;
@@ -23,9 +26,9 @@ use crate::utils::fmt_bytes;
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, TryFromPrimitive)]
 pub enum Strategy {
-    Auto       = 0x0000,
-    Sequential = 0x0001,
-    Parallel   = 0x0002,
+    Auto       = strategy_ids::AUTO,
+    Sequential = strategy_ids::SEQUENTIAL,
+    Parallel   = strategy_ids::PARALLEL,
 }
 impl Strategy {
     pub fn from(raw: u16) -> Result<Self, HeaderError> {
@@ -91,12 +94,13 @@ impl HkdfPrf {
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, TryFromPrimitive)]
 pub enum AlgProfile {
-    Aes256GcmHkdfSha256         = 0x0101,
-    Aes256GcmHkdfSha512         = 0x0102,
-    Chacha20Poly1305HkdfSha256  = 0x0201,
-    Chacha20Poly1305HkdfSha512  = 0x0202,
-    Chacha20Poly1305HkdfBlake3K = 0x0203,
+    Aes256GcmHkdfSha256         = alg_profile_ids::AES256_GCM_HKDF_SHA256,
+    Aes256GcmHkdfSha512         = alg_profile_ids::AES256_GCM_HKDF_SHA512,
+    Chacha20Poly1305HkdfSha256  = alg_profile_ids::CHACHA20_POLY1305_HKDF_SHA256,
+    Chacha20Poly1305HkdfSha512  = alg_profile_ids::CHACHA20_POLY1305_HKDF_SHA512,
+    Chacha20Poly1305HkdfBlake3K = alg_profile_ids::CHACHA20_POLY1305_HKDF_BLAKE3K,
 }
+
 impl AlgProfile {
     pub fn verify(raw: u16) -> Result<(), HeaderError> {
         match raw {
@@ -114,10 +118,11 @@ impl AlgProfile {
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, TryFromPrimitive)]
 pub enum AadDomain {
-    Generic      = 0x0001,
-    FileEnvelope = 0x0002,
-    PipeEnvelope = 0x0003,
+    Generic      = aad_domain_ids::GENERIC,
+    FileEnvelope = aad_domain_ids::FILE_ENVELOPE,
+    PipeEnvelope = aad_domain_ids::PIPE_ENVELOPE,
 }
+
 impl AadDomain {
     pub fn verify(raw: u16) -> Result<(), HeaderError> {
         match raw {

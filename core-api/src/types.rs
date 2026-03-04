@@ -20,11 +20,11 @@ pub enum StreamError {
     /// Segment-level error (validation or parse).
     SegmentWorker(SegmentWorkerError),
 
-    /// Segment-level error (validation or parse).
-    CompressionWorker(CompressionWorkerError),
-
     /// FrameWorker-level error (validation or parse).
     FrameWorker(FrameWorkerError),
+
+    /// Segment-level error (validation or parse).
+    CompressionWorker(CompressionWorkerError),
 
     /// Segment-level error (validation or parse).
     Segment(SegmentError),

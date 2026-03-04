@@ -22,23 +22,6 @@ pub enum FrameWorkerError {
     Aad(AadError),
     Framing(FrameError),
 }
-// #[derive(Debug, Error)]
-// pub enum FrameWorkerError {
-    // #[error("AEAD encryption failed: {0}")]
-    // EncryptionFailed(#[from] CryptoError),
-    
-    // #[error("AEAD decryption failed: {0}")]
-    // DecryptionFailed(CryptoError),
-    
-    // #[error("Frame parsing error: {0}")]
-    // FrameParsing(#[from] FrameError),
-    
-    // #[error("Invalid frame header")]
-    // InvalidHeader,
-    
-    // #[error("Frame type conversion error")]
-    // InvalidFrameType,
-// }
 
 impl fmt::Display for FrameWorkerError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

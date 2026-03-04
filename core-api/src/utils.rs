@@ -30,7 +30,7 @@ pub fn to_hex(bytes: &[u8]) -> String {
 #[repr(u16)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, TryFromPrimitive)]
 pub enum ChecksumAlg {
-    Crc32   = 0x0001,
+    Crc32    = 0x0001,
     Blake3   = 0x0201, // UN-KEYED Blake3
 }
 pub fn compute_checksum(data: &[u8], alg: Option<ChecksumAlg>) -> u32 {
