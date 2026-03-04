@@ -3,8 +3,11 @@
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 
-mod io;
-mod ffi;
+pub mod io;
+pub mod ffi;
+
+pub use io::*;
+pub use ffi::*;
 
 // Import the core Rust implementation from core-api
 use core_api::encrypt as core_encrypt;
@@ -42,7 +45,7 @@ pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()>
 
     // Register public api
     m.add_function(wrap_pyfunction!(encrypt, m)?)?;
-    
+
     // Register pyo3 modules
     ffi::register(py, m)?;
 
