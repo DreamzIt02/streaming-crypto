@@ -89,7 +89,7 @@ jobs:
           path: prepared-crate
 
       - name: Move prepared crate into repo
-        shell: bash,
+        shell: bash
         run: |
           rm -rf streaming-crypto
           mv prepared-crate streaming-crypto
