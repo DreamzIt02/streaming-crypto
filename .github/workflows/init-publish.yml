@@ -137,5 +137,4 @@ jobs:
             echo "tag_is_published=true" >> $GITHUB_OUTPUT
           else
             echo "tag_is_published=false" >> $GITHUB_OUTPUT
-            cat response.json
           fi
