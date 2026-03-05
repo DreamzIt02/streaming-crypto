@@ -9,30 +9,30 @@ class CompressionCodec(Enum):
     Zstd    : int
 
 class Strategy(Enum):
-    Auto: int
-    Sequential: int
-    Parallel: int
+    Auto        : int
+    Sequential  : int
+    Parallel    : int
 
 class CipherSuite(Enum):
-    Aes256Gcm: int
+    Aes256Gcm       : int
     Chacha20Poly1305: int
 
 class HkdfPrf(Enum):
-    Sha256: int
-    Sha512: int
+    Sha256  : int
+    Sha512  : int
     Sha3_256: int
     Sha3_512: int
-    Blake3K: int
+    Blake3K : int
 
 class AlgProfile(Enum):
-    Aes256GcmHkdfSha256: int
-    Aes256GcmHkdfSha512: int
-    Chacha20Poly1305HkdfSha256: int
-    Chacha20Poly1305HkdfSha512: int
-    Chacha20Poly1305HkdfBlake3K: int
+    Aes256GcmHkdfSha256         : int
+    Aes256GcmHkdfSha512         : int
+    Chacha20Poly1305HkdfSha256  : int
+    Chacha20Poly1305HkdfSha512  : int
+    Chacha20Poly1305HkdfBlake3K : int
 
 class AadDomain(Enum):
-    Generic: int
+    Generic     : int
     FileEnvelope: int
     PipeEnvelope: int
 
@@ -64,45 +64,45 @@ class HeaderV1:
         reserved      : 8-byte reserved field.
     """
 
-    magic: bytes
-    version: int
-    alg_profile: int
-    cipher: int
-    hkdf_prf: int
-    compression: int
-    strategy: int
-    aad_domain: int
-    flags: int
-    chunk_size: int
+    magic       : bytes
+    version     : int
+    alg_profile : int
+    cipher      : int
+    hkdf_prf    : int
+    compression : int
+    strategy    : int
+    aad_domain  : int
+    flags       : int
+    chunk_size  : int
     plaintext_size: int
-    crc32: int
-    dict_id: int
-    salt: bytes
-    key_id: int
+    crc32       : int
+    dict_id     : int
+    salt        : bytes
+    key_id      : int
     parallel_hint: int
-    enc_time_ns: int
-    reserved: bytes
+    enc_time_ns : int
+    reserved    : bytes
 
     def __init__(
         self,
-        magic: bytes,
-        version: int,
-        alg_profile: int,
-        cipher: int,
-        hkdf_prf: int,
-        compression: int,
-        strategy: int,
-        aad_domain: int,
-        flags: int,
-        chunk_size: int,
+        magic       : bytes,
+        version     : int,
+        alg_profile : int,
+        cipher      : int,
+        hkdf_prf    : int,
+        compression : int,
+        strategy    : int,
+        aad_domain  : int,
+        flags       : int,
+        chunk_size  : int,
         plaintext_size: int,
-        crc32: int,
-        dict_id: int,
-        salt: bytes,
-        key_id: int,
+        crc32       : int,
+        dict_id     : int,
+        salt        : bytes,
+        key_id      : int,
         parallel_hint: int,
-        enc_time_ns: int,
-        reserved: bytes,
+        enc_time_ns : int,
+        reserved    : bytes,
     ) -> None: ...
 
     LEN: int

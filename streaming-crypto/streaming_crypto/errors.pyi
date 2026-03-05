@@ -13,8 +13,3 @@ class StreamError(Exception):
     message: str
 
     def __init__(self, code: str, message: str) -> None: ...
-
-__all__ = [
-    # Error Types
-    "StreamError",
-]

@@ -33,7 +33,6 @@ impl PyParallelismConfig {
     }
 }
 
-
 // Conversion from core Rust struct to PyO3 wrapper
 impl From<PyParallelismConfig> for ParallelismConfig {
     fn from(c: PyParallelismConfig) -> Self {

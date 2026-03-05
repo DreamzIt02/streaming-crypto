@@ -1,6 +1,6 @@
 # streaming_crypto/telemetry.py
 
-from .streaming_crypto.telemetry import (
+from .telemetry import (
     # Telemetry
     TelemetrySnapshot,
 )

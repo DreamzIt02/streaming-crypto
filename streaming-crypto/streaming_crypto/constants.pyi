@@ -18,11 +18,3 @@ class flags:
     HAS_FINAL_DIGEST: Final[int]        # 0x0008
     DICT_USED:      Final[int]          # 0x0010
     AAD_STRICT:     Final[int]          # 0x0020
-
-__all__ = [
-    "MAGIC_RSE1",
-    "HEADER_V1",
-    "DEFAULT_CHUNK_SIZE",
-    "MAX_CHUNK_SIZE",
-    "flags",
-]

@@ -15,9 +15,3 @@ class FrameHeader:
     ciphertext_len: int
 
     def __repr__(self) -> str: ...
-
-__all__ = [
-    # Segment
-    "FrameType",
-    "FrameHeader",
-]

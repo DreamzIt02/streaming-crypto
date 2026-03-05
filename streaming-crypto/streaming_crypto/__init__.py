@@ -5,12 +5,7 @@
 from .streaming_crypto import (
     encrypt,
 
-    # Header and Types
-    CompressionCodec, Strategy, CipherSuite, HkdfPrf, AlgProfile, AadDomain, HeaderV1,
-    
     # Params
-    DigestAlg,
-    ParallelismConfig,
     EncryptParams,
     DecryptParams,
     ApiConfig,
@@ -30,18 +25,7 @@ from .streaming_crypto import (
 __all__ = [
     "encrypt",
 
-    # Header and Types
-    "CompressionCodec",
-    "Strategy",
-    "CipherSuite",
-    "HkdfPrf",
-    "AlgProfile",
-    "AadDomain",
-    "HeaderV1",
-
     # Params
-    "DigestAlg",
-    "ParallelismConfig",
     "EncryptParams",
     "DecryptParams",
     "ApiConfig",

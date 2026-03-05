@@ -1,10 +1,7 @@
 # streaming_crypto/__init__.pyi
 
-from .headers import (CompressionCodec, Strategy, CipherSuite, HkdfPrf, AlgProfile, AadDomain, HeaderV1)
 from .errors import StreamError 
 from .telemetry import TelemetrySnapshot
-from .crypto import DigestAlg
-from .parallelism import ParallelismConfig
 from .api import (
      # Params
     EncryptParams,
@@ -27,18 +24,7 @@ Rust-backed primitives with Pythonic interfaces for ease of use.
 __all__ = [
     "encrypt",
 
-    # Header and Types
-    "CompressionCodec",
-    "Strategy",
-    "CipherSuite",
-    "HkdfPrf",
-    "AlgProfile",
-    "AadDomain",
-    "HeaderV1",
-
     # Params
-    "DigestAlg",
-    "ParallelismConfig",
     "EncryptParams",
     "DecryptParams",
     "ApiConfig",

@@ -72,21 +72,22 @@ pub enum PyAadDomain {
 #[derive(Debug, Clone)]
 pub struct PyHeaderV1 {
     #[pyo3(get, set)]
+    pub alg_profile: PyAlgProfile,
+    #[pyo3(get, set)]
+    pub cipher: PyCipherSuite,
+    #[pyo3(get, set)]
+    pub hkdf_prf: PyHkdfPrf,
+    #[pyo3(get, set)]
+    pub compression: PyCompressionCodec,
+    #[pyo3(get, set)]
+    pub strategy: PyStrategy,
+    #[pyo3(get, set)]
+    pub aad_domain: PyAadDomain,
+    // keep raw ints for flags, sizes, etc.
+    #[pyo3(get, set)]
     pub magic: [u8; 4],
     #[pyo3(get, set)]
     pub version: u16,
-    #[pyo3(get, set)]
-    pub alg_profile: u16,
-    #[pyo3(get, set)]
-    pub cipher: u16,
-    #[pyo3(get, set)]
-    pub hkdf_prf: u16,
-    #[pyo3(get, set)]
-    pub compression: u16,
-    #[pyo3(get, set)]
-    pub strategy: u16,
-    #[pyo3(get, set)]
-    pub aad_domain: u16,
     #[pyo3(get, set)]
     pub flags: u16,
     #[pyo3(get, set)]
@@ -118,12 +119,12 @@ impl PyHeaderV1 {
     pub fn new(
         magic          : [u8; 4],
         version        : u16,
-        alg_profile    : u16,
-        cipher         : u16,
-        hkdf_prf       : u16,
-        compression    : u16,
-        strategy       : u16,
-        aad_domain     : u16,
+        alg_profile    : PyAlgProfile,
+        cipher         : PyCipherSuite,
+        hkdf_prf       : PyHkdfPrf,
+        compression    : PyCompressionCodec,
+        strategy       : PyStrategy,
+        aad_domain     : PyAadDomain,
         flags          : u16,
         chunk_size     : u32,
         plaintext_size : u64,
@@ -161,24 +162,24 @@ impl PyHeaderV1 {
 impl From<PyHeaderV1> for HeaderV1 {
     fn from(h: PyHeaderV1) -> Self {
         HeaderV1 {
-            magic          : h.magic,
-            version        : h.version,
-            alg_profile    : h.alg_profile,
-            cipher         : h.cipher,
-            hkdf_prf       : h.hkdf_prf,
-            compression    : h.compression,
-            strategy       : h.strategy,
-            aad_domain     : h.aad_domain,
-            flags          : h.flags,
-            chunk_size     : h.chunk_size,
-            plaintext_size : h.plaintext_size,
-            crc32          : h.crc32,
-            dict_id        : h.dict_id,
-            salt           : h.salt,
-            key_id         : h.key_id,
-            parallel_hint  : h.parallel_hint,
-            enc_time_ns    : h.enc_time_ns,
-            reserved       : h.reserved,
+            magic: h.magic,
+            version: h.version,
+            alg_profile: h.alg_profile as u16,
+            cipher: h.cipher as u16,
+            hkdf_prf: h.hkdf_prf as u16,
+            compression: h.compression as u16,
+            strategy: h.strategy as u16,
+            aad_domain: h.aad_domain as u16,
+            flags: h.flags,
+            chunk_size: h.chunk_size,
+            plaintext_size: h.plaintext_size,
+            crc32: h.crc32,
+            dict_id: h.dict_id,
+            salt: h.salt,
+            key_id: h.key_id,
+            parallel_hint: h.parallel_hint,
+            enc_time_ns: h.enc_time_ns,
+            reserved: h.reserved,
         }
     }
 }
@@ -186,30 +187,31 @@ impl From<PyHeaderV1> for HeaderV1 {
 impl From<HeaderV1> for PyHeaderV1 {
     fn from(h: HeaderV1) -> Self {
         Self {
-            magic          : h.magic,
-            version        : h.version,
-            alg_profile    : h.alg_profile,
-            cipher         : h.cipher,
-            hkdf_prf       : h.hkdf_prf,
-            compression    : h.compression,
-            strategy       : h.strategy,
-            aad_domain     : h.aad_domain,
-            flags          : h.flags,
-            chunk_size     : h.chunk_size,
-            plaintext_size : h.plaintext_size,
-            crc32          : h.crc32,
-            dict_id        : h.dict_id,
-            salt           : h.salt,
-            key_id         : h.key_id,
-            parallel_hint  : h.parallel_hint,
-            enc_time_ns    : h.enc_time_ns,
-            reserved       : h.reserved,
+            magic: h.magic,
+            version: h.version,
+            alg_profile: PyAlgProfile::try_from(h.alg_profile).unwrap(),
+            cipher: PyCipherSuite::try_from(h.cipher).unwrap(),
+            hkdf_prf: PyHkdfPrf::try_from(h.hkdf_prf).unwrap(),
+            compression: PyCompressionCodec::try_from(h.compression).unwrap(),
+            strategy: PyStrategy::try_from(h.strategy).unwrap(),
+            aad_domain: PyAadDomain::try_from(h.aad_domain).unwrap(),
+            flags: h.flags,
+            chunk_size: h.chunk_size,
+            plaintext_size: h.plaintext_size,
+            crc32: h.crc32,
+            dict_id: h.dict_id,
+            salt: h.salt,
+            key_id: h.key_id,
+            parallel_hint: h.parallel_hint,
+            enc_time_ns: h.enc_time_ns,
+            reserved: h.reserved,
         }
     }
 }
 
 #[pymodule(name = "headers")]
 pub fn register_headers(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+
     m.add_class::<PyCompressionCodec>()?;
     m.add_class::<PyStrategy>()?;
     m.add_class::<PyCipherSuite>()?;
@@ -217,5 +219,6 @@ pub fn register_headers(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()
     m.add_class::<PyAlgProfile>()?;
     m.add_class::<PyAadDomain>()?;
     m.add_class::<PyHeaderV1>()?;
+
     Ok(())
 }

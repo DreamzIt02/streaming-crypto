@@ -1,6 +1,6 @@
 # streaming_crypto/headers.py
 
-from .streaming_crypto.headers import (
+from .headers import (
     CompressionCodec, Strategy, CipherSuite, HkdfPrf, AlgProfile, AadDomain, HeaderV1
 )
 

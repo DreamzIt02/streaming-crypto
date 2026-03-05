@@ -58,35 +58,51 @@ pub fn encrypt<'py>(py: Python<'py>, data: &Bound<'py, PyBytes>,) -> PyResult<Bo
 #[pymodule(name = "streaming_crypto")]
 pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
 
+    // Export from the root module (streaming_crypto/***submodule***/__init__.py)
+    // Register constants
+    let s = PyModule::new_bound(py, "constants")?;
+    let _ = constants::register_constants(py, &s)?;
+    m.add_submodule(&s)?;
+
+    // Register headers
+    let s = PyModule::new_bound(py, "headers")?;
+    let _ = headers::register_headers(py, &s)?;
+    m.add_submodule(&s)?;
+
+    // Register segments
+    let s = PyModule::new_bound(py, "segments")?;
+    let _ = segments::register_segments(py, &s)?;
+    m.add_submodule(&s)?;
+
+    // Register frames
+    let s = PyModule::new_bound(py, "frames")?;
+    let _ = frames::register_frames(py, &s)?;
+    m.add_submodule(&s)?;
+
+    // Register crypto
+    let s = PyModule::new_bound(py, "crypto")?;
+    let _ = crypto::register_crypto(py, &s)?;
+    m.add_submodule(&s)?;
+
+    // Register parallelism
+    let s = PyModule::new_bound(py, "parallelism")?;
+    let _ = parallelism::register_parallelism(py, &s)?;
+    m.add_submodule(&s)?;
+
+    // Register pyo3 io
+    let s = PyModule::new_bound(py, "io")?;
+    let _ = io::register_io(py, &s)?;
+    m.add_submodule(&s)?;
+
+    // Export from the root module (streaming_crypto/__init__.py)
     // Register public api
     m.add_function(wrap_pyfunction!(encrypt, m)?)?;
 
-    // Register constants
-    let _ = constants::register_constants(py, m);
-
     // Register errors
     let _ = errors::register_errors(py, m);
-
-    // Register headers
-    let _ = headers::register_headers(py, m);
-
-    // Register segments
-    let _ = segments::register_segments(py, m);
-
-    // Register frames
-    let _ = frames::register_frames(py, m);
-
-    // Register crypto
-    let _ = crypto::register_crypto(py, m);
-
+    
     // Register telemetry
     let _ = telemetry::register_telemetry(py, m);
-
-    // Register parallelism
-    let _ = parallelism::register_parallelism(py, m);
-
-    // Register pyo3 io
-    let _ = io::register_io(py, m)?;
 
     // Register pyo3 api
     let _ = ffi::register_api(py, m)?;

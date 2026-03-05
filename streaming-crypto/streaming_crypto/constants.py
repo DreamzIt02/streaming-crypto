@@ -1,6 +1,6 @@
 # streaming_crypto/constants.py
 
-from .streaming_crypto.constants import (
+from .constants import (
     MAGIC_RSE1,
     HEADER_V1,
     DEFAULT_CHUNK_SIZE,

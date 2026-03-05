@@ -1,6 +1,6 @@
 # streaming_crypto/frames.py
 
-from .streaming_crypto.frames import (
+from .frames import (
     # Segment
     FrameType,
     FrameHeader,

@@ -3,6 +3,6 @@
 # This file imports the compiled PyO3 extension
 # so Python users can access ParallelismConfig from streaming_crypto.parallelism
 
-from .streaming_crypto.parallelism import ParallelismConfig
+from .parallelism import ParallelismConfig
 
 __all__ = ["ParallelismConfig"]

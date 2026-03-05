@@ -1,6 +1,6 @@
 # streaming_crypto/segments.py
 
-from .streaming_crypto.segments import (
+from .segments import (
     # Segment
     SegmentFlags,
     SegmentHeader,

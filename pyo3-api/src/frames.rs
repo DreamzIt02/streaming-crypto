@@ -93,18 +93,20 @@ impl PyFrameHeader {
 impl From<FrameHeader> for PyFrameHeader {
     fn from(h: FrameHeader) -> Self {
         Self {
-            segment_index: h.segment_index(),
-            frame_index: h.frame_index(),
-            frame_type: h.frame_type().into(),
-            plaintext_len: h.plaintext_len(),
-            ciphertext_len: h.ciphertext_len(),
+            segment_index   : h.segment_index(),
+            frame_index     : h.frame_index(),
+            frame_type      : h.frame_type().into(),
+            plaintext_len   : h.plaintext_len(),
+            ciphertext_len  : h.ciphertext_len(),
         }
     }
 }
 
 #[pymodule(name = "frames")]
 pub fn register_frames(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+
     m.add_class::<PyFrameType>()?;
     m.add_class::<PyFrameHeader>()?;
+
     Ok(())
 }

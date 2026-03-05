@@ -6,7 +6,6 @@ class SegmentFlags(IntFlag):
     RESUMED: SegmentFlags
     RESERVED: SegmentFlags
 
-
 class SegmentHeader:
     segment_index: int
     bytes_len: int
@@ -24,9 +23,3 @@ class SegmentHeader:
 
     @staticmethod
     def from_bytes(data: bytes) -> "SegmentHeader": ...
-
-__all__ = [
-    # Segment
-    "SegmentFlags",
-    "SegmentHeader",
-]

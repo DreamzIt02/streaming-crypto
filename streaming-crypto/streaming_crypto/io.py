@@ -1,9 +1,7 @@
 # streaming_crypto/io.py
 
-from .streaming_crypto.io import PayloadReader as _RustPayloadReader
+from .io import PayloadReader as _RustPayloadReader
 from .headers import HeaderV1
-
-__all__ = ["PayloadReader"]
 
 class PayloadReader:
     """
@@ -22,3 +20,5 @@ class PayloadReader:
         Raises StreamError on invalid data.
         """
         return _RustPayloadReader.with_header(data)
+    
+__all__ = ["PayloadReader"]
