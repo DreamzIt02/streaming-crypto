@@ -1,12 +1,12 @@
 # streaming_crypto/errors.pyi
 
-class CryptoError(Exception):
+class StreamError(Exception):
     """
     Exception type for cryptographic errors.
 
     Attributes:
-        code    : Error code string.
-        message : Human-readable error message.
+        code    : Error code string
+        message : Human-readable error message
     """
 
     code: str
@@ -16,5 +16,5 @@ class CryptoError(Exception):
 
 __all__ = [
     # Error Types
-    "CryptoError",
+    "StreamError",
 ]

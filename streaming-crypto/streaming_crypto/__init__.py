@@ -19,7 +19,7 @@ from .streaming_crypto import (
     TelemetrySnapshot,
 
     # Error Types
-    CryptoError,
+    StreamError,
 
     # Streaming functions
     encrypt_stream_v2,
@@ -47,7 +47,7 @@ __all__ = [
     # Telemetry
     "TelemetrySnapshot",
     # Error Types
-    "CryptoError",
+    "StreamError",
 
     # Streaming functions
     "encrypt_stream_v2",

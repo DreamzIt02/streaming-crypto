@@ -1,7 +1,7 @@
 # streaming_crypto/__init__.pyi
 
 from .headers import (Strategy, CipherSuite, HkdfPrf, AlgProfile, AadDomain, HeaderV1)
-from .errors import CryptoError 
+from .errors import StreamError 
 from .telemetry import TelemetrySnapshot
 from .crypto import DigestAlg
 from .parallelism import ParallelismConfig
@@ -46,7 +46,7 @@ __all__ = [
     # Telemetry
     "TelemetrySnapshot",
     # Error Types
-    "CryptoError",
+    "StreamError",
 
     # Streaming functions
     "encrypt_stream_v2",

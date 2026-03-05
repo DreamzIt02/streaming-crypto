@@ -1,4 +1,5 @@
 // ## 📝 pyo3-api/src/lib.rs
+#![allow(unexpected_cfgs)]
 
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;

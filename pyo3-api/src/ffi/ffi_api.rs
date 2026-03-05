@@ -8,8 +8,8 @@ use pyo3::{Bound, PyObject, PyResult, Python, exceptions::PyRuntimeError, pyfunc
     types::{PyModule, PyModuleMethods}, wrap_pyfunction};
 
 use core_api::stream_v2::{ApiConfig, DecryptParams, EncryptParams, MasterKey, decrypt_stream_v2, encrypt_stream_v2};
-use crate::{PyDigestAlg, PyParallelismConfig};
-use crate::{headers::PyHeaderV1, errors::PyCryptoError, telemetry::PyTelemetrySnapshot, ffi::ffi_io::py_extract_io};
+use crate::{PyDigestAlg, PyParallelismConfig, PyStreamError};
+use crate::{headers::PyHeaderV1, telemetry::PyTelemetrySnapshot, ffi::ffi_io::py_extract_io};
 
 #[pymodule(name = "ffi_api")]
 pub fn register_api(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -153,7 +153,7 @@ fn py_encrypt_stream_v2(
 
     match result {
         Ok(snapshot) => Ok(snapshot.into()),
-        Err(e) => Err(PyRuntimeError::new_err(format!("{:?}", PyCryptoError::from(e)))),
+        Err(e) => Err(PyErr::from(PyStreamError::from(e))),
     }
     
 }
@@ -186,7 +186,7 @@ fn py_decrypt_stream_v2(
 
     match result {
         Ok(snapshot) => Ok(snapshot.into()),
-        Err(e) => Err(PyRuntimeError::new_err(format!("{:?}", PyCryptoError::from(e)))),
+        Err(e) => Err(PyErr::from(PyStreamError::from(e))),
     }
 }
 

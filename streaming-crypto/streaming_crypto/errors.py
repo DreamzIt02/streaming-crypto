@@ -2,10 +2,10 @@
 
 from .streaming_crypto.errors import (
     # Error Types
-    CryptoError,
+    StreamError,
 )
 
 __all__ = [
     # Error Types
-    "CryptoError",
+    "StreamError",
 ]

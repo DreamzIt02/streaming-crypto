@@ -29,7 +29,7 @@ impl From<DigestAlg> for PyDigestAlg {
     }
 }
 
-// And the reverse, so you can go back when needed:
+// And the reverse, so we can go back when needed:
 impl From<PyDigestAlg> for DigestAlg {
     fn from(d: PyDigestAlg) -> Self {
         match d {
