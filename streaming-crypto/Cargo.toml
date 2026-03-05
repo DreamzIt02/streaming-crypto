@@ -14,21 +14,21 @@ categories  = ["cryptography", "api-bindings"]
 # --- FEATURES DYNAMIC START ---
 # This block will be replaced with Publish Block, content from Cargo.publish.features
 # Any common features for development and publish must be added at the end of this block
-default  = ["core-api"]
-core-api = ["dep:core-api"]
-ffi-api  = ["dep:ffi-api"]
-pyo3-api = ["dep:pyo3-api", "pyo3"]
+default     = ["core-api"]
+core-api    = ["dep:core-api"]
+ffi-api     = ["dep:ffi-api"]
+pyo3-api    = ["dep:pyo3-api", "pyo3"]
 # --- FEATURES DYNAMIC END ---
 
 [dependencies]
 # --- DEPENDENCIES DYNAMIC START ---
 # This block will be replaced with Publish Block, content from Cargo.publish.dependencies
 # Any common dependencies for development and publish must be added at the end of this block
-core-api = { path = "../core-api", optional = true }
-ffi-api  = { path = "../ffi-api",  optional = true }
-pyo3-api = { path = "../pyo3-api", optional = true }
+core-api    = { path = "../core-api", optional = true }
+ffi-api     = { path = "../ffi-api",  optional = true }
+pyo3-api    = { path = "../pyo3-api", optional = true }
 
-pyo3     = { version = "0.22", features = ["auto-initialize"], optional = true }
+pyo3        = { version = "0.22", features = ["auto-initialize"], optional = true }
 # --- DEPENDENCIES DYNAMIC END ---
 
 [dev-dependencies]
@@ -37,8 +37,8 @@ proptest.workspace = true
 tempfile.workspace = true
 
 [lib]
-name       = "streaming_crypto"
-crate-type = ["rlib", "cdylib"]
+name        = "streaming_crypto"
+crate-type  = ["rlib", "cdylib"]
 
 # 📦 Public API Tests
 [[test]]
