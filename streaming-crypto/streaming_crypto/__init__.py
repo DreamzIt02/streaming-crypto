@@ -6,7 +6,7 @@ from .streaming_crypto import (
     encrypt,
 
     # Header and Types
-    Strategy, CipherSuite, HkdfPrf, AlgProfile, AadDomain, HeaderV1,
+    CompressionCodec, Strategy, CipherSuite, HkdfPrf, AlgProfile, AadDomain, HeaderV1,
     
     # Params
     DigestAlg,
@@ -31,6 +31,7 @@ __all__ = [
     "encrypt",
 
     # Header and Types
+    "CompressionCodec",
     "Strategy",
     "CipherSuite",
     "HkdfPrf",

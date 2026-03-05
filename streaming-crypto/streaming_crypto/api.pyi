@@ -3,6 +3,8 @@
 from typing import IO, Optional, Union
 from .headers import (HeaderV1)
 from .telemetry import TelemetrySnapshot
+from .crypto import DigestAlg
+from .parallelism import ParallelismConfig
 
 __all__ = [
     # Params
@@ -56,16 +58,20 @@ class ApiConfig:
 
     with_buf: Optional[bool]
     collect_metrics: Optional[bool]
+    alg: Optional[DigestAlg]
+    parallelism: Optional[ParallelismConfig]
 
     def __init__(
         self,
         with_buf: Optional[bool] = None,
         collect_metrics: Optional[bool] = None,
+        alg: Optional[DigestAlg] = None,
+        parallelism: Optional[ParallelismConfig] = None,
     ) -> None: ...
 
 def encrypt_stream_v2(
-    input: Union[bytes, str, IO[bytes]],
-    output: Union[bytes, str, IO[bytes]],
+    input: Union[bytes, str, IO[bytes], object],
+    output: Union[bytes, str, IO[bytes], object],
     params: EncryptParams,
     config: ApiConfig,
 ) -> TelemetrySnapshot:
@@ -85,8 +91,8 @@ def encrypt_stream_v2(
 
 
 def decrypt_stream_v2(
-    input: Union[bytes, str, IO[bytes]],
-    output: Union[bytes, str, IO[bytes]],
+    input: Union[bytes, str, IO[bytes], object],
+    output: Union[bytes, str, IO[bytes], object],
     params: DecryptParams,
     config: ApiConfig,
 ) -> TelemetrySnapshot:

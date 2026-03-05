@@ -332,8 +332,6 @@ But only once.
 
 ## ✅ Step 3 — Use It in Act
 
-### Push main without tag (run ci.yml)
-
 ```bash
 gh act push \
   --workflows .github/workflows/ci-core.yml \

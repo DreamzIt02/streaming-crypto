@@ -10,3 +10,4 @@ pyo3     = { version = "0.22", features = ["auto-initialize"] }
 
 # Utilities
 num_enum.workspace = true
+bytes.workspace = true

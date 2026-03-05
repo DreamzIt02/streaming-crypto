@@ -8,6 +8,8 @@ pub mod io;
 pub mod ffi;
 pub mod constants;
 pub mod headers;
+pub mod frames;
+pub mod segments;
 pub mod telemetry;
 pub mod errors;
 pub mod parallelism;
@@ -68,6 +70,12 @@ pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()>
     // Register headers
     let _ = headers::register_headers(py, m);
 
+    // Register segments
+    let _ = segments::register_segments(py, m);
+
+    // Register frames
+    let _ = frames::register_frames(py, m);
+
     // Register crypto
     let _ = crypto::register_crypto(py, m);
 
@@ -76,6 +84,9 @@ pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()>
 
     // Register parallelism
     let _ = parallelism::register_parallelism(py, m);
+
+    // Register pyo3 io
+    let _ = io::register_io(py, m)?;
 
     // Register pyo3 api
     let _ = ffi::register_api(py, m)?;

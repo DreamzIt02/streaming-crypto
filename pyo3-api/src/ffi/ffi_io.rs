@@ -5,12 +5,11 @@
 // - everything else → treated as file‑like `Reader`/`Writer`  
 
 use std::{io::{Read, Write}, path::PathBuf};
-
-use core_api::stream_v2::{InputSource, OutputSink};
 use pyo3::{PyObject, PyResult, Python, types::{PyByteArray, PyBytes, PyMemoryView, PyString}};
 use pyo3::types::PyAnyMethods; // ✅ bring both traits into scope
 
-use crate::io::{PyReader, PyReaderHT, PyReaderReadInto, PyWriter, PyWriterHT, PyWriterWriteInto};
+use core_api::{stream_v2::{InputSource, OutputSink}};
+use crate::{io::{PyReader, PyReaderHT, PyReaderReadInto, PyWriter, PyWriterHT, PyWriterWriteInto}};
 
 fn classify_input(
     py: Python<'_>,

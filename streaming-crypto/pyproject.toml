@@ -47,6 +47,9 @@ include = [
     "streaming_crypto/telemetry.py",
     "streaming_crypto/telemetry.pyi",
 
+    "streaming_crypto/io.py",
+    "streaming_crypto/io.pyi",
+
     "streaming_crypto/api.py",
     "streaming_crypto/api.pyi",
 ]

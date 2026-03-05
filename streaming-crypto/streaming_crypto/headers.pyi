@@ -2,6 +2,12 @@
 
 from enum import Enum
 
+class CompressionCodec(Enum):
+    Auto    : int
+    Deflate : int
+    Lz4     : int
+    Zstd    : int
+
 class Strategy(Enum):
     Auto: int
     Sequential: int
@@ -99,8 +105,14 @@ class HeaderV1:
         reserved: bytes,
     ) -> None: ...
 
+    LEN: int
+    """
+    FIXED Header LEN
+    """
+
 __all__ = [
     # Header and Types
+    "CompressionCodec",
     "Strategy",
     "CipherSuite",
     "HkdfPrf",

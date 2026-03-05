@@ -4,7 +4,7 @@
 use core_api::crypto::DigestAlg;
 use core_api::parallelism::ParallelismConfig;
 use pyo3::prelude::*;
-use pyo3::{Bound, PyObject, PyResult, Python, exceptions::PyRuntimeError, pyfunction, pymodule, 
+use pyo3::{Bound, PyObject, PyResult, Python, pyfunction, pymodule, 
     types::{PyModule, PyModuleMethods}, wrap_pyfunction};
 
 use core_api::stream_v2::{ApiConfig, DecryptParams, EncryptParams, MasterKey, decrypt_stream_v2, encrypt_stream_v2};

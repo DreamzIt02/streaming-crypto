@@ -13,13 +13,13 @@ bitflags::bitflags! {
         const FINAL_SEGMENT = 0b0000_0001;
 
         /// Segment contains compressed frames
-        const COMPRESSED = 0b0000_0010;
+        const COMPRESSED    = 0b0000_0010;
 
         /// Segment written after resume
-        const RESUMED = 0b0000_0100;
+        const RESUMED       = 0b0000_0100;
 
         /// Reserved for future use
-        const RESERVED = 0b1000_0000;
+        const RESERVED      = 0b1000_0000;
     }
 
     // > Using `bitflags` here is **intentional**:
