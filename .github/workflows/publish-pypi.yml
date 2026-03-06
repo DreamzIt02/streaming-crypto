@@ -275,7 +275,7 @@ jobs:
         if: ${{ env.IS_LOCAL != 'true' }}
         working-directory: streaming-crypto
         shell: bash
-        run: twine upload dist/*
+        run: twine upload --skip-existing dist/*
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
