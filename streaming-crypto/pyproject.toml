@@ -3,15 +3,16 @@ requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "streaming-crypto"
-dynamic = ["version"]  # ignored by maturin (taken from Cargo.toml)
+name        = "streaming-crypto"
+dynamic     = ["version"]  # ignored by maturin (taken from Cargo.toml)
 description = "High-performance streaming encryption library powered by Rust"
-readme = "README.md"
-requires-python = ">=3.12"
-license = { text = "MIT" }
-authors = [
+readme      = "README.md"
+license     = { file = "LICENSE" }
+license_files = ["LICENSE"]
+authors     = [
     { name = "Engr. Rejwanul Islam" }
 ]
+requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: 3",
