@@ -25,6 +25,7 @@ classifiers = [
 features = ["pyo3-api"]
 strip = true
 include = [
+    "LICENSE",                        # ← add here
     "streaming_crypto/__init__.py",
     "streaming_crypto/__init__.pyi",
     "streaming_crypto/py.typed",
