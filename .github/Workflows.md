@@ -284,10 +284,14 @@ docker/act-rust-python/Dockerfile
 ```
 
 ```Dockerfile
-FROM ghcr.io/catthehacker/ubuntu:act-latest
+ARG ARCH=ghcr.io/catthehacker/ubuntu:act-latest
+FROM ${ARCH}
 
-# Install system deps with Python 3.12
-RUN apt-get update && apt-get install -y \
+ENV CARGO_HOME=/cargo
+ENV RUSTUP_HOME=/rustup
+ENV PATH="$CARGO_HOME/bin:$PATH"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
     pkg-config \
@@ -296,24 +300,68 @@ RUN apt-get update && apt-get install -y \
     python3.12 \
     python3.12-venv \
     python3.12-dev \
-    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Rust (latest stable)
+# Install Rust
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+# Python virtual environment
+RUN python3.12 -m venv /opt/venv \
+    && /opt/venv/bin/pip install --upgrade pip \
+    && /opt/venv/bin/pip install maturin cibuildwheel twine build
+
+ENV PATH="/opt/venv/bin:$PATH"
+```
+
+```Dockerfile
+ARG ARCH=quay.io/pypa/manylinux_2_28_x86_64
+FROM ${ARCH}
+
+ENV CARGO_HOME=/cargo
+ENV RUSTUP_HOME=/rustup
+ENV PATH="$CARGO_HOME/bin:$PATH"
+ENV PYBIN=/opt/python/cp312-cp312/bin
+
+RUN yum install -y \
+        curl \
+        git \
+        make \
+        gcc \
+        gcc-c++ \
+        pkg-config \
+        openssl-devel \
+    && yum clean all \
+    && rm -rf /var/cache/yum
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+RUN $PYBIN/pip install --upgrade pip \
+    && $PYBIN/pip install maturin cibuildwheel twine build
+```
+
+```Dockerfile
+ARG ARCH=quay.io/pypa/musllinux_1_2_x86_64
+FROM ${ARCH}
+
+ENV CARGO_HOME=/cargo
+ENV RUSTUP_HOME=/rustup
+ENV PATH="$CARGO_HOME/bin:$PATH"
+ENV PYBIN=/opt/python/cp312-cp312/bin
+
+RUN apk add --no-cache \
+        curl \
+        git \
+        make \
+        gcc \
+        g++ \
+        pkgconfig \
+        openssl-dev
+
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
-    && /root/.cargo/bin/rustup toolchain install stable \
-    && /root/.cargo/bin/rustup default stable
+    && rustup target add x86_64-unknown-linux-musl
 
-# Keep Cargo in PATH, we want Rust tooling available
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Make python3 point to python3.12
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
-    && update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
-
-# Upgrade pip and install maturin globally
-RUN apt-get update && apt-get install -y python3-maturin
-RUN sudo apt-get update && sudo apt-get install -y ocl-icd-opencl-dev
+RUN $PYBIN/pip install --upgrade pip \
+    && $PYBIN/pip install maturin cibuildwheel twine build
 ```
 
 ---
@@ -321,7 +369,27 @@ RUN sudo apt-get update && sudo apt-get install -y ocl-icd-opencl-dev
 ## ✅ Step 2 — Build Image Once
 
 ```bash
-docker build -t act-streaming-crypto -f docker/act-rust-python/Dockerfile .
+docker build -t ubuntu-linux-custom \
+  --build-arg ARCH=ghcr.io/catthehacker/ubuntu:act-latest \
+  -f docker/ubuntu-linux-custom/Dockerfile .
+
+docker build -t manylinux-custom-x86_64 \
+  --build-arg ARCH=quay.io/pypa/manylinux_2_28_x86_64 \
+  -f docker/many-linux-custom/Dockerfile .
+
+docker build -t manylinux-custom-aarch64 \
+  --platform linux/arm64 \
+  --build-arg ARCH=quay.io/pypa/manylinux_2_28_aarch64 \
+  -f docker/many-linux-custom/Dockerfile .
+
+docker build -t musllinux-custom-x86_64 \
+  --build-arg ARCH=quay.io/pypa/musllinux_1_2_x86_64 \
+  -f docker/musl-linux-custom/Dockerfile .
+
+docker build -t musllinux-custom-aarch64 \
+  --platform linux/arm64 \
+  --build-arg ARCH=quay.io/pypa/musllinux_1_2_aarch64 \
+  -f docker/musl-linux-custom/Dockerfile .
 ```
 
 This may take 5–6 minutes.
@@ -339,7 +407,7 @@ gh act push \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 gh act push \
   --workflows .github/workflows/ci-ffi.yml \
@@ -347,7 +415,7 @@ gh act push \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 gh act push \
   --workflows .github/workflows/ci-pyo3.yml \
@@ -355,7 +423,7 @@ gh act push \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 rm -rf .act-artifacts/*
 rm -rf .act-cache/*
@@ -374,7 +442,7 @@ gh act -j detect-tag \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 # Run only prepare-publish from publish-crates.yml
 gh act -j prepare \
@@ -384,7 +452,7 @@ gh act -j prepare \
   --cache-server-path .act-cache \
   --reuse \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 # Run only publish-crates from publish-crates.yml
 gh act push \
@@ -393,7 +461,7 @@ gh act push \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 rm -rf .act-artifacts/*
 rm -rf .act-cache/*
@@ -412,7 +480,7 @@ gh act -j detect-tag \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 # Run only prepare-publish from publish-pypi.yml
 gh act -j prepare \
@@ -422,16 +490,17 @@ gh act -j prepare \
   --cache-server-path .act-cache \
   --reuse \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 # Run full publish-pypi.yml
-gh act push\
+gh act push \
   --workflows .github/workflows/publish-pypi.yml \
   -e .github/push-tag-pypi.json \
   --artifact-server-path .act-artifacts \
   --cache-server-path .act-cache \
+  --container-daemon-socket /var/run/docker.sock \
   --pull=false \
-  -P ubuntu-latest=act-streaming-crypto:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest
 
 rm -rf .act-artifacts/*
 rm -rf .act-cache/*
@@ -458,7 +527,7 @@ If we want elite-level speed:
 
 ```bash
 gh act push \
-  -P ubuntu-latest=act-streaming-crypto \
+  -P ubuntu-latest=ubuntu-linux-custom \
   --bind \
   --reuse
 ```

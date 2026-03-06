@@ -43,6 +43,21 @@ jobs:
         prefix: 'v'
         suffix: 'pypi'
 
+  pre-os-check:
+    runs-on: ubuntu-latest
+    outputs:
+      os-list: ${{ steps.set-os.outputs.os-list }}
+    steps:
+      - name: Select OS matrix according to env
+        id: set-os
+        shell: bash
+        run: |
+          if [ "${{ env.ACT }}" = "true" ]; then
+            echo 'os-list=["ubuntu-latest"]' >> $GITHUB_OUTPUT
+          else
+            echo 'os-list=["ubuntu-latest","macos-latest","windows-latest"]' >> $GITHUB_OUTPUT
+          fi
+
   # ✅ prepare-publish
   prepare:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' }}
@@ -59,23 +74,22 @@ jobs:
       dependencies: |
         core-api = { package=\"streaming-crypto\", version = \"${{ needs.detect-tag.outputs.tag_version }}\", features = [] }
 
-  # ✅ publish to pypi.org
-  publish:
+  # ✅ build wheels for many OS
+  build:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' && needs.detect-tag.outputs.tag_is_published == 'true' }}
-    name: Build & Publish Python Wheel
-    needs: [detect-tag, prepare] # Require both
-    strategy: 
-      matrix: 
-        os: [ubuntu-latest, macos-latest, windows-latest] 
-        rust: [stable]
+    needs: [detect-tag, pre-os-check, prepare]
+    name: Build wheels + sdist
     runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ${{ fromJson(needs.pre-os-check.outputs.os-list) }}
 
     steps:
       - name: Mark local run
         if: ${{ env.ACT == 'true' }}
         shell: bash
         run: echo "IS_LOCAL=true" >> $GITHUB_ENV
-      
+
       # 1️⃣ Fresh checkout for changelog
       - name: Checkout repository (for git history)
         uses: actions/checkout@v4
@@ -94,7 +108,7 @@ jobs:
         run: |
           rm -rf streaming-crypto
           mv prepared-crate streaming-crypto
-      
+
       # 3️⃣ Install libraries
       - name: Install Rust
         if: ${{ env.IS_LOCAL != 'true' }}
@@ -112,9 +126,10 @@ jobs:
         shell: bash
         run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
-      - name: Install maturin
+      - name: Install build tools
         if: ${{ env.IS_LOCAL != 'true' }}
-        run: pip install maturin
+        shell: bash
+        run: pip install maturin cibuildwheel twine
 
       # 4️⃣ Cache
       - name: Cache cargo registry
@@ -128,15 +143,130 @@ jobs:
           # Otherwise, unrelated changes can invalidate the cache.
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # 5️⃣ Build wheel
-      - name: Build wheel with PyO3 feature
+      # 5️⃣ Build wheels for each OS
+      - name: Build wheels (local)
+        if: ${{ env.IS_LOCAL == 'true' }}
         working-directory: streaming-crypto
         shell: bash
-        run: maturin build --release
+        run: |
+          mkdir -p wheelhouse
+          cibuildwheel --platform auto --output-dir wheelhouse
+        env:
+          CIBW_BUILD      : cp312-*                 # restrict to Python 3.12
+          CIBW_SKIP       : "cp312-musllinux_x86_64 cp312-musllinux_aarch64 pp*" # skip musllinux and PyPy
+          CIBW_ARCHS_LINUX: x86_64                  # skip aarch64
+          CIBW_CONTAINER_ENGINE       : docker
+          CIBW_MANYLINUX_X86_64_IMAGE : manylinux-custom-x86_64
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux-custom-aarch64
+          CIBW_MUSLLINUX_X86_64_IMAGE : "" #musllinux-custom-x86_64
+          CIBW_MUSLLINUX_AARCH64_IMAGE: "" #musllinux-custom-aarch64
+
+      - name: Build wheels
+        if: ${{ env.IS_LOCAL != 'true' }}
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          mkdir -p wheelhouse
+          cibuildwheel --platform auto --output-dir wheelhouse
+        env:
+          CIBW_BUILD: cp312-*                     # restrict to Python 3.12
+          CIBW_SKIP : "pp*"                       # skip musllinux and PyPi: "cp312-musllinux* pp*""
+          CIBW_CONTAINER_ENGINE : docker
+          CIBW_ARCHS_LINUX      : x86_64 aarch64  # build both Intel + ARM linux wheels
+          CIBW_ARCHS_MACOS      : x86_64 arm64    # build both Intel + ARM macOS wheels
+          CIBW_ARCHS_WINDOWS    : AMD64 ARM64     # build both Intel + ARM winOS wheels
+          
+      # Build sdist once for any os (linux/windows/macos) (only on Linux to avoid duplication)
+      - name: Build sdist
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: streaming-crypto
+        shell: bash
+        run: maturin sdist --out wheelhouse
+
+      - name: Show wheelhouse
+        working-directory: streaming-crypto
+        shell: bash
+        run: |
+          echo "Listing wheelhouse"
+          ls -R wheelhouse || true
+
+      - name: Prepare artifacts for publishing
+        shell: bash
+        run: |
+          mkdir -p prepared-artifacts
+          cp -r streaming-crypto/wheelhouse/* prepared-artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-artifacts
+          path: prepared-artifacts
+
+  # ✅ publish to pypi.org
+  publish:
+    if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' && needs.detect-tag.outputs.tag_is_published == 'true' }}
+    name: Publish Python Wheel
+    needs: [detect-tag, build] # Require all
+    strategy: 
+      matrix: 
+        os: [ubuntu-latest] 
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Mark local run
+        if: ${{ env.ACT == 'true' }}
+        shell: bash
+        run: echo "IS_LOCAL=true" >> $GITHUB_ENV
+      
+      # 1️⃣ Fresh checkout for changelog
+      - name: Checkout repository (for git history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # 2️⃣ Get prepared wheels and sdist for publishing
+      - name: Prepare crate for publishing
+        working-directory: streaming-crypto
+        shell: bash
+        run: mkdir -p dist
+          
+      - name: Download artifacts from upload step of build job
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-artifacts
+          path: streaming-crypto/dist
+          
+      - name: Show dist files
+        working-directory: streaming-crypto
+        shell: bash
+        run: ls -R dist
+
+      # - name: Flatten artifacts
+      #   working-directory: streaming-crypto
+      #   shell: bash
+      #   run: |
+      #     mkdir -p dist-flat
+      #     find dist -type f \( -name "*.whl" -o -name "*.tar.gz" \) -exec cp {} dist-flat/ \;
+      #     rm -rf dist
+      #     mv dist-flat dist
+
+      # - name: Show dist files (flatten)
+      #   working-directory: streaming-crypto
+      #   shell: bash
+      #   run: ls -R dist
+
+      - name: Check artifacts
+        working-directory: streaming-crypto
+        shell: bash
+        run: twine check dist/*
 
       # 6️⃣ Publish to pypi.org
       - name: Publish to PyPI
         if: ${{ env.IS_LOCAL != 'true' }}
         working-directory: streaming-crypto
         shell: bash
-        run: maturin publish --username __token__ --password ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}

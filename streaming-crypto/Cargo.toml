@@ -29,12 +29,12 @@ ffi-api     = { path = "../ffi-api",  optional = true }
 pyo3-api    = { path = "../pyo3-api", optional = true }
 
 pyo3        = { version = "0.22", features = ["auto-initialize"], optional = true }
-# --- DEPENDENCIES DYNAMIC END ---
 
 [dev-dependencies]
 # 📦 Property‑Based Tests
 proptest.workspace = true
 tempfile.workspace = true
+# --- DEPENDENCIES DYNAMIC END ---
 
 [lib]
 name        = "streaming_crypto"

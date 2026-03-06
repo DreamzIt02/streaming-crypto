@@ -5,6 +5,7 @@
 //!
 //! Summary: Collects frame counts and byte counts during encrypt/decrypt.
 //! Converted into immutable TelemetrySnapshot at pipeline end.
+//! FIXME: Use serde instead of bincode
 use bincode::{Encode, Decode};
 use std::{fmt, ops::AddAssign};
 

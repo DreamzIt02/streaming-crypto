@@ -1,4 +1,4 @@
-pyo3         = { version = "0.22", optional = true, features = ["auto-initialize", "extension-module"] }
+pyo3         = { version = "0.22", optional = true, features = ["extension-module"] }
 # Features Gated
 cudarc       = { version = "0.18", optional = true, features = ["cuda-version-from-build-system"] }
 wgpu         = { version = "28.0", optional = true, features = [] }
