@@ -8,7 +8,6 @@ dynamic     = ["version"]  # ignored by maturin (taken from Cargo.toml)
 description = "High-performance streaming encryption library powered by Rust"
 readme      = "README.md"
 license     = { file = "LICENSE" }
-license_files = ["LICENSE"]
 authors     = [
     { name = "Engr. Rejwanul Islam" }
 ]
