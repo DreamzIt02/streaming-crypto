@@ -11,3 +11,10 @@ __all__ = [
     "FrameType",
     "FrameHeader",
 ]
+
+# from .streaming_crypto import frames as _c
+
+# FrameHeader = _c.FrameHeader
+# FrameType   = _c.FrameType
+
+# __all__ = ["FrameHeader", "FrameType"]

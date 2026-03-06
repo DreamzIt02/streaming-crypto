@@ -16,7 +16,7 @@ pub use io_writeinto::*;
 
 use crate::{PyHeaderV1, PyStreamError};
 
-#[pyclass]
+#[pyclass(name="PayloadReader")]
 pub struct PyPayloadReader {
     _inner: PayloadReader<Cursor<Vec<u8>>>,
 }

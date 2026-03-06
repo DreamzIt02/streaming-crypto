@@ -119,6 +119,6 @@ mod tests {
             config,
         ).unwrap_err();
 
-        matches!(err, StreamError::SegmentWorker(_));
+        matches!(err, StreamError::Validation(_));
     }
 }

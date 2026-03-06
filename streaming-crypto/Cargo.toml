@@ -1,8 +1,8 @@
 [package]
 name        = "streaming-crypto"
-# GITHUB BUILD   TAG: b0.1.0-beta.4-core.0, b0.1.0-beta.4-ffi.0, b0.1.0-beta.4-pyo3.0
-# GITHUB PUBLISH TAG: v0.1.0-beta.4-crates.0, v0.1.0-beta.4-pypi.0
-version     = "0.1.0-beta.4"
+# GITHUB BUILD   TAG: b0.1.0-beta.5-core.0, b0.1.0-beta.5-ffi.0, b0.1.0-beta.5-pyo3.0
+# GITHUB PUBLISH TAG: v0.1.0-beta.5-crates.0, v0.1.0-beta.5-pypi.0
+version     = "0.1.0-beta.5"
 edition     = "2021"
 license     = "MIT"
 description = "Cryptographic library with optional FFI and Python bindings"

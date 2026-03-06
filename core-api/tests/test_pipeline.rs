@@ -271,7 +271,7 @@ mod tests {
         )
         .unwrap_err();
 
-        matches!(err, StreamError::SegmentWorker(_));
+        matches!(err, StreamError::Validation(_));
     }
 
     #[test]

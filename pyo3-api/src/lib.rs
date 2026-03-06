@@ -55,57 +55,119 @@ pub fn encrypt<'py>(py: Python<'py>, data: &Bound<'py, PyBytes>,) -> PyResult<Bo
     Ok(PyBytes::new_bound(py, &encrypted))
 }
 
+// #[pymodule(name = "streaming_crypto")]
+// pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+
+//     // Export from the root module (streaming_crypto/***submodule***/__init__.py)
+//     // Register constants
+//     let s = PyModule::new_bound(py, "constants")?;
+//     let _ = constants::register_constants(py, &s)?;
+//     m.add_submodule(&s)?;
+
+//     // Register headers
+//     let s = PyModule::new_bound(py, "headers")?;
+//     let _ = headers::register_headers(py, &s)?;
+//     m.add_submodule(&s)?;
+
+//     // Register segments
+//     let s = PyModule::new_bound(py, "segments")?;
+//     let _ = segments::register_segments(py, &s)?;
+//     m.add_submodule(&s)?;
+
+//     // Register frames
+//     let s = PyModule::new_bound(py, "frames")?;
+//     let _ = frames::register_frames(py, &s)?;
+//     m.add_submodule(&s)?;
+
+//     // Register crypto
+//     let s = PyModule::new_bound(py, "crypto")?;
+//     let _ = crypto::register_crypto(py, &s)?;
+//     m.add_submodule(&s)?;
+
+//     // Register parallelism
+//     let s = PyModule::new_bound(py, "parallelism")?;
+//     let _ = parallelism::register_parallelism(py, &s)?;
+//     m.add_submodule(&s)?;
+
+//     // Register pyo3 io
+//     let s = PyModule::new_bound(py, "io")?;
+//     let _ = io::register_io(py, &s)?;
+//     m.add_submodule(&s)?;
+
+//     // Export from the root module (streaming_crypto/__init__.py)
+//     // Register public api
+//     m.add_function(wrap_pyfunction!(encrypt, m)?)?;
+
+//     // Register errors
+//     let _ = errors::register_errors(py, m);
+    
+//     // Register telemetry
+//     let _ = telemetry::register_telemetry(py, m);
+
+//     // Register pyo3 api
+//     let _ = ffi::register_api(py, m)?;
+
+//     Ok(())
+// }
+
 #[pymodule(name = "streaming_crypto")]
 pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    let sys_modules = py.import_bound("sys")?
+        .getattr("modules")?;
 
-    // Export from the root module (streaming_crypto/***submodule***/__init__.py)
     // Register constants
     let s = PyModule::new_bound(py, "constants")?;
-    let _ = constants::register_constants(py, &s)?;
+    constants::register_constants(py, &s)?;
     m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.constants", &s)?;
 
     // Register headers
     let s = PyModule::new_bound(py, "headers")?;
-    let _ = headers::register_headers(py, &s)?;
+    headers::register_headers(py, &s)?;
     m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.headers", &s)?;
 
     // Register segments
     let s = PyModule::new_bound(py, "segments")?;
-    let _ = segments::register_segments(py, &s)?;
+    segments::register_segments(py, &s)?;
     m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.segments", &s)?;
 
     // Register frames
     let s = PyModule::new_bound(py, "frames")?;
-    let _ = frames::register_frames(py, &s)?;
+    frames::register_frames(py, &s)?;
     m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.frames", &s)?;
 
     // Register crypto
     let s = PyModule::new_bound(py, "crypto")?;
-    let _ = crypto::register_crypto(py, &s)?;
+    crypto::register_crypto(py, &s)?;
     m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.crypto", &s)?;
 
     // Register parallelism
     let s = PyModule::new_bound(py, "parallelism")?;
-    let _ = parallelism::register_parallelism(py, &s)?;
+    parallelism::register_parallelism(py, &s)?;
     m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.parallelism", &s)?;
 
-    // Register pyo3 io
+    // Register io
     let s = PyModule::new_bound(py, "io")?;
-    let _ = io::register_io(py, &s)?;
+    io::register_io(py, &s)?;
     m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.io", &s)?;
 
-    // Export from the root module (streaming_crypto/__init__.py)
     // Register public api
     m.add_function(wrap_pyfunction!(encrypt, m)?)?;
 
     // Register errors
-    let _ = errors::register_errors(py, m);
-    
+    errors::register_errors(py, m)?;
+
     // Register telemetry
-    let _ = telemetry::register_telemetry(py, m);
+    telemetry::register_telemetry(py, m)?;
 
     // Register pyo3 api
-    let _ = ffi::register_api(py, m)?;
+    ffi::register_api(py, m)?;
 
     Ok(())
 }

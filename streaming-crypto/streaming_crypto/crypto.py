@@ -6,3 +6,9 @@
 from .crypto import DigestAlg
 
 __all__ = ["DigestAlg"]
+
+# from .streaming_crypto import crypto as _c
+
+# DigestAlg = _c.DigestAlg
+
+# __all__ = ["DigestAlg"]
