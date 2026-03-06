@@ -205,7 +205,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: prepared-artifacts
+          name: prepared-artifacts-${{ matrix.os }}
           path: prepared-artifacts
 
   # ✅ publish to pypi.org
@@ -231,18 +231,30 @@ jobs:
         with:
           fetch-depth: 0
       
-      # 2️⃣ Get prepared wheels and sdist for publishing
+      # 2️⃣ Download artifacts from upload step of build job (all os matrix)
       - name: Prepare crate for publishing
         working-directory: streaming-crypto
         shell: bash
         run: mkdir -p dist
-          
-      - name: Download artifacts from upload step of build job
+      
+      - name: Download artifacts (ubuntu-latest)
         uses: actions/download-artifact@v4
         with:
-          name: prepared-artifacts
+          name: prepared-artifacts-ubuntu-latest
           path: streaming-crypto/dist
-          
+
+      - name: Download artifacts (macos-latest)
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-artifacts-macos-latest
+          path: streaming-crypto/dist
+
+      - name: Download artifacts (windows-latest)
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-artifacts-windows-latest
+          path: streaming-crypto/dist
+
       - name: Show dist files
         working-directory: streaming-crypto
         shell: bash
