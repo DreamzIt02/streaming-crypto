@@ -7,7 +7,7 @@ name        = "streaming-crypto"
 dynamic     = ["version"]  # ignored by maturin (taken from Cargo.toml)
 description = "High-performance streaming encryption library powered by Rust"
 readme      = "README.md"
-license     = "MIT"
+license     = {text = "MIT"}   # ← table form, emits classic "License:" field
 authors     = [
     { name = "Engr. Rejwanul Islam" }
 ]
