@@ -137,7 +137,7 @@ jobs:
       - name: Install build tools
         if: ${{ env.IS_LOCAL != 'true' }}
         shell: bash
-        run: pip install maturin cibuildwheel twine
+        run: pip install maturin cibuildwheel twine "packaging>=24.2"
 
       # 4️⃣ Cache
       - name: Cache cargo registry
@@ -261,9 +261,9 @@ jobs:
         shell: bash
         run: ls -R dist
 
-      - name: Install Twine
+      - name: Install twine
         shell: bash
-        run: pip install twine
+        run: pip install "twine>=6.2.0" "packaging>=24.2"
 
       - name: Check artifacts
         working-directory: streaming-crypto
