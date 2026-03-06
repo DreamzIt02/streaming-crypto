@@ -55,7 +55,7 @@ jobs:
           if [ "${{ env.ACT }}" = "true" ]; then
             echo 'os-list=["ubuntu-latest"]' >> $GITHUB_OUTPUT
           else
-            echo 'os-list=["ubuntu-latest","macos-latest","windows-latest"]' >> $GITHUB_OUTPUT
+            echo 'os-list=["ubuntu-latest","macos-latest","windows-latest", "macos-13"]' >> $GITHUB_OUTPUT
           fi
 
   # ✅ prepare-publish
