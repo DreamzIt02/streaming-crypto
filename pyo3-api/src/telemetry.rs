@@ -66,21 +66,28 @@ pub struct PyTelemetrySnapshot {
 }
 
 impl From<TelemetrySnapshot> for PyTelemetrySnapshot {
+    /// OwnedOutput(Vec<u8>)         — move out of TelemetrySnapshot
+    ///     ↓ owned.0                — unwrap NewType, still a move
+    ///     ↓ PyBytes::new_bound()   — 1 unavoidable copy into Python heap
+    ///     ↓ Py<PyBytes>            — owned Python reference, no further copies
     fn from(snap: TelemetrySnapshot) -> Self {
         Python::with_gil(|py| {
             // Convert stage times -> Dict[str, float]
             let stage_dict = PyDict::new_bound(py);
 
             for (stage, duration) in snap.stage_times.iter() {
-                let seconds = duration.as_secs_f64();
                 stage_dict
-                    .set_item(stage.to_string(), seconds)
+                    .set_item(stage.to_string(), duration.as_secs_f64())
                     .expect("stage_times insert failed");
             }
 
-            let py_output = snap.output.map(|v| {
-                PyBytes::new_bound(py, &v).into()
+            // In telemetry.rs — From<TelemetrySnapshot>
+            let py_output = snap.output.map(|owned| {
+                crate::increment_output_copies();  // ← no longer AtomicUsize
+                PyBytes::new_bound(py, &owned.0).into()
             });
+            // The only change is `snap.output.map(|v| ...)` → `snap.output.map(|owned| ... &owned.0 ...)`. Everything else stays identical. The full copy chain is now:
+            // Unwrap OwnedOutput NewType → &[u8] → PyBytes (1 unavoidable copy)
 
             Self {
                 segments_processed: snap.segments_processed,

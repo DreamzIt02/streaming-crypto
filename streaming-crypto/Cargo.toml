@@ -1,8 +1,8 @@
 [package]
 name        = "streaming-crypto"
-# GITHUB BUILD   TAG: b0.1.0-beta.5-core.0, b0.1.0-beta.5-ffi.0, b0.1.0-beta.5-pyo3.0
-# GITHUB PUBLISH TAG: v0.1.0-beta.5-crates.0, v0.1.0-beta.5-pypi.0
-version     = "0.1.0-beta.5"
+# GITHUB BUILD   TAG: b0.1.0-beta.6-core.0, b0.1.0-beta.6-ffi.0, b0.1.0-beta.6-pyo3.0
+# GITHUB PUBLISH TAG: v0.1.0-beta.6-crates.0, v0.1.0-beta.6-pypi.0
+version     = "0.1.0-beta.6"
 edition     = "2021"
 license     = "MIT"
 description = "Cryptographic library with optional FFI and Python bindings"
@@ -31,6 +31,7 @@ pyo3-api    = { path = "../pyo3-api", optional = true }
 pyo3        = { version = "0.22", features = ["auto-initialize"], optional = true }
 
 [dev-dependencies]
+core-api = { path = "../core-api" }
 # 📦 Property‑Based Tests
 proptest.workspace = true
 tempfile.workspace = true

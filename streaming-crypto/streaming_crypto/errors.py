@@ -1,6 +1,6 @@
 # streaming_crypto/errors.py
 
-from .streaming_crypto.errors import (
+from .errors import (
     # Error Types
     StreamError,
 )

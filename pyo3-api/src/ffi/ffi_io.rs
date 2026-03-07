@@ -5,119 +5,188 @@
 // - everything else → treated as file‑like `Reader`/`Writer`  
 
 use std::{io::{Read, Write}, path::PathBuf};
-use pyo3::{PyObject, PyResult, Python, types::{PyByteArray, PyBytes, PyMemoryView, PyString}};
+use pyo3::{PyObject, PyResult, Python, types::{PyByteArray, PyByteArrayMethods, PyBytes, PyBytesMethods, PyMemoryView}};
 use pyo3::types::PyAnyMethods; // ✅ bring both traits into scope
 
 use core_api::{stream_v2::{InputSource, OutputSink}};
-use crate::{io::{PyReader, PyReaderHT, PyReaderReadInto, PyWriter, PyWriterHT, PyWriterWriteInto}};
+use crate::{PyInputSource, PyOutputSink, io::{PyReader, PyReaderHT, PyReaderReadInto, PyWriter, PyWriterHT, PyWriterWriteInto}};
 
-fn classify_input(
-    py: Python<'_>,
-    input: PyObject,
-    chunk_size: Option<usize>,
-    debug: Option<bool>
-) -> PyResult<InputSource> {
-    let obj = input.bind(py);
-
-    // 1️⃣ Exact memory types
-    if obj.is_instance_of::<PyBytes>() || obj.is_instance_of::<PyByteArray>() {
-        let bytes: Vec<u8> = obj.extract()?;
-        if let Some(true) = debug {
-            println!("1. Input source detected: {:?}", "memory");
+// ```rust
+// dbg_detect!(debug, "Input source detected: memory (bytes)");
+// ```
+macro_rules! dbg_detect {
+    ($debug:expr, $msg:expr) => {
+        if $debug == Some(true) {
+            println!("{}", $msg);
         }
-        return Ok(InputSource::Memory(bytes));
-    }
-
-    // 2️⃣ Buffer-like (memoryview, etc.)
-    if obj.is_instance_of::<PyMemoryView>() {
-        let bytes: Vec<u8> = obj.extract()?;
-        if let Some(true) = debug {
-            println!("2. Input source detected: {:?}", "memory");
-        }
-        return Ok(InputSource::Memory(bytes));
-    }
-
-    // 3️⃣ File path (string only)
-    if obj.is_instance_of::<PyString>() {
-        let path: String = obj.extract()?;
-        if let Some(true) = debug {
-            println!("3. Input source detected: {:?}", "file");
-        }
-        return Ok(InputSource::File(PathBuf::from(path)));
-    }
-
-    // 4️⃣ Fallback: file-like reader
-    let reader: Box<dyn Read + Send> =
-        if let Ok(r) = PyReaderReadInto::new(input.clone_ref(py), chunk_size) {
-            if let Some(true) = debug {
-                println!("4. Input source detected: {:?}", "reader");
-            }
-            Box::new(r)
-        } else if let Ok(r) = PyReaderHT::new(input.clone_ref(py)) {
-            if let Some(true) = debug {
-                println!("5. Input source detected: {:?}", "reader");
-            }
-            Box::new(r)
-        } else {
-            if let Some(true) = debug {
-                println!("6. Input source detected: {:?}", "reader");
-            }
-            Box::new(PyReader::new(input.clone_ref(py)))
-        };
-
-    Ok(InputSource::Reader(reader))
+    };
 }
 
-fn classify_output(
-    py: Python<'_>,
+// # 2️⃣ IO classifier
+
+pub fn classify_py_io(
+    py: Python,
+    input: PyObject,
     output: PyObject,
-    debug: Option<bool>
+) -> PyResult<(PyInputSource, PyOutputSink)> {
+    let input_obj = input.bind(py);
+    let output_obj = output.bind(py);
+
+    // ---------- INPUT ----------
+
+    let py_input = if input_obj.is_instance_of::<PyBytes>() {
+        PyInputSource::Bytes(input)
+    }
+    else if input_obj.is_instance_of::<PyByteArray>() {
+        PyInputSource::ByteArray(input)
+    }
+    else if let Ok(path) = input_obj.extract::<String>() {
+        PyInputSource::File(PathBuf::from(path))
+    }
+    else {
+        PyInputSource::Reader(input)
+    };
+
+    // ---------- OUTPUT ----------
+
+    let py_output = 
+        if output_obj.is_instance_of::<PyBytes>()
+        || output_obj.is_instance_of::<PyByteArray>()
+        || output_obj.is_instance_of::<PyMemoryView>()
+    {
+        PyOutputSink::Memory
+    }
+    else if let Ok(path) = output_obj.extract::<String>() {
+        PyOutputSink::File(PathBuf::from(path))
+    }
+    else {
+        PyOutputSink::Writer(output)
+    };
+
+    Ok((py_input, py_output))
+}
+
+// # 3️⃣ Convert to core-api types
+
+// pub fn to_core_input<'py>(
+//     py: Python<'py>,
+//     src: PyInputSource,
+//     chunk_size: Option<usize>,
+// ) -> PyResult<InputSource<'py>> {
+
+//     match src {
+
+//         PyInputSource::Bytes(obj) => {
+//             let bytes = obj.bind(py).downcast::<PyBytes>()?;
+//             let slice: &'py [u8] = bytes.as_bytes();
+//             Ok(InputSource::Memory(slice))
+//         }
+
+//         PyInputSource::ByteArray(obj) => {
+//             let byte_array = obj.bind(py).downcast::<PyByteArray>()?;
+//             let slice: &'py [u8] = unsafe { byte_array.as_bytes() };
+//             Ok(InputSource::Memory(slice))
+//         }
+
+//         PyInputSource::File(p) => {
+//             Ok(InputSource::File(p))
+//         }
+
+//         PyInputSource::Reader(obj) => {
+
+//             let reader: Box<dyn Read + Send> =
+//                 if let Ok(r) = PyReaderReadInto::new(obj.clone_ref(py), chunk_size) {
+//                     Box::new(r)
+//                 }
+//                 else if let Ok(r) = PyReaderHT::new(obj.clone_ref(py)) {
+//                     Box::new(r)
+//                 }
+//                 else {
+//                     Box::new(PyReader::new(obj.clone_ref(py)))
+//                 };
+
+//             Ok(InputSource::Reader(reader))
+//         }
+//     }
+// }
+
+pub fn to_core_input<'py>(
+    py: Python<'py>,
+    src: PyInputSource,
+    chunk_size: Option<usize>,
+    debug: Option<bool>,
+) -> PyResult<InputSource<'static>> {  // <-- use 'static with owned Vec
+    match src {
+        PyInputSource::Bytes(obj) => {
+            let bytes = obj.bind(py).downcast::<PyBytes>()?.as_bytes().to_vec();
+            dbg_detect!(debug, "Input source detected: memory (bytes)");
+            Ok(InputSource::Reader(Box::new(std::io::Cursor::new(bytes))))
+        }
+        PyInputSource::ByteArray(obj) => {
+            let bytes = unsafe {
+                obj.bind(py).downcast::<PyByteArray>()?.as_bytes().to_vec()
+            };
+            dbg_detect!(debug, "Input source detected: memory (byte array)");
+            Ok(InputSource::Reader(Box::new(std::io::Cursor::new(bytes))))
+        }
+        PyInputSource::File(p) => {
+            dbg_detect!(debug, "Input source detected: file");
+            Ok(InputSource::File(p))
+        },
+        PyInputSource::Reader(obj) => {
+            let reader: Box<dyn Read + Send> =
+                if let Ok(r) = PyReaderReadInto::new(obj.clone_ref(py), chunk_size) {
+                    dbg_detect!(debug, "Input source detected: reader (read into)");
+                    Box::new(r)
+                } else if let Ok(r) = PyReaderHT::new(obj.clone_ref(py)) {
+                    dbg_detect!(debug, "Input source detected: reader (read ht)");
+                    Box::new(r)
+                } else {
+                    dbg_detect!(debug, "Input source detected: reader (generic)");
+                    Box::new(PyReader::new(obj.clone_ref(py)))
+                };
+            Ok(InputSource::Reader(reader))
+        }
+    }
+}
+
+pub fn to_core_output(
+    py: Python,
+    sink: PyOutputSink,
+    debug: Option<bool>,
 ) -> PyResult<OutputSink> {
-    let obj = output.bind(py);
 
-    // 1️⃣ Memory sink
-    if obj.is_instance_of::<PyBytes>() || obj.is_instance_of::<PyByteArray>() {
-        if let Some(true) = debug {
-            println!("1. Output source detected: {:?}", "memory");
+    match sink {
+
+        PyOutputSink::Memory => {
+            dbg_detect!(debug, "Output source detected: memory (bytes/bytes array/memory view)");
+            Ok(OutputSink::Memory)
         }
-        return Ok(OutputSink::Memory);
-    }
-    if obj.is_instance_of::<PyMemoryView>() {
-        if let Some(true) = debug {
-            println!("2. Output source detected: {:?}", "memory");
+
+        PyOutputSink::File(p) => {
+            dbg_detect!(debug, "Output source detected: file");
+            Ok(OutputSink::File(p))
         }
-        return Ok(OutputSink::Memory);
-    }
 
-    // 2️⃣ File path (string only)
-    if obj.is_instance_of::<PyString>() {
-        let path: String = obj.extract()?;
-        if let Some(true) = debug {
-            println!("3. Output source detected: {:?}", "file");
+        PyOutputSink::Writer(obj) => {
+
+            let writer: Box<dyn Write + Send> =
+                if let Ok(w) = PyWriterWriteInto::new(obj.clone_ref(py)) {
+                    dbg_detect!(debug, "Output source detected: writer (write into)");
+                    Box::new(w)
+                }
+                else if let Ok(w) = PyWriterHT::new(obj.clone_ref(py)) {
+                    dbg_detect!(debug, "Output source detected: writer (write ht)");
+                    Box::new(w)
+                }
+                else {
+                    dbg_detect!(debug, "Output source detected: writer (generic)");
+                    Box::new(PyWriter::new(obj.clone_ref(py)))
+                };
+
+            Ok(OutputSink::Writer(writer))
         }
-        return Ok(OutputSink::File(PathBuf::from(path)));
     }
-
-    // 3️⃣ Fallback: file-like writer
-    let writer: Box<dyn Write + Send> =
-        if let Ok(w) = PyWriterWriteInto::new(output.clone_ref(py)) {
-            if let Some(true) = debug {
-                println!("4. Output source detected: {:?}", "writer");
-            }
-            Box::new(w)
-        } else if let Ok(w) = PyWriterHT::new(output.clone_ref(py)) {
-            if let Some(true) = debug {
-                println!("5. Output source detected: {:?}", "writer");
-            }
-            Box::new(w)
-        } else {
-            if let Some(true) = debug {
-                println!("6. Output source detected: {:?}", "writer");
-            }
-            Box::new(PyWriter::new(output.clone_ref(py)))
-        };
-
-    Ok(OutputSink::Writer(writer))
 }
 
 // - **InputSource::Memory** → `bytes`, `bytearray`, `memoryview`  
@@ -127,20 +196,20 @@ fn classify_output(
 // This way, our API behaves symmetrically:  
 // - Passing `bytes`/`bytearray` gives us snapshot buffers.  
 // - Passing `BytesIO` gives us streaming behavior.  
-pub fn py_extract_io(
-    py: Python,
-    input: PyObject,  // bytes, str path, or file-like
-    output: PyObject,
-    chunk_size: Option<usize>,
-) -> PyResult<(InputSource, OutputSink)> {
-    // ------------------- INPUT -------------------
-    let input_src = classify_input(py, input, chunk_size, Some(true))?;
+// pub fn py_extract_io(
+//     py: Python,
+//     input: PyObject,  // bytes, str path, or file-like
+//     output: PyObject,
+//     chunk_size: Option<usize>,
+// ) -> PyResult<(InputSource, OutputSink)> {
+//     // ------------------- INPUT -------------------
+//     let input_src = classify_input(py, input, chunk_size, Some(true))?;
 
-    // ------------------- OUTPUT -------------------
-    let output_sink = classify_output(py, output, Some(true))?;
+//     // ------------------- OUTPUT -------------------
+//     let output_sink = classify_output(py, output, Some(true))?;
 
-    Ok((input_src, output_sink))
-}
+//     Ok((input_src, output_sink))
+// }
 
 // ### Key changes
 // - **No generic `extract::<Vec<u8>>()` fallback** — that was too permissive and allowed `str` to be mis‑extracted as bytes.  

@@ -3,7 +3,7 @@
 /// - If the constant represents a **protocol magic field** (like `"RSE1"` in a header), use `[u8; 4]`. 
 /// - That way the type itself enforces “exactly 4 bytes” and matches our struct field type (`[u8; 4]`).
 pub const MAGIC_RSE1: [u8; 4] = *b"RSE1";
-pub const HEADER_V1: u16 = 1;
+pub const HEADER_V1: u16      = 1;
 
 /// Industry-standard master key lengths (AES-128, AES-192, AES-256)
 pub const MASTER_KEY_LENGTHS: [usize; 3] = [16, 24, 32];

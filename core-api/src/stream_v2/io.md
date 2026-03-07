@@ -334,3 +334,366 @@ In short:
 - **Reader/Writer** = polymorphic, trait-based, flexible.  
 - **File** = concrete, filesystem-bound.  
 - **Memory** = in-memory, fast, good for testing or temporary data.  
+
+---
+
+### Safer refactor pattern
+
+Instead of:
+
+```rust
+pub enum InputSource {
+    Reader(Box<dyn Read + Send>),
+    File(PathBuf),
+    Memory(Vec<u8>),
+}
+```
+
+Use:
+
+```rust
+pub enum InputSource<'a> {
+    Reader(Box<dyn Read + Send>),
+    File(PathBuf),
+    Memory(&'a [u8]), // borrow slice, no copy
+}
+```
+
+Then in `classify_input`:
+
+```rust
+if obj.is_instance_of::<PyBytes>() {
+    let pybytes: Bound<'_, PyBytes> = obj.downcast::<PyBytes>()?;
+    let slice: &[u8] = pybytes.as_bytes();
+    return Ok(InputSource::Memory(slice)); // no copy
+}
+```
+
+And in `open_input`:
+
+```rust
+pub fn open_input<'a>(src: InputSource<'a>) -> Result<Box<dyn Read + Send + 'a>, StreamError> {
+    match src {
+        InputSource::Reader(r) => Ok(r),
+        InputSource::File(p) => Ok(Box::new(std::fs::File::open(p)?)),
+        InputSource::Memory(slice) => Ok(Box::new(std::io::Cursor::new(slice))),
+    }
+}
+```
+
+---
+
+### Output side
+
+Our `OutputSink::Memory` already uses `Arc<Mutex<Vec<u8>>>` or `Cursor<Vec<u8>>`. That’s fine — it avoids repeated copies. We don’t need to change the Python API here either.
+
+---
+
+## 1. Core Design Goal
+
+We want:
+
+- **Zero-copy memory input**
+- **Unified `Read` / `Write` interface**
+- **Optional captured memory output**
+- **Minimal lifetimes leaking to public API**
+- **Safe buffer sharing**
+
+---
+
+## 2. Refactored Types
+
+### Input
+
+```rust
+pub enum InputSource<'a> {
+    Reader(Box<dyn Read + Send + 'a>),
+    File(PathBuf),
+    Memory(&'a [u8]),
+}
+```
+
+Notice:
+
+```bash
+Box<dyn Read + Send + 'a>
+```
+
+This fixes lifetime correctness.
+
+---
+
+### Output
+
+Memory output should **always behave the same**.
+
+```rust
+pub enum OutputSink {
+    Writer(Box<dyn Write + Send>),
+    File(PathBuf),
+    Memory,
+}
+```
+
+---
+
+## 3. Open Input (Cleaner)
+
+```rust
+pub fn open_input<'a>(
+    src: InputSource<'a>,
+) -> Result<Box<dyn Read + Send + 'a>, StreamError> {
+    match src {
+        InputSource::Reader(r) => Ok(r),
+
+        InputSource::File(p) => {
+            let f = std::fs::File::open(p)?;
+            Ok(Box::new(f))
+        }
+
+        InputSource::Memory(slice) => {
+            Ok(Box::new(std::io::Cursor::new(slice)))
+        }
+    }
+}
+```
+
+This part of our design was already good.
+
+---
+
+## 4. Output Refactor (Much Cleaner)
+
+Instead of the `with_buf` flag, always return a capture buffer when `Memory` is used.
+
+This removes complexity.
+
+```rust
+pub fn open_output(
+    sink: OutputSink,
+) -> Result<(Box<dyn Write + Send>, Option<Arc<Mutex<Vec<u8>>>>), StreamError> {
+    match sink {
+        OutputSink::Writer(w) => Ok((w, None)),
+
+        OutputSink::File(p) => {
+            let f = std::fs::File::create(p)?;
+            Ok((Box::new(f), None))
+        }
+
+        OutputSink::Memory => {
+            let buf = Arc::new(Mutex::new(Vec::new()));
+            let writer = SharedBufferWriter { buf: buf.clone() };
+
+            Ok((Box::new(writer), Some(buf)))
+        }
+    }
+}
+```
+
+Advantages:
+
+✔ simpler
+✔ deterministic behavior
+✔ fewer branches
+✔ easier API
+
+---
+
+## 5. SharedBufferWriter (Minor polish)
+
+```rust
+pub struct SharedBufferWriter {
+    buf: Arc<Mutex<Vec<u8>>>,
+}
+
+impl Write for SharedBufferWriter {
+    fn write(&mut self, data: &[u8]) -> std::io::Result<usize> {
+        let mut guard = self.buf.lock().unwrap();
+        guard.extend_from_slice(data);
+        Ok(data.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+```
+
+---
+
+## 6. PayloadReader (Small improvement)
+
+We can make it **more idiomatic**.
+
+```rust
+#[derive(Debug)]
+pub struct PayloadReader<R> {
+    inner: R,
+}
+
+impl<R: Read> PayloadReader<R> {
+    pub fn new(inner: R) -> Self {
+        Self { inner }
+    }
+
+    pub fn with_header(mut reader: R) -> Result<(HeaderV1, Self), StreamError> {
+        let header = read_header(&mut reader)?;
+        Ok((header, Self { inner: reader }))
+    }
+}
+```
+
+---
+
+### Implement Read
+
+```rust
+impl<R: Read> Read for PayloadReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.inner.read(buf)
+    }
+}
+```
+
+---
+
+### Implement Seek
+
+Only when underlying supports it.
+
+```rust
+impl<R: Read + Seek> Seek for PayloadReader<R> {
+    fn seek(&mut self, pos: SeekFrom) -> std::io::Result<u64> {
+        self.inner.seek(pos)
+    }
+}
+```
+
+---
+
+## 7. Example Usage
+
+### Memory output capture
+
+```rust
+let (mut writer, capture) = open_output(OutputSink::Memory)?;
+
+writer.write_all(b"hello world")?;
+
+if let Some(buf) = capture {
+    let data = buf.lock().unwrap();
+    println!("{}", String::from_utf8_lossy(&data));
+}
+```
+
+---
+
+## 8. Final Architecture (Clean)
+
+```bash
+InputSource
+    Reader(Box<dyn Read>)
+    File(PathBuf)
+    Memory(&[u8])
+
+open_input()
+    -> Box<dyn Read>
+
+OutputSink
+    Writer(Box<dyn Write>)
+    File(PathBuf)
+    Memory
+
+open_output()
+    -> (Box<dyn Write>, Option<Arc<Mutex<Vec<u8>>>>)
+
+PayloadReader<R>
+    wraps reader
+    header already consumed
+```
+
+---
+
+## 9. Why This Design Is Good
+
+✔ zero copy memory input
+✔ streaming friendly
+✔ works with files / sockets / Python objects
+✔ deterministic memory output
+✔ minimal generics explosion
+✔ safe trait objects
+
+This pattern is very similar to what libraries like:
+
+- **reqwest**
+- **hyper**
+- **tokio**
+
+use internally.
+
+---
+
+## Final Result
+
+Our pipeline becomes:
+
+```bash
+Python object
+     │
+classify_input
+     │
+InputSource
+     │
+open_input()
+     │
+Box<dyn Read>
+     │
+stream encryption
+     │
+Box<dyn Write>
+     │
+open_output()
+```
+
+---
+
+## Input: Python → Rust
+
+| Python type   | Path                                                       | Copies          |
+|---------------|------------------------------------------------------------|-----------------|
+| `PyBytes`     | `InputSource::Memory(&[u8])` — borrow into Python's buffer | **0 copies** ✅ |
+| `PyByteArray` | `to_vec()` — justified, mutable buffer unsafe to borrow    | **1 copy** ⚠️   |
+| `str` path    | `InputSource::File(PathBuf)` — no data copied              | **0 copies** ✅ |
+| file-like     | `InputSource::Reader(Box<dyn Read>)` — streamed            | **0 copies** ✅ |
+
+---
+
+## Output: Rust → Python
+
+| Sink     | Path                                               | Copies                      |
+|----------|----------------------------------------------------|-----------------------------|
+| `Memory` | `OwnedOutput(Vec<u8>)` → `PyBytes::new_bound`      | **1 copy** (unavoidable) ✅ |
+| `File`   | Rust writes directly to fd                         | **0 copies** ✅             |
+| `Writer` | Rust calls `.write()` on Python file-like directly | **0 copies** ✅             |
+
+---
+
+## The one unavoidable copy
+
+```bash
+Rust Vec<u8>  ──►  PyBytes::new_bound()  ──►  Python heap
+                   ^^^^^^^^^^^^^^^^^^^
+                   Python's memory manager must own its buffer
+                   No way to transfer Vec<u8> ownership into PyBytes
+                   This copy is fundamental to the Python/Rust boundary
+```
+
+For `File` and `Writer` output — which is the right choice for large data — **zero copies cross the boundary at any point in the pipeline**.
+
+---
+
+💡 TODO:
+
+- **remove **2 trait object allocations**
+- **improve throughput **15-25%**
+- **make the pipeline **fully streaming-safe for Python + Rust**.

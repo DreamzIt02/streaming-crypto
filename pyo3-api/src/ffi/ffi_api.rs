@@ -1,15 +1,18 @@
 
 // ## 📝 pyo3-api/src/ffi_api.rs
 
+use core_api::InputSource;
 use core_api::crypto::DigestAlg;
 use core_api::parallelism::ParallelismConfig;
 use pyo3::prelude::*;
+use pyo3::types::{PyByteArray, PyBytes};
 use pyo3::{Bound, PyObject, PyResult, Python, pyfunction, pymodule, 
     types::{PyModule, PyModuleMethods}, wrap_pyfunction};
 
 use core_api::stream_v2::{ApiConfig, DecryptParams, EncryptParams, MasterKey, decrypt_stream_v2, encrypt_stream_v2};
-use crate::{PyDigestAlg, PyParallelismConfig, PyStreamError};
-use crate::{headers::PyHeaderV1, telemetry::PyTelemetrySnapshot, ffi::ffi_io::py_extract_io};
+use crate::ffi::ffi_io::{classify_py_io, to_core_input, to_core_output};
+use crate::{PyDigestAlg, PyInputSource, PyParallelismConfig, PyStreamError};
+use crate::{headers::PyHeaderV1, telemetry::PyTelemetrySnapshot};
 
 #[pymodule(name = "ffi_api")]
 pub fn register_api(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -125,70 +128,180 @@ impl From<PyApiConfig> for ApiConfig {
     }
 }
 
+// # 4️⃣ Entry point (final pipeline)
+
+// ```
+// Python objects
+//      ↓
+// PyInputSource / PyOutputSink   (PyO3 layer)
+//      ↓
+// InputSource / OutputSink       (core-api)
+//      ↓
+// encrypt_stream_v2()            (Rust pipeline)
+// ```
+
 #[pyfunction(name = "encrypt_stream_v2")]
-fn py_encrypt_stream_v2(
+pub fn py_encrypt_stream_v2(
     py: Python,
-    input: PyObject,   // bytes, str path, or file-like
+    input: PyObject,
     output: PyObject,
     params: PyEncryptParams,
     config: PyApiConfig,
 ) -> PyResult<PyTelemetrySnapshot> {
+
     let master_key = MasterKey::new(params.clone().master_key);
     let params = EncryptParams::from(&params);
     let config: ApiConfig = ApiConfig::from(config);
 
-    // Extract Python-side objects while GIL is held
-    let (input_src, output_sink) = py_extract_io(py, input, output, Some(params.header.chunk_size as usize))?;
+    let (py_input, py_output) = classify_py_io(py, input, output)?;
+    let output_sink = to_core_output(py, py_output, Some(true))?;
 
-    // 🚀 CRITICAL: Release GIL for entire pipeline
-    let result = py.allow_threads(|| {
-        encrypt_stream_v2(
-            input_src,
-            output_sink,
-            &master_key,
-            params,
-            config,
-        )
-    });
+    // Bind the lifetime of the slice to THIS scope (GIL is held here)
+    let result = match py_input {
+
+        // ✅ Zero-copy: slice lives for this scope, GIL is still held,
+        // but we process entirely on the Rust side without touching Python
+        PyInputSource::Bytes(ref obj) => {
+            let slice: &[u8] = obj.bind(py).downcast::<PyBytes>()?.as_bytes();
+            // 🚀 GIL released — slice is valid because Python object is
+            // kept alive by `obj` which is still in scope above
+            py.allow_threads(|| {
+                encrypt_stream_v2(
+                    InputSource::Memory(slice),
+                    output_sink,
+                    &master_key,
+                    params,
+                    config,
+                )
+            })
+        }
+
+        PyInputSource::ByteArray(ref obj) => {
+            // ⚠️ ByteArray is mutable — Python could resize it while
+            // Rust reads it. Either refuse ByteArray for Memory path,
+            // or copy here only (small, justified tradeoff)
+            let bytes: Vec<u8> = unsafe {
+                obj.bind(py).downcast::<PyByteArray>()?.as_bytes().to_vec()
+            };
+            // In ffi_api.rs — ByteArray copy path
+            crate::increment_input_copies();
+            py.allow_threads(|| {
+                encrypt_stream_v2(
+                    InputSource::Memory(&bytes),
+                    output_sink,
+                    &master_key,
+                    params,
+                    config,
+                )
+            })
+        }
+
+        _ => {
+            // File / Reader path: normal flow
+            let input_src = to_core_input(py, py_input, Some(params.header.chunk_size as usize), Some(true))?;
+            py.allow_threads(|| {
+                encrypt_stream_v2(input_src, output_sink, &master_key, params, config)
+            })
+        }
+    };
 
     match result {
         Ok(snapshot) => Ok(snapshot.into()),
         Err(e) => Err(PyErr::from(PyStreamError::from(e))),
     }
-    
 }
 
 #[pyfunction(name = "decrypt_stream_v2")]
-fn py_decrypt_stream_v2(
+pub fn py_decrypt_stream_v2(
     py: Python,
-    input: PyObject,        // bytes, str path, or file-like
+    input: PyObject,
     output: PyObject,
     params: PyDecryptParams,
     config: PyApiConfig,
 ) -> PyResult<PyTelemetrySnapshot> {
+
     let master_key = MasterKey::new(params.clone().master_key);
     let params = DecryptParams::from(params);
     let config: ApiConfig = ApiConfig::from(config);
 
-    // Extract Python-side objects while GIL is held
-    let (input_src, output_sink) = py_extract_io(py, input, output, None)?;
+    let (py_input, py_output) = classify_py_io(py, input, output)?;
+    let output_sink = to_core_output(py, py_output, Some(true))?;
 
-    // 🚀 CRITICAL: Release GIL for entire pipeline
-    let result = py.allow_threads(|| {
-        decrypt_stream_v2(
-            input_src,
-            output_sink,
-            &master_key,
-            params,
-            config,
-        )
-    });
+    let result = match py_input {
+
+        // ✅ Zero-copy: PyBytes is immutable, safe to read without GIL
+        PyInputSource::Bytes(ref obj) => {
+            let slice: &[u8] = obj.bind(py).downcast::<PyBytes>()?.as_bytes();
+            py.allow_threads(|| {
+                decrypt_stream_v2(
+                    InputSource::Memory(slice),
+                    output_sink,
+                    &master_key,
+                    params,
+                    config,
+                )
+            })
+        }
+
+        // ⚠️ PyByteArray is mutable — copy is justified to avoid races
+        PyInputSource::ByteArray(ref obj) => {
+            let bytes: Vec<u8> = unsafe {
+                obj.bind(py).downcast::<PyByteArray>()?.as_bytes().to_vec()
+            };
+            py.allow_threads(|| {
+                decrypt_stream_v2(
+                    InputSource::Memory(&bytes),
+                    output_sink,
+                    &master_key,
+                    params,
+                    config,
+                )
+            })
+        }
+
+        // File / Reader: normal flow, no chunk_size needed for decrypt
+        _ => {
+            let input_src = to_core_input(py, py_input, None, Some(true))?;
+            py.allow_threads(|| {
+                decrypt_stream_v2(
+                    input_src,
+                    output_sink,
+                    &master_key,
+                    params,
+                    config,
+                )
+            })
+        }
+    };
 
     match result {
         Ok(snapshot) => Ok(snapshot.into()),
         Err(e) => Err(PyErr::from(PyStreamError::from(e))),
     }
 }
+
+// # 5️⃣ Why this architecture is excellent
+
+//     ✔ `core-api` remains **pure Rust**
+//     ✔ `pyo3-api` isolates Python handling
+//     ✔ **no lifetime headaches**
+//     ✔ **zero-copy for Python bytes**
+//     ✔ easy to extend for `numpy`, `memoryview`, `mmap`
+//     ✔ pipeline runs **GIL-free**
+
+//     Flow:
+
+//     ```
+//     Python objects
+//         ↓
+//     PyInputSource / PyOutputSink
+//         ↓
+//     InputSource / OutputSink
+//         ↓
+//     allow_threads()
+//         ↓
+//     Rust streaming pipeline
+//     ```
 
 // ## ✅ Python Usage Examples
 

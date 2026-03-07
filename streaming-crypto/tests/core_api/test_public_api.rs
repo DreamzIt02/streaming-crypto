@@ -41,17 +41,21 @@ mod tests {
         let plaintext = b"hello world".to_vec();
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
             config.clone(),
         ).expect("encryption should succeed");
 
-        let ciphertext = snapshot_enc.output.expect("ciphertext should be captured");
+        // let ciphertext = snapshot_enc.output.expect("ciphertext should be captured");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         let snapshot_dec = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,
@@ -70,18 +74,23 @@ mod tests {
 
         let plaintext = vec![0xAB; 1024];
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params,
             config.clone(),
         ).unwrap();
 
-        let mut ciphertext = snapshot_enc.output.unwrap();
+        // let mut ciphertext = snapshot_enc.output.unwrap();
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let mut ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
+
         ciphertext[HeaderV1::LEN + 10] ^= 0xFF; // flip a byte
 
         let err = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,

@@ -145,7 +145,7 @@ fn setup_enc_context(master_key: &MasterKey, header: &HeaderV1, config: ApiConfi
     -> Result<(EncryptContext, HybridParallelismProfile, Arc<AsyncLogManager>), StreamError> 
 {
     let session_key = derive_session_key_32(&master_key, header).map_err(StreamError::Crypto)?;
-
+    // FIXME: HybridParallelismProfile:: must respect user provided config.parallelism
     let profile = HybridParallelismProfile::from_stream_header(header.clone(), config.parallelism)?;
     let context = EncryptContext::new(header.clone(), profile.clone(), &session_key, config.alg.unwrap())
         .map_err(StreamError::SegmentWorker)?;
@@ -159,6 +159,7 @@ fn setup_dec_context(master_key: &MasterKey, header: &HeaderV1, config: ApiConfi
 {
     let session_key = derive_session_key_32(&master_key, header).map_err(StreamError::Crypto)?;
 
+    // FIXME: HybridParallelismProfile:: must respect user provided config.parallelism
     let profile = HybridParallelismProfile::from_stream_header(header.clone(), config.parallelism)?;
     let context = DecryptContext::from_stream_header(header.clone(), profile.clone(), &session_key, config.alg.unwrap())
         .map_err(StreamError::SegmentWorker)?;

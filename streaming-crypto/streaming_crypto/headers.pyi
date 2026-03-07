@@ -3,38 +3,38 @@
 from enum import Enum
 
 class CompressionCodec(Enum):
-    Auto    : int
-    Deflate : int
-    Lz4     : int
-    Zstd    : int
+    Auto    : ...
+    Deflate : ...
+    Lz4     : ...
+    Zstd    : ...
 
 class Strategy(Enum):
-    Auto        : int
-    Sequential  : int
-    Parallel    : int
+    Auto        : ...
+    Sequential  : ...
+    Parallel    : ...
 
 class CipherSuite(Enum):
-    Aes256Gcm       : int
-    Chacha20Poly1305: int
+    Aes256Gcm       : ...
+    Chacha20Poly1305: ...
 
 class HkdfPrf(Enum):
-    Sha256  : int
-    Sha512  : int
-    Sha3_256: int
-    Sha3_512: int
-    Blake3K : int
+    Sha256  : ...
+    Sha512  : ...
+    Sha3_256: ...
+    Sha3_512: ...
+    Blake3K : ...
 
 class AlgProfile(Enum):
-    Aes256GcmHkdfSha256         : int
-    Aes256GcmHkdfSha512         : int
-    Chacha20Poly1305HkdfSha256  : int
-    Chacha20Poly1305HkdfSha512  : int
-    Chacha20Poly1305HkdfBlake3K : int
+    Aes256GcmHkdfSha256         : ...
+    Aes256GcmHkdfSha512         : ...
+    Chacha20Poly1305HkdfSha256  : ...
+    Chacha20Poly1305HkdfSha512  : ...
+    Chacha20Poly1305HkdfBlake3K : ...
 
 class AadDomain(Enum):
-    Generic     : int
-    FileEnvelope: int
-    PipeEnvelope: int
+    Generic     : ...
+    FileEnvelope: ...
+    PipeEnvelope: ...
 
 class HeaderV1:
     """
@@ -66,12 +66,12 @@ class HeaderV1:
 
     magic       : bytes
     version     : int
-    alg_profile : int
-    cipher      : int
-    hkdf_prf    : int
-    compression : int
-    strategy    : int
-    aad_domain  : int
+    alg_profile : AlgProfile
+    cipher      : CipherSuite
+    hkdf_prf    : HkdfPrf
+    compression : CompressionCodec
+    strategy    : Strategy
+    aad_domain  : AadDomain
     flags       : int
     chunk_size  : int
     plaintext_size: int
@@ -87,12 +87,12 @@ class HeaderV1:
         self,
         magic       : bytes,
         version     : int,
-        alg_profile : int,
-        cipher      : int,
-        hkdf_prf    : int,
-        compression : int,
-        strategy    : int,
-        aad_domain  : int,
+        alg_profile : AlgProfile,
+        cipher      : CipherSuite,
+        hkdf_prf    : HkdfPrf,
+        compression : CompressionCodec,
+        strategy    : Strategy,
+        aad_domain  : AadDomain,
         flags       : int,
         chunk_size  : int,
         plaintext_size: int,

@@ -1,21 +1,9 @@
 # streaming_crypto/api.pyi
-
 from typing import IO, Optional, Union
 from .headers import (HeaderV1)
 from .telemetry import TelemetrySnapshot
 from .crypto import DigestAlg
 from .parallelism import ParallelismConfig
-
-__all__ = [
-    # Params
-    "EncryptParams",
-    "DecryptParams",
-    "ApiConfig",
-
-    # Streaming functions
-    "encrypt_stream_v2",
-    "decrypt_stream_v2",
-]
 
 class EncryptParams:
     """
@@ -45,7 +33,6 @@ class DecryptParams:
     master_key: bytes
 
     def __init__(self, master_key: bytes) -> None: ...
-
 
 class ApiConfig:
     """

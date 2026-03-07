@@ -15,9 +15,12 @@ use serde::{Serialize, Deserialize};
 use crate::telemetry::counters::TelemetryCounters;
 use crate::telemetry::timers::{TelemetryTimer, StageTimes, Stage};
 
+#[derive(Debug, PartialEq)]
+pub struct OwnedOutput(pub Vec<u8>);  // no Clone
+
 /// Core telemetry snapshot.
 /// Captures counters, ratios, throughput, stage timings, and elapsed duration.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct TelemetrySnapshot {
     pub segments_processed: u64,
     pub frames_data: u64,
@@ -39,7 +42,9 @@ pub struct TelemetrySnapshot {
     /// This field is primarily useful in tests, benchmarks, or integrations
     /// where we want to inspect the produced ciphertext alongside telemetry
     /// counters and stage timings.
-    pub output: Option<Vec<u8>>,
+    #[serde(skip)]  // ← never serialized/deserialized
+    pub output: Option<OwnedOutput>,
+    // pub output: Option<Vec<u8>>,
 }
 
 impl TelemetrySnapshot {
@@ -108,7 +113,14 @@ impl TelemetrySnapshot {
 
     /// 🔧 Attach output buffer to snapshot
     pub fn attach_output(&mut self, buf: Vec<u8>) {
-        self.output = Some(buf);
+        self.output = Some(OwnedOutput(buf));  // wrap in NewType
+    }
+
+    /// Consumes snapshot, returns (snapshot_without_output, output_bytes)
+    /// Forces caller to be explicit — no accidental clone possible
+    pub fn take_output(mut self) -> (Self, Option<Vec<u8>>) {
+        let output = self.output.take().map(|o| o.0);  // unwrap inner Vec
+        (self, output)
     }
 }
 

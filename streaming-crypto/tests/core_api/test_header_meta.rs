@@ -24,14 +24,18 @@ mod tests {
         let plaintext = b"header presence test".to_vec();
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params,
             config,
         ).expect("encryption should succeed");
 
-        let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         // Assert magic marker at start
         assert_eq!(&ciphertext[0..4], b"RSE1");
@@ -50,14 +54,18 @@ mod tests {
         let plaintext = b"flags preservation test".to_vec();
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
             config.clone(),
         ).unwrap();
 
-        let ciphertext = snapshot_enc.output.unwrap();
+        // let ciphertext = snapshot_enc.output.unwrap();
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         // Decrypt back and check header flags
         let (_header, _) = PayloadReader::with_header(Cursor::new(ciphertext)).unwrap();
@@ -76,14 +84,18 @@ mod tests {
         let plaintext = b"aad mismatch test".to_vec();
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
             config.clone(),
         ).unwrap();
 
-        let mut ciphertext = snapshot_enc.output.unwrap();
+        // let mut ciphertext = snapshot_enc.output.unwrap();
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let mut ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         // Corrupt the aad_domain field in header
         // HeaderV1 layout: aad_domain is at offset after strategy (2 bytes each)
@@ -93,7 +105,7 @@ mod tests {
         ciphertext[16] ^= 0xFF; // flip a byte
 
         let err = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,

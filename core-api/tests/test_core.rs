@@ -78,7 +78,7 @@ mod tests {
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = vec![0x55u8; 1024];
-        let input = InputSource::Memory(plaintext.clone());
+        let input = InputSource::Memory(&plaintext);
 
         // Encrypt
         // let (cursor, _) = open_output_cursor(OutputSink::Memory).unwrap();
@@ -92,7 +92,11 @@ mod tests {
         .expect("encryption should succeed");
 
         // Recover the buffer from the cursor the pipeline wrote into
-        let ciphertext = snapshot_enc.output.unwrap();
+        // let ciphertext = snapshot_enc.output.unwrap();
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         // Assert header is present
         println!("Ciphertext LEN: {}", ciphertext.len());
@@ -104,7 +108,7 @@ mod tests {
         );
 
         // Decrypt
-        let input_dec = InputSource::Memory(ciphertext.clone());
+        let input_dec = InputSource::Memory(&ciphertext);
         let snapshot_dec = decrypt_stream_v2(
             input_dec, 
             OutputSink::Memory, 
@@ -125,7 +129,7 @@ mod tests {
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = vec![0x55u8; 1024]; // 1 KiB of data
-        let input = InputSource::Memory(plaintext.clone());
+        let input = InputSource::Memory(&plaintext);
         let output = OutputSink::Memory;
 
         // Encrypt
@@ -134,8 +138,13 @@ mod tests {
 
         assert!(snapshot_enc.bytes_plaintext >= 1024);
 
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
+
         // Decrypt
-        let input_dec = InputSource::Memory(snapshot_enc.output.clone().unwrap());
+        let input_dec = InputSource::Memory(&ciphertext);
         let output_dec = OutputSink::Memory;
         let snapshot_dec = decrypt_stream_v2(input_dec, output_dec, &master_key, DecryptParams, config)
             .expect("decryption should succeed");
@@ -151,7 +160,7 @@ mod tests {
         let config = ApiConfig::new(Some(false), None, None, None );
 
         let plaintext = vec![0x44u8; 512];
-        let input = InputSource::Memory(plaintext);
+        let input = InputSource::Memory(&plaintext);
         let output = OutputSink::Memory;
 
         let result = encrypt_stream_v2(input, output, &bad_key, params, config);
@@ -161,7 +170,7 @@ mod tests {
     #[test]
     fn decrypt_stream_with_invalid_key_should_fail() {
         let bad_key = MasterKey::new(vec![0x33u8; 16]); // invalid length
-        let input = InputSource::Memory(vec![0x99u8; 128]);
+        let input = InputSource::Memory(&vec![0x99u8; 128]);
         let output = OutputSink::Memory;
         let config = ApiConfig::new(Some(false), None, None, None );
 
@@ -182,7 +191,7 @@ mod tests {
 
         // Run encryption
         let reader = std::io::Cursor::new(plaintext.clone());
-        let enc_snapshot = encrypt_stream_v2(
+        let snapshot_enc = encrypt_stream_v2(
             InputSource::Reader(Box::new(reader)),
             OutputSink::Memory, // use buffer sink
             &master_key,
@@ -192,11 +201,15 @@ mod tests {
         .expect("encryption failed");
 
         // The snapshot now contains the encrypted output buffer
-        let encrypted_buf = enc_snapshot.output.clone().expect("missing output buffer");
+        // let encrypted_buf = snapshot_enc.output.clone().expect("missing output buffer");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         // Run decryption on that buffer
-        let reader = std::io::Cursor::new(encrypted_buf.clone());
-        let dec_snapshot = decrypt_stream_v2(
+        let reader = std::io::Cursor::new(ciphertext);
+        let snapshot_dec = decrypt_stream_v2(
             InputSource::Reader(Box::new(reader)),
             OutputSink::Memory,
             &master_key,
@@ -206,15 +219,19 @@ mod tests {
         .expect("decryption failed");
 
         // The snapshot now contains the decrypted output buffer
-        let decrypted_buf = dec_snapshot.output.clone().expect("missing output buffer");
+        // let decrypted_buf = snapshot_dec.output.clone().expect("missing output buffer");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext_dec = snapshot_dec.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         // Compare decrypted buffer against original plaintext
-        assert_eq!(decrypted_buf, plaintext);
+        assert_eq!(ciphertext_dec, plaintext);
 
         // Also verify telemetry counters are consistent
-        assert!(enc_snapshot.frames_data == dec_snapshot.frames_data);
-        assert_eq!(dec_snapshot.frames_digest, 4);      // (256 / 64) KB each segment has one digest frame
-        assert_eq!(dec_snapshot.frames_terminator, 4);  // (256 / 64) KB each segment has one terminator frame
+        assert!(snapshot_enc.frames_data == snapshot_dec.frames_data);
+        assert_eq!(snapshot_dec.frames_digest, 4);      // (256 / 64) KB each segment has one digest frame
+        assert_eq!(snapshot_dec.frames_terminator, 4);  // (256 / 64) KB each segment has one terminator frame
     }
 
 }

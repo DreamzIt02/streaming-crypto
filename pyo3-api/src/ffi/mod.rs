@@ -4,7 +4,7 @@
 use pyo3::prelude::*;
 
 mod ffi_io;
-mod ffi_api;
+pub mod ffi_api;
 
 #[pymodule(name = "api")]
 pub fn register_api(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {

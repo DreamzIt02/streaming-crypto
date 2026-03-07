@@ -1,5 +1,5 @@
 
-use std::io::Cursor;
+use std::{io::Cursor, path::PathBuf};
 use pyo3::{prelude::*, types::PyTuple};
 
 use core_api::io::PayloadReader;
@@ -15,6 +15,69 @@ pub use io_readinto::*;
 pub use io_writeinto::*;
 
 use crate::{PyHeaderV1, PyStreamError};
+
+// #[pyclass]
+// pub enum InputSource {
+//     Reader,              // simplified: not exposing Box<dyn Read>
+//     File(PathBuf),
+//     Memory(Vec<u8>),
+// }
+
+// #[pyclass]
+// pub enum OutputSink {
+//     Writer,              // simplified: not exposing Box<dyn Write>
+//     File(PathBuf),
+//     Memory,
+// }
+
+// #[pymethods]
+// impl InputSource {
+//     #[new]
+//     fn new_memory(data: &PyBytes) -> Self {
+//         InputSource::Memory(data.as_bytes().to_vec())
+//     }
+
+//     #[staticmethod]
+//     fn from_file(path: String) -> Self {
+//         InputSource::File(PathBuf::from(path))
+//     }
+// }
+
+// #[pymethods]
+// impl OutputSink {
+//     #[staticmethod]
+//     fn memory() -> Self {
+//         OutputSink::Memory
+//     }
+
+//     #[staticmethod]
+//     fn file(path: String) -> Self {
+//         OutputSink::File(PathBuf::from(path))
+//     }
+
+//     #[staticmethod]
+//     fn writer() -> Self {
+//         OutputSink::Writer
+//     }
+// }
+
+// # 1️⃣ Python-side enums (PyO3 layer)
+
+/// Python-side input abstraction
+pub enum PyInputSource {
+    Bytes(PyObject),
+    ByteArray(PyObject),
+    File(PathBuf),
+    Reader(PyObject),
+}
+
+/// Python-side output abstraction
+pub enum PyOutputSink {
+    Memory,
+    File(PathBuf),
+    Writer(PyObject),
+}
+
 
 #[pyclass(name="PayloadReader")]
 pub struct PyPayloadReader {

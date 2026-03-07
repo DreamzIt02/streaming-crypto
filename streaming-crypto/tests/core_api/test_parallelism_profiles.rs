@@ -22,17 +22,21 @@ mod tests {
         let plaintext = b"single threaded profile test".to_vec();
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
             config.clone(),
         ).expect("encryption should succeed");
 
-        let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         let snapshot_dec = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,
@@ -55,17 +59,21 @@ mod tests {
         let plaintext = vec![0xAB; 512 * 1024]; // 512 KB
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
             config.clone(),
         ).expect("encryption should succeed");
 
-        let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         let snapshot_dec = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,
@@ -89,17 +97,21 @@ mod tests {
         let plaintext = vec![42u8; 16 * 1024 * 1024]; // 16 MB
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
             config.clone(),
         ).expect("encryption should succeed under pressure");
 
-        let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         let snapshot_dec = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,

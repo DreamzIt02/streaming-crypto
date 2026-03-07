@@ -21,7 +21,7 @@ class PayloadReader:
         """
         return _RustPayloadReader.with_header(data)
     
-__all__ = ["PayloadReader"]
+__all__ = ["InputSource", "OutputSink", "PayloadReader"]
 
 # from .streaming_crypto import io as _c
 

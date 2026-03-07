@@ -136,7 +136,12 @@ mod telemetry_pipeline_tests {
         // Attach the buffer contents
         snapshot.attach_output(buffer);
         assert!(snapshot.output.is_some());
-        assert!(!snapshot.output.as_ref().unwrap().is_empty());
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
+
+        assert!(!ciphertext.is_empty());
     }
 
     // ## 3️⃣ Decrypt Pipeline Tests

@@ -53,7 +53,12 @@ mod telemetry_snapshot_tests {
         snapshot.attach_output(buf.clone());
 
         assert!(snapshot.output.is_some());
-        assert_eq!(snapshot.output.unwrap(), buf);
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
+
+        assert_eq!(ciphertext, buf);
     }
 
     #[test]
@@ -115,7 +120,11 @@ mod telemetry_snapshot_tests {
         snapshot.attach_output(buf.clone());
 
         assert_eq!(snapshot.output_bytes(), counters.bytes_ciphertext);
-        assert_eq!(snapshot.output.unwrap(), buf);
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
+        assert_eq!(ciphertext, buf);
     }
 
     #[test]

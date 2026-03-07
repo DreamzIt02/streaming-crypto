@@ -25,7 +25,7 @@ mod tests {
         let plaintext = b"hello memory sink".to_vec();
 
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
@@ -33,10 +33,14 @@ mod tests {
         ).expect("encryption should succeed");
 
         // Assert ciphertext captured in snapshot.output
-        let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // let ciphertext = snapshot_enc.output.expect("ciphertext captured");
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         let snapshot_dec = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,
@@ -58,7 +62,7 @@ mod tests {
         // Encrypt to file
         let tmpfile = NamedTempFile::new().unwrap();
         let _ = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::File(tmpfile.path().to_path_buf()),
             &master_key,
             params.clone(),
@@ -90,7 +94,7 @@ mod tests {
         let cursor_writer = Cursor::new(Vec::new());
 
         let _ = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Writer(Box::new(cursor_writer)),
             &master_key,
             params.clone(),
@@ -101,18 +105,22 @@ mod tests {
         // (we may need to downcast or adjust our OutputSink handling to expose the Vec)
         // For example, if encrypt_stream_v2 attaches output when with_buf = Some(true):
         let snapshot_enc = encrypt_stream_v2(
-            InputSource::Memory(plaintext.clone()),
+            InputSource::Memory(&plaintext),
             OutputSink::Memory,
             &master_key,
             params.clone(),
             config.clone(),
         ).unwrap();
 
-        let ciphertext = snapshot_enc.output.unwrap();
+        // let ciphertext = snapshot_enc.output.unwrap();
+        // Since `output` is now `Option<OwnedOutput>`, unwrap the NewType:
+        let ciphertext = snapshot_enc.output.expect("ciphertext captured").0;
+        // The `.0` unwraps `OwnedOutput` into the inner `Vec<u8>`, then `&ciphertext` borrows it as `&[u8]` for the zero-copy `InputSource::Memory` slice.
+        // `ciphertext` stays alive for the entire `decrypt_stream_v2` call so the borrow is valid.
 
         // Decrypt from captured buffer
         let snapshot_dec = decrypt_stream_v2(
-            InputSource::Memory(ciphertext),
+            InputSource::Memory(&ciphertext),
             OutputSink::Memory,
             &master_key,
             DecryptParams,
