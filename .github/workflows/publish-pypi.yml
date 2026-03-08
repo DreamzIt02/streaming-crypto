@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           if [ "${{ env.ACT }}" = "true" ]; then
-            echo 'os-list=["ubuntu-latest"]' >> $GITHUB_OUTPUT
+            echo 'os-list=["ubuntu-latest","macos-latest","windows-latest"]' >> $GITHUB_OUTPUT
           else
             echo 'os-list=["ubuntu-latest","macos-latest","windows-latest"]' >> $GITHUB_OUTPUT
           fi
@@ -169,6 +169,15 @@ jobs:
           CIBW_MUSLLINUX_X86_64_IMAGE : "" #musllinux-custom-x86_64
           CIBW_MUSLLINUX_AARCH64_IMAGE: "" #musllinux-custom-aarch64
 
+      # 5️⃣ Build wheels for each OS (dummy)
+      # - name: Build wheels (dummy)
+      #   if: ${{ env.IS_LOCAL == 'true' }}
+      #   working-directory: streaming-crypto
+      #   shell: bash
+      #   run: |
+      #     mkdir -p wheelhouse
+      #     echo "Dummy wheel for ${{ matrix.os }}" > wheelhouse/streaming_crypto-0.0.0-${{ matrix.os }}-py3-none-any.whl
+
       - name: Build wheels
         if: ${{ env.IS_LOCAL != 'true' }}
         working-directory: streaming-crypto
@@ -189,6 +198,14 @@ jobs:
         working-directory: streaming-crypto
         shell: bash
         run: maturin sdist --out wheelhouse
+
+      # - name: Build wheels (dummy)
+      #   if: matrix.os == 'ubuntu-latest'
+      #   working-directory: streaming-crypto
+      #   shell: bash
+      #   run: |
+      #     mkdir -p wheelhouse
+      #     echo "Dummy sdist for ${{ matrix.os }}" > wheelhouse/streaming_crypto-0.1.0b6.tar.gz
 
       - name: Show wheelhouse
         working-directory: streaming-crypto
@@ -213,7 +230,7 @@ jobs:
   publish:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' && needs.detect-tag.outputs.tag_is_published == 'true' }}
     name: Publish Python Wheel
-    needs: [detect-tag, build] # Require all
+    needs: [detect-tag, pre-os-check, build] # Require all
     strategy: 
       matrix: 
         os: [ubuntu-latest] 
@@ -226,6 +243,10 @@ jobs:
         shell: bash
         run: echo "IS_LOCAL=true" >> $GITHUB_ENV
       
+      - name: Debug os-list
+        shell: bash
+        run: echo "${{ needs.pre-os-check.outputs.os-list }}"
+
       # 1️⃣ Fresh checkout for changelog
       - name: Checkout repository (for git history)
         uses: actions/checkout@v4
@@ -237,20 +258,33 @@ jobs:
         working-directory: streaming-crypto
         shell: bash
         run: mkdir -p dist
-      
+
       - name: Download artifacts (ubuntu-latest)
+        if: ${{ contains(needs.pre-os-check.outputs.os-list, 'ubuntu-latest') }}
         uses: actions/download-artifact@v4
         with:
           name: prepared-artifacts-ubuntu-latest
           path: streaming-crypto/dist
 
+      - name: Show dist files
+        working-directory: streaming-crypto
+        shell: bash
+        run: ls -R dist
+
       - name: Download artifacts (macos-latest)
+        if: ${{ contains(needs.pre-os-check.outputs.os-list, 'macos-latest') }}
         uses: actions/download-artifact@v4
         with:
           name: prepared-artifacts-macos-latest
           path: streaming-crypto/dist
 
+      - name: Show dist files
+        working-directory: streaming-crypto
+        shell: bash
+        run: ls -R dist
+
       - name: Download artifacts (windows-latest)
+        if: ${{ contains(needs.pre-os-check.outputs.os-list, 'windows-latest') }}
         uses: actions/download-artifact@v4
         with:
           name: prepared-artifacts-windows-latest

@@ -500,7 +500,9 @@ gh act push \
   --cache-server-path .act-cache \
   --container-daemon-socket /var/run/docker.sock \
   --pull=false \
-  -P ubuntu-latest=ubuntu-linux-custom:latest
+  -P ubuntu-latest=ubuntu-linux-custom:latest \
+  -P macos-latest=ubuntu-linux-custom:latest \
+  -P windows-latest=ubuntu-linux-custom:latest
 
 rm -rf .act-artifacts/*
 rm -rf .act-cache/*
