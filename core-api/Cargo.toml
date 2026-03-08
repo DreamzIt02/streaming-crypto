@@ -9,6 +9,8 @@ cuda    = ["cudarc"]      # CUDA backend
 metal   = ["wgpu"]        # WGPU backend
 opencl  = ["opencl3"]     # OpenCL backend
 
+benchmarks = []
+
 [dependencies]
 # Features Gated
 cudarc       = { version = "0.18", optional = true, features = ["cuda-version-from-build-system"] }
@@ -59,11 +61,13 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 # FIXME: Use std::UUID instead of uuid
 uuid.workspace = true
+paste.workspace = true
 
 [dev-dependencies]
 # 📦 Property‑Based Tests
-proptest.workspace = true
-tempfile.workspace = true
+proptest.workspace  = true
+tempfile.workspace  = true
+criterion.workspace = true
 
 # 📦 Public API Tests
 [[test]]
@@ -96,3 +100,39 @@ path = "tests/public_api/test_telemetry_config.rs"
 [[test]]
 name = "test_compression_cipher_variants"
 path = "tests/public_api/test_compression_cipher_variants.rs"
+
+[[bench]]
+name = "bench_aead_variants"
+harness = false
+
+[[bench]]
+name = "bench_frame_worker"
+harness = false
+
+[[bench]]
+name = "bench_frame_workers"
+harness = false
+
+[[bench]]
+name = "bench_segment_workers"
+harness = false
+
+[[bench]]
+name = "bench_io_throughput"
+harness = false
+
+[[bench]]
+name = "bench_parallelism"
+harness = false
+
+[[bench]]
+name = "bench_segment_sizes"
+harness = false
+
+[[bench]]
+name = "bench_digest_variants"
+harness = false
+
+[[bench]]
+name = "bench_memory_variants"
+harness = false

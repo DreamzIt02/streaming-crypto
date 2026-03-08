@@ -6,7 +6,7 @@ use pyo3::types::PyBytes;
 use std::cell::Cell;
 
 pub mod io;
-pub mod ffi;
+pub mod api;
 pub mod constants;
 pub mod headers;
 pub mod frames;
@@ -17,7 +17,7 @@ pub mod parallelism;
 pub mod crypto;
 
 pub use io::*;
-pub use ffi::*;
+pub use api::*;
 pub use constants::*;
 pub use headers::*;
 pub use telemetry::*;
@@ -192,14 +192,14 @@ pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()>
     telemetry::register_telemetry(py, m)?;
 
     // Register pyo3 api
-    ffi::register_api(py, m)?;
+    api::register_api(py, m)?;
 
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::ffi_api::{PyApiConfig, PyDecryptParams, PyEncryptParams, py_decrypt_stream_v2, py_encrypt_stream_v2};
+    use crate::api::{PyApiConfig, PyDecryptParams, PyEncryptParams, py_decrypt_stream_v2, py_encrypt_stream_v2};
 
     use super::*;
     use core_api::constants::{HEADER_V1, MAGIC_RSE1};

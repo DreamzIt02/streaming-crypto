@@ -29,20 +29,37 @@ pub const MIN_FRAME_SIZE: usize = 4 * 1024;      // 4 KiB
 pub const MAX_FRAME_SIZE: usize = 64 * 1024;     // 64 KiB
 
 /// Frame size mapping table (precomputed for common segment sizes)
+// pub const FRAME_SIZE_TABLE: &[(usize, usize)] = &[
+//     // (segment_size, optimal_frame_size)
+//     (16 * 1024,    4 * 1024),       // 16 KiB segment  → 4 KiB frames  (4 frames)
+//     (32 * 1024,    8 * 1024),       // 32 KiB segment  → 8 KiB frames  (4 frames)
+//     (64 * 1024,    16 * 1024),      // 64 KiB segment  → 16 KiB frames (4 frames)
+//     (128 * 1024,   16 * 1024),      // 128 KiB segment → 16 KiB frames (8 frames)
+//     (256 * 1024,   16 * 1024),      // 256 KiB segment → 16 KiB frames (16 frames)
+//     (512 * 1024,   32 * 1024),      // 512 KiB segment → 32 KiB frames (16 frames)
+//     (1 * 1024 * 1024,  64 * 1024),  // 1 MiB segment   → 64 KiB frames (16 frames)
+//     (2 * 1024 * 1024,  64 * 1024),  // 2 MiB segment   → 64 KiB frames  (32 frames)
+//     (4 * 1024 * 1024,  128 * 1024), // 4 MiB segment   → 128 KiB frames (32 frames)
+//     (8 * 1024 * 1024,  256 * 1024), // 8 MiB segment   → 256 KiB frames (32 frames)
+//     (16 * 1024 * 1024, 256 * 1024), // 16 MiB segment  → 256 KiB frames (64 frames)
+//     (32 * 1024 * 1024, 512 * 1024), // 32 MiB segment  → 512 KiB frames (64 frames)
+// ];
+
+/// Frame size mapping table (precomputed for common segment sizes)
 pub const FRAME_SIZE_TABLE: &[(usize, usize)] = &[
     // (segment_size, optimal_frame_size)
-    (16 * 1024,    4 * 1024),       // 16 KiB segment  → 4 KiB frames  (4 frames)
-    (32 * 1024,    8 * 1024),       // 32 KiB segment  → 8 KiB frames  (4 frames)
-    (64 * 1024,    16 * 1024),      // 64 KiB segment  → 16 KiB frames (4 frames)
-    (128 * 1024,   16 * 1024),      // 128 KiB segment → 16 KiB frames (8 frames)
-    (256 * 1024,   16 * 1024),      // 256 KiB segment → 16 KiB frames (16 frames)
-    (512 * 1024,   32 * 1024),      // 512 KiB segment → 32 KiB frames (16 frames)
-    (1 * 1024 * 1024,  64 * 1024),  // 1 MiB segment   → 64 KiB frames (16 frames)
-    (2 * 1024 * 1024,  64 * 1024),  // 2 MiB segment   → 64 KiB frames  (32 frames)
-    (4 * 1024 * 1024,  128 * 1024), // 4 MiB segment   → 128 KiB frames (32 frames)
-    (8 * 1024 * 1024,  256 * 1024), // 8 MiB segment   → 256 KiB frames (32 frames)
-    (16 * 1024 * 1024, 256 * 1024), // 16 MiB segment  → 256 KiB frames (64 frames)
-    (32 * 1024 * 1024, 512 * 1024), // 32 MiB segment  → 512 KiB frames (64 frames)
+    (1 * 16 * 1024,    1 * 8 * 1024),    // 16 KiB segment  → 8 KiB frames   (2 frames)
+    (1 * 32 * 1024,    1 * 16 * 1024),   // 32 KiB segment  → 16 KiB frames  (2 frames)
+    (1 * 64 * 1024,    1 * 32 * 1024),   // 64 KiB segment  → 32 KiB frames  (2 frames)
+    (1 * 128 * 1024,   1 * 32 * 1024),   // 128 KiB segment → 32 KiB frames  (4 frames)
+    (1 * 256 * 1024,   1 * 64 * 1024),   // 256 KiB segment → 64 KiB frames  (4 frames)
+    (1 * 512 * 1024,   1 * 128 * 1024),  // 512 KiB segment → 128 KiB frames (4 frames)
+    (1 * 1024 * 1024,  1 * 256 * 1024),  // 01 MiB segment  → 256 KiB frames (4 frames)
+    (2 * 1024 * 1024,  1 * 256 * 1024),  // 02 MiB segment  → 256 KiB frames (8 frames)
+    (4 * 1024 * 1024,  1 * 256 * 1024),  // 04 MiB segment  → 256 KiB frames (16 frames)
+    (8 * 1024 * 1024,  1 * 512 * 1024),  // 08 MiB segment  → 512 KiB frames (16 frames)
+    (16 * 1024 * 1024, 1 * 512 * 1024),  // 16 MiB segment  → 512 KiB frames (32 frames)
+    (32 * 1024 * 1024, 2 * 1024 * 1024), // 32 MiB segment  → 1.0 MiB frames  (32 frames)
 ];
 
 /// `SegmentInput` is the “raw” form: just plaintext frames.

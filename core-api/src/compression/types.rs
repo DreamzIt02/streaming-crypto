@@ -1,4 +1,4 @@
-//! compression/constants.rs
+//! compression/types.rs
 //! Stable codec IDs and defaults, plus FFI-safe enum mapping.
 use std::fmt;
 use std::net::{TcpStream};

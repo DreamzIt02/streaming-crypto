@@ -28,6 +28,7 @@ pub fn classify_py_io(
     py: Python,
     input: PyObject,
     output: PyObject,
+    debug: Option<bool>,
 ) -> PyResult<(PyInputSource, PyOutputSink)> {
     let input_obj = input.bind(py);
     let output_obj = output.bind(py);
@@ -35,9 +36,11 @@ pub fn classify_py_io(
     // ---------- INPUT ----------
 
     let py_input = if input_obj.is_instance_of::<PyBytes>() {
+        dbg_detect!(debug, "Input source detected: memory (bytes)");
         PyInputSource::Bytes(input)
     }
     else if input_obj.is_instance_of::<PyByteArray>() {
+        dbg_detect!(debug, "Input source detected: memory (byte array)");
         PyInputSource::ByteArray(input)
     }
     else if let Ok(path) = input_obj.extract::<String>() {

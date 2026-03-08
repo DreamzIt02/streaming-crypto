@@ -59,7 +59,7 @@ class InputSource:
         ...
 
     @staticmethod
-    def File(path: Union[str, Path]) -> Union[str, Path]:
+    def File(path: Union[str, Path]) -> str:
         """
         Read input from a file path.
 
@@ -146,7 +146,7 @@ class OutputSink:
         ...
 
     @staticmethod
-    def File(path: Union[str, Path]) -> Union[str, Path]:
+    def File(path: Union[str, Path]) -> str:
         """
         Write output directly to a file path.
 

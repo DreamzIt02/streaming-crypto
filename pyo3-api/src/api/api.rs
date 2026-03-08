@@ -1,5 +1,5 @@
 
-// ## 📝 pyo3-api/src/ffi_api.rs
+// ## 📝 pyo3-api/src/api.rs
 
 use core_api::InputSource;
 use core_api::crypto::DigestAlg;
@@ -10,11 +10,11 @@ use pyo3::{Bound, PyObject, PyResult, Python, pyfunction, pymodule,
     types::{PyModule, PyModuleMethods}, wrap_pyfunction};
 
 use core_api::stream_v2::{ApiConfig, DecryptParams, EncryptParams, MasterKey, decrypt_stream_v2, encrypt_stream_v2};
-use crate::ffi::ffi_io::{classify_py_io, to_core_input, to_core_output};
+use crate::api::api_io::{classify_py_io, to_core_input, to_core_output};
 use crate::{PyDigestAlg, PyInputSource, PyParallelismConfig, PyStreamError};
 use crate::{headers::PyHeaderV1, telemetry::PyTelemetrySnapshot};
 
-#[pymodule(name = "ffi_api")]
+#[pymodule(name = "api")]
 pub fn register_api(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Register class
     m.add_class::<PyEncryptParams>()?;
@@ -153,7 +153,7 @@ pub fn py_encrypt_stream_v2(
     let params = EncryptParams::from(&params);
     let config: ApiConfig = ApiConfig::from(config);
 
-    let (py_input, py_output) = classify_py_io(py, input, output)?;
+    let (py_input, py_output) = classify_py_io(py, input, output, Some(true))?;
     let output_sink = to_core_output(py, py_output, Some(true))?;
 
     // Bind the lifetime of the slice to THIS scope (GIL is held here)
@@ -183,7 +183,7 @@ pub fn py_encrypt_stream_v2(
             let bytes: Vec<u8> = unsafe {
                 obj.bind(py).downcast::<PyByteArray>()?.as_bytes().to_vec()
             };
-            // In ffi_api.rs — ByteArray copy path
+            // In api.rs — ByteArray copy path
             crate::increment_input_copies();
             py.allow_threads(|| {
                 encrypt_stream_v2(
@@ -224,7 +224,7 @@ pub fn py_decrypt_stream_v2(
     let params = DecryptParams::from(params);
     let config: ApiConfig = ApiConfig::from(config);
 
-    let (py_input, py_output) = classify_py_io(py, input, output)?;
+    let (py_input, py_output) = classify_py_io(py, input, output, Some(true))?;
     let output_sink = to_core_output(py, py_output, Some(true))?;
 
     let result = match py_input {

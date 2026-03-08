@@ -56,3 +56,6 @@ uuid         = { version = "1.19.0", features = ["v4"] }
 # 📦 Property‑Based Tests
 proptest     = "1.5"
 tempfile     = "3"
+criterion    = "0.5"
+paste        = "1.0.15"
+

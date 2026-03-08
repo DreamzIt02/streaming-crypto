@@ -74,3 +74,6 @@ coverage/
 
 .act-artifacts/
 .act-cache/
+
+# Unfinished docs
+*-raw.*

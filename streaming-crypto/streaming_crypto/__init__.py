@@ -60,7 +60,7 @@ class InputSource:
         return data
 
     @staticmethod
-    def File(path: Union[str, Path]) -> Union[str, Path]:
+    def File(path: Union[str, Path]) -> str:
         """
         Read input from a file path.
 
@@ -77,7 +77,7 @@ class InputSource:
         Example:
             encrypt_stream_v2(input=InputSource.File("/data/plain.bin"), ...)
         """
-        return path
+        return str(path)
 
     @staticmethod
     def Reader(file_obj: Union[IO[bytes], io.BytesIO]) -> Union[IO[bytes], io.BytesIO]:
@@ -147,7 +147,7 @@ class OutputSink:
         return b""
 
     @staticmethod
-    def File(path: Union[str, Path]) -> Union[str, Path]:
+    def File(path: Union[str, Path]) -> str:
         """
         Write output directly to a file path.
 
@@ -165,7 +165,7 @@ class OutputSink:
         Example:
             encrypt_stream_v2(output=OutputSink.File("/data/out.enc"), ...)
         """
-        return path
+        return str(path)
 
     @staticmethod
     def Writer(file_obj: Union[IO[bytes], io.BytesIO]) -> Union[IO[bytes], io.BytesIO]:

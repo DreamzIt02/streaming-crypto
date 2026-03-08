@@ -3,14 +3,15 @@
 
 use pyo3::prelude::*;
 
-mod ffi_io;
-pub mod ffi_api;
+mod api_io;
+mod api;
 
+pub use api::*;
 #[pymodule(name = "api")]
 pub fn register_api(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Register public api
-    let _ = ffi_api::register_api(py, m);
+    let _ = api::register_api(py, m);
 
     Ok(())
 }
