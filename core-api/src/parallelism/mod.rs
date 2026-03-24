@@ -1,3 +1,4 @@
+// ## 3. `src/parallelism/mod.rs`
 
 pub mod profiles;
 pub mod scheduler;

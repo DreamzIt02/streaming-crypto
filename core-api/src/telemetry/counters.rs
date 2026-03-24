@@ -13,14 +13,14 @@ use std::{fmt, ops::AddAssign};
 #[derive(Default, Clone, Debug, Encode, Decode, PartialEq)]
 pub struct TelemetryCounters {
     /// Consider One frame for each segment, the SegmentHeader
-    pub frames_header: u64,
-    pub frames_data: u64,
-    pub frames_digest: u64,
+    pub frames_header   : u64,
+    pub frames_data     : u64,
+    pub frames_digest   : u64,
     pub frames_terminator: u64,
-    pub bytes_plaintext: u64,
+    pub bytes_plaintext : u64,
     pub bytes_compressed: u64,
     pub bytes_ciphertext: u64,
-    pub bytes_overhead: u64,   
+    pub bytes_overhead  : u64,   
 }
 
 impl TelemetryCounters {
@@ -53,15 +53,15 @@ impl TelemetryCounters {
     // * atomics
     // * false sharing
     pub fn merge(&mut self, other: &TelemetryCounters) {
-        self.frames_header += other.frames_header;
-        self.frames_data += other.frames_data;
-        self.frames_terminator += other.frames_terminator;
-        self.frames_digest += other.frames_digest;
+        self.frames_header      += other.frames_header;
+        self.frames_data        += other.frames_data;
+        self.frames_terminator  += other.frames_terminator;
+        self.frames_digest      += other.frames_digest;
 
-        self.bytes_plaintext += other.bytes_plaintext;
-        self.bytes_compressed += other.bytes_compressed;
-        self.bytes_ciphertext += other.bytes_ciphertext;
-        self.bytes_overhead += other.bytes_overhead;
+        self.bytes_plaintext    += other.bytes_plaintext;
+        self.bytes_compressed   += other.bytes_compressed;
+        self.bytes_ciphertext   += other.bytes_ciphertext;
+        self.bytes_overhead     += other.bytes_overhead;
     }
 }
 

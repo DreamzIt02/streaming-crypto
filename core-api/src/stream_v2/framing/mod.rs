@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/framing/mod.rs`
+
 //! Wire framing for stream_v2.
 //!
 //! Responsibilities:

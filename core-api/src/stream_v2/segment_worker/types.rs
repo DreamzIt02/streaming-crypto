@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/segment_worker/types.rs`
+
 use std::fmt;
 use std::convert::{From};
 use bytes::Bytes;
@@ -59,7 +61,7 @@ pub const FRAME_SIZE_TABLE: &[(usize, usize)] = &[
     (4 * 1024 * 1024,  1 * 256 * 1024),  // 04 MiB segment  → 256 KiB frames (16 frames)
     (8 * 1024 * 1024,  1 * 512 * 1024),  // 08 MiB segment  → 512 KiB frames (16 frames)
     (16 * 1024 * 1024, 1 * 512 * 1024),  // 16 MiB segment  → 512 KiB frames (32 frames)
-    (32 * 1024 * 1024, 2 * 1024 * 1024), // 32 MiB segment  → 1.0 MiB frames  (32 frames)
+    (32 * 1024 * 1024, 1 * 1024 * 1024), // 32 MiB segment  → 1.0 MiB frames (32 frames)
 ];
 
 /// `SegmentInput` is the “raw” form: just plaintext frames.

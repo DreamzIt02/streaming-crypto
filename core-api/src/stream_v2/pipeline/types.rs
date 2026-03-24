@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/pipeline/types.rs`
+
 use std::{any::Any, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}};
 
 use crossbeam::channel::{Receiver, Sender};

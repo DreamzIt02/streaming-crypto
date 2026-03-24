@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/segmenting/encode.rs`
+
 use byteorder::{LittleEndian, WriteBytesExt};
 use bytes::Bytes;
 

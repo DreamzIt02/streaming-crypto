@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/framing/decode.rs`
+
 use crate::stream_v2::framing::types::FrameView;
 use crate::stream_v2::framing::types::{FrameHeader, FrameError};
 

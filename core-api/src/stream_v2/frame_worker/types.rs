@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/frame_worker/types.rs`
+
 use std::fmt;
 use std::ops::Range;
 use bytes::Bytes;

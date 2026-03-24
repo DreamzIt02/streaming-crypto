@@ -1,3 +1,4 @@
+// 📂 File: tests/test_framing.rs
 // It is designed to validate **correctness, safety, equivalence, zero-copy assumptions, and error behavior** across:
 
 // * `encode_frame`

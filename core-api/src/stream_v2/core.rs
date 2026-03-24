@@ -5,16 +5,15 @@ use std::sync::Arc;
 use std::ops::Deref;
 
 use crate::{
-    constants::{MASTER_KEY_LENGTHS, MAGIC_DICT, MAX_DICT_LEN, MIN_DICT_LEN, DEFAULT_QUEUE_CAP, DEFAULT_WORKERS, QUEUE_CAPS, WORKERS_COUNT}, 
+    constants::{DEFAULT_QUEUE_CAP, DEFAULT_WORKERS, MAGIC_DICT, MASTER_KEY_LENGTHS, MAX_DICT_LEN, MIN_DICT_LEN, QUEUE_CAPS, WORKERS_COUNT}, 
     crypto::{CryptoError, DigestAlg, derive_session_key_32}, 
-    headers::HeaderV1, recovery::AsyncLogManager, 
+    headers::HeaderV1,
     parallelism::{HybridParallelismProfile, ParallelismConfig}, 
+    recovery::AsyncLogManager, 
     stream_v2::{
         io::{InputSource, OutputSink, PayloadReader, open_input, open_output}, 
         pipeline::{PipelineConfig, decrypt_pipeline, encrypt_pipeline}, 
-    segment_worker::{DecryptContext, EncryptContext}}, 
-    telemetry::TelemetrySnapshot, 
-    types::StreamError
+    segment_worker::{DecryptContext, EncryptContext}}, telemetry::TelemetrySnapshot, types::StreamError
 };
 
 #[derive(Clone)]
@@ -257,7 +256,6 @@ pub fn decrypt_stream_v2(
 
     Ok(snapshot)
 }
-
 
 pub fn validate_encrypt_params(
     master_key: &MasterKey,

@@ -42,7 +42,7 @@ pub enum StreamError {
     Nonce(NonceError),
 
     /// Pipeline error for pipelining Segment
-    PipelineError(&'static str),
+    PipelineError(String),
 
     /// Channel send failure (downstream closed).
     ChannelSend,

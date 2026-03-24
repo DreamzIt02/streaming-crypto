@@ -1,3 +1,4 @@
+// ## 📂 File: `src/crypto/mod.rs`
 
 pub mod types;
 pub mod aad;

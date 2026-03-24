@@ -69,50 +69,6 @@ pub fn classify_py_io(
     Ok((py_input, py_output))
 }
 
-// # 3️⃣ Convert to core-api types
-
-// pub fn to_core_input<'py>(
-//     py: Python<'py>,
-//     src: PyInputSource,
-//     chunk_size: Option<usize>,
-// ) -> PyResult<InputSource<'py>> {
-
-//     match src {
-
-//         PyInputSource::Bytes(obj) => {
-//             let bytes = obj.bind(py).downcast::<PyBytes>()?;
-//             let slice: &'py [u8] = bytes.as_bytes();
-//             Ok(InputSource::Memory(slice))
-//         }
-
-//         PyInputSource::ByteArray(obj) => {
-//             let byte_array = obj.bind(py).downcast::<PyByteArray>()?;
-//             let slice: &'py [u8] = unsafe { byte_array.as_bytes() };
-//             Ok(InputSource::Memory(slice))
-//         }
-
-//         PyInputSource::File(p) => {
-//             Ok(InputSource::File(p))
-//         }
-
-//         PyInputSource::Reader(obj) => {
-
-//             let reader: Box<dyn Read + Send> =
-//                 if let Ok(r) = PyReaderReadInto::new(obj.clone_ref(py), chunk_size) {
-//                     Box::new(r)
-//                 }
-//                 else if let Ok(r) = PyReaderHT::new(obj.clone_ref(py)) {
-//                     Box::new(r)
-//                 }
-//                 else {
-//                     Box::new(PyReader::new(obj.clone_ref(py)))
-//                 };
-
-//             Ok(InputSource::Reader(reader))
-//         }
-//     }
-// }
-
 pub fn to_core_input<'py>(
     py: Python<'py>,
     src: PyInputSource,
@@ -125,6 +81,13 @@ pub fn to_core_input<'py>(
             dbg_detect!(debug, "Input source detected: memory (bytes)");
             Ok(InputSource::Reader(Box::new(std::io::Cursor::new(bytes))))
         }
+        // ### 👉 FIXME: WITH:
+        // ```rust
+        // PyInputSource::Bytes(obj) => {
+        //     let bytes = obj.bind(py).downcast::<PyBytes>()?.as_bytes();
+        //     Ok(InputSource::Memory(bytes))
+        // }
+        // ```
         PyInputSource::ByteArray(obj) => {
             let bytes = unsafe {
                 obj.bind(py).downcast::<PyByteArray>()?.as_bytes().to_vec()

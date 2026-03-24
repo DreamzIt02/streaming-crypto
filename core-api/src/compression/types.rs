@@ -54,22 +54,22 @@ impl CompressionCodec {
 #[derive(Debug, Clone, Copy)]
 pub enum CodecLevel {
     // Zstd presets (zstd = "0.13")
-    ZstdFast,        // level 1
-    ZstdBalanced,    // level 3
-    ZstdMax,         // level 19
+    ZstdFast    = 1,        // level 1
+    ZstdBalanced= 3,        // level 3
+    ZstdMax     = 19,       // level 19
 
     // LZ4 presets (lz4_flex = "0.12")
-    Lz4Fast,         // acceleration 1
-    Lz4DecSpeed,     // favor decompression speed
-    Lz4HighAccel,    // acceleration 4
+    Lz4Fast     = 101,      // acceleration 1
+    Lz4DecSpeed = 102,      // favor decompression speed
+    Lz4HighAccel= 103,      // acceleration 4
 
     // Flate2 presets (flate2 = "1.0")
-    FlateFast,       // Compression::fast()
-    FlateDefault,    // Compression::default()
-    FlateBest,       // Compression::best()
+    FlateFast   = 201,      // Compression::fast()
+    FlateDefault= 202,      // Compression::default()
+    FlateBest   = 203,      // Compression::best()
 
     // Custom numeric level (for fine‑grained control)
-    Custom(i32),
+    Custom(i32) = 0,
 }
 
 impl<'a> CodecLevel {
@@ -481,6 +481,15 @@ pub enum CodecError {
     UnknownCompression { raw: u16 },
 }
 
+impl fmt::Display for CodecError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use CodecError::*;
+        match self {
+            UnknownCompression { raw } => write!(f, "unknown compression: {}", enum_name_or_hex::<CompressionCodec>(*raw)),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum CompressionError {
     UnsupportedCodec { codec_id: u16 },
@@ -489,12 +498,6 @@ pub enum CompressionError {
     CodecProcessFailed { codec: String, msg: String },
     ChunkTooLarge { have: usize, max: usize },
     StateError(String),
-}
-
-impl From<std::io::Error> for CompressionError {
-    fn from(e: std::io::Error) -> Self {
-        CompressionError::StateError(e.to_string())
-    }
 }
 
 impl fmt::Display for CompressionError {
@@ -508,6 +511,12 @@ impl fmt::Display for CompressionError {
             ChunkTooLarge { have, max } => write!(f, "chunk too large: {} > {}", have, max),
             StateError(msg) => write!(f, "compression state error: {}", msg),
         }
+    }
+}
+
+impl From<std::io::Error> for CompressionError {
+    fn from(e: std::io::Error) -> Self {
+        CompressionError::StateError(e.to_string())
     }
 }
 

@@ -1,3 +1,4 @@
+// 📂 File: tests/test_log.rs
 #[cfg(test)]
 mod tests {
     use core_api::recovery::{UnifiedEntry, compact_unified_log};

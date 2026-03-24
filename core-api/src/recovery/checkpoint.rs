@@ -12,7 +12,7 @@ use sha3::{Sha3_256, Sha3_512};
 use blake3::{Hasher as Blake3Hasher};
 use crate::crypto::{DigestError, digest::{DigestAlg, DigestState}};
 
-pub trait Checkpointable: Send + Sync {
+pub trait CheckPointable: Send + Sync {
     fn export(&self) -> Vec<u8>;
     fn segment_index(&self) -> u32;
     fn summary(&self) -> String;
@@ -76,7 +76,7 @@ impl SegmentCheckpoint {
 
 }
 
-impl Checkpointable for SegmentCheckpoint {
+impl CheckPointable for SegmentCheckpoint {
     fn export(&self) -> Vec<u8> { self.state.to_bytes() }
     fn segment_index(&self) -> u32 { self.segment_index }
     fn summary(&self) -> String { format!("SegmentCheckpoint: alg={:?}, segment={}, next={}", self.alg, self.segment_index, self.next_frame_index) }
@@ -113,7 +113,7 @@ pub struct DecryptCheckpoint {
     pub state: DecryptState,
 }
 
-impl Checkpointable for DecryptCheckpoint {
+impl CheckPointable for DecryptCheckpoint {
     fn export(&self) -> Vec<u8> { self.state.to_bytes() }
     fn segment_index(&self) -> u32 { self.segment_index }
     fn summary(&self) -> String { format!("DecryptCheckpoint: segment={}, frame={}", self.segment_index, self.frame_index) }

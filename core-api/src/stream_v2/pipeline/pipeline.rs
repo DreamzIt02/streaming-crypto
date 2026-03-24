@@ -1,6 +1,5 @@
-// # 📂 src/stream_v2/pipeline.rs
+// ## 📦 `src/stream_v2/pipeline/pipeline.rs`
 
-// ## 📂 File: `src/stream_v2/pipeline.rs`
 // ## Pure pipeline wiring (no crypto logic)
 
 use std::io::{Read, Write};
@@ -17,7 +16,7 @@ use crate::stream_v2::io;
 use crate::stream_v2::pipeline::{PipelineCancellation, spawn_compression_workers_scoped, spawn_decompression_workers_scoped};
 use crate::stream_v2::segment_worker::{DecryptContext, DecryptSegmentInput, DecryptSegmentWorker1, DecryptedSegment, EncryptSegmentWorker1, EncryptedSegment, SegmentWorkerError};
 use crate::stream_v2::segmenting::types::SegmentFlags;
-use crate::telemetry::StageTimes;
+use crate::telemetry::{StageTimes};
 use crate::{
     headers::HeaderV1,
     stream_v2::{
@@ -382,7 +381,6 @@ where
     Ok(TelemetrySnapshot::from(&counters, &timer, Some(last_segment_index)))
 }
 
-
 // ============================================================
 // Decrypt pipeline
 // ============================================================
@@ -677,4 +675,3 @@ where
     // Last segment index is the index of terminator segment (which is fed after all the data segments)
     Ok(TelemetrySnapshot::from(&counters, &timer, Some(last_segment_index),))
 }
-

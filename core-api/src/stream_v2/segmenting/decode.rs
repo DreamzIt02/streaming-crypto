@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/segmenting/decode.rs`
+
 use crate::stream_v2::segmenting::{SegmentHeader, types::{SegmentError, SegmentView}};
 
 // ✅ **This is segmenting-only**

@@ -1,16 +1,17 @@
+// ## 📦 `src/stream_v2/compression_worker/worker.rs`
+
 use std::{sync::{Arc, Mutex}, time::Instant};
 use bytes::Bytes;
 use crossbeam::channel::{Receiver, Sender};
 use tracing::{debug, error};
 
 use crate::{
-    parallelism::{Scheduler, WorkerTarget}, segment_worker::{DecryptedSegment, EncryptSegmentInput}, 
+    parallelism::{Scheduler, WorkerTarget}, 
     stream_v2::{
+        segment_worker::{DecryptedSegment, EncryptSegmentInput},
         compression_worker::{CodecInfo, CompressionBackend, CpuCompressionBackend, GpuCompressionBackend, types::CompressionWorkerError}, 
         segmenting::types::SegmentFlags
-    }, 
-    telemetry::{Stage, StageTimes}, 
-    utils::tracing_logger
+    }, telemetry::{Stage, StageTimes}, utils::tracing_logger
 };
 
 /// Factory: choose backend based on codec + target
@@ -45,7 +46,7 @@ pub fn run_compression_worker(
     while let Ok(mut seg) = rx.recv() {
         debug!("[COMPRESSION WORKER] received segment {} at {:?}", 
                   seg.segment_index, std::time::Instant::now());
-
+                  
         let mut stage_times = StageTimes::default();
         // Compression / segment
         let start = Instant::now();
@@ -143,3 +144,4 @@ pub fn run_decompression_worker(
         sched.complete(target);
     }
 }
+

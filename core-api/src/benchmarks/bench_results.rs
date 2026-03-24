@@ -83,8 +83,8 @@ pub fn print_results(results: &[BenchmarkResult], title: &str) {
     println!("{}", "=".repeat(len_line));
 }
 
-/// Rust equivalent of Python's make_result_v2
-pub fn make_result_v2(
+/// Rust equivalent of Python's make_result
+pub fn make_result(
     scenario: &str,
     op: &str,
     mode: &str,

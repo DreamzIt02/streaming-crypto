@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/framing/types.rs`
+
 use std::fmt;
 use byteorder::{LittleEndian, ByteOrder};
 

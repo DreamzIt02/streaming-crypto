@@ -1,3 +1,4 @@
+// ## 📦 `src/stream_v2/segment_worker/enc_helpers.rs`
 use std::{sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
@@ -279,3 +280,4 @@ pub fn process_encrypt_segment_1(
         stage_times,
     })
 }
+

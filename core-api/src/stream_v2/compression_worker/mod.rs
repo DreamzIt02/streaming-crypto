@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/compression_worker/mod.rs`
+
 //! Wire compression for stream_v2.
 //!
 //! Responsibilities:

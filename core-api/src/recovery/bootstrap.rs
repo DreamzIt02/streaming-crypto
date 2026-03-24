@@ -3,7 +3,7 @@
 
 use std::io;
 use crate::recovery::persist::{LogManager};
-use crate::recovery::checkpoint::{Checkpointable, SegmentCheckpoint, DecryptCheckpoint};
+use crate::recovery::checkpoint::{CheckPointable, SegmentCheckpoint, DecryptCheckpoint};
 use crate::recovery::resume::parse_resume_line;
 use crate::crypto::digest::{DigestState};
 
@@ -70,7 +70,7 @@ pub fn resume_decrypt_from_checkpoint(checkpoint: &DecryptCheckpoint) {
 }
 
 /// Uniform recovery handler for processing a batch of in-memory checkpoints.
-pub fn run_recovery_cycle(checkpoints: Vec<Box<dyn Checkpointable>>) {
+pub fn run_recovery_cycle(checkpoints: Vec<Box<dyn CheckPointable>>) {
     println!("--- PROCESSING CHECKPOINT BATCH ---");
 
     for cp in checkpoints {

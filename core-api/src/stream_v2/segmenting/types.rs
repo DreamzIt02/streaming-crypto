@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/segmenting/types.rs`
+
 use std::fmt;
 use byteorder::{LittleEndian, ByteOrder};
 use bytes::Bytes;
@@ -54,6 +56,21 @@ pub struct SegmentHeader {
 
     /// CRC32 of the entire SegmentHeader (all fields above, including wire_len and wire_crc32) 
     header_crc32: u32,
+}
+
+impl Default for SegmentHeader {
+    fn default() -> Self {
+        SegmentHeader {
+            segment_index   : 0,
+            bytes_len       : 0,
+            wire_len        : 0,
+            wire_crc32      : 0,
+            frame_count     : 0,
+            digest_alg      : 0,
+            flags           : SegmentFlags::empty(), // ✅ no flags set
+            header_crc32    : 0,
+        }
+    }
 }
 
 impl SegmentHeader {

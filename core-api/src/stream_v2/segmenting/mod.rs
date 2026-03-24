@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/segmenting/mod.rs`
+
 //! Wire segmenting for stream_v2.
 //!
 //! Responsibilities:

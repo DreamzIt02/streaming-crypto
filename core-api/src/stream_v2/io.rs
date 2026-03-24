@@ -1,6 +1,5 @@
 // # 📂 src/stream_v2/io.rs
 
-// ## 📂 File: `src/stream_v2/io.rs`
 // ## Normalized I/O + ordered encrypted writer (production-ready)
 
 use std::io::{Read, Seek, SeekFrom, Write};
@@ -19,25 +18,30 @@ use crate::{
     types::StreamError
 };
 
-/// Canonical input abstraction
-// pub enum InputSource {
-//     Reader(Box<dyn Read + Send>),
-//     File(PathBuf),
-//     Memory(Vec<u8>),
-// }
-/// Normalize input source into a boxed reader
-// pub fn open_input(src: InputSource) -> Result<Box<dyn Read + Send>, StreamError> {
-//     let reader: Box<dyn Read + Send> = match src {
-//         InputSource::Reader(r) => r,
-//         InputSource::File(p) => Box::new(std::fs::File::open(p)?),
-//         InputSource::Memory(b) => Box::new(std::io::Cursor::new(b)),
-//     };
-//     Ok(reader)
-// }
+
+// ```rust
+// InputSource::Memory(slice)
+// ```
+
+// FIXME: 👉 This is great, but for full zero-copy pipeline:
+
+// We need upgrade to:
+
+// ```rust
+// Bytes::from(slice)
+// ```
+
 pub enum InputSource<'a> {
     Reader(Box<dyn Read + Send>),
     File(PathBuf),
     Memory(&'a [u8]), // borrow slice, no copy
+}
+pub fn open_input<'a>(src: InputSource<'a>) -> Result<Box<dyn Read + Send + 'a>, StreamError> {
+    match src {
+        InputSource::Reader(r) => Ok(r),
+        InputSource::File(p) => Ok(Box::new(std::fs::File::open(p)?)),
+        InputSource::Memory(slice) => Ok(Box::new(std::io::Cursor::new(slice))),
+    }
 }
 
 /// Canonical output abstraction
@@ -45,14 +49,6 @@ pub enum OutputSink {
     Writer(Box<dyn Write + Send>),
     File(PathBuf),
     Memory,
-}
-
-pub fn open_input<'a>(src: InputSource<'a>) -> Result<Box<dyn Read + Send + 'a>, StreamError> {
-    match src {
-        InputSource::Reader(r) => Ok(r),
-        InputSource::File(p) => Ok(Box::new(std::fs::File::open(p)?)),
-        InputSource::Memory(slice) => Ok(Box::new(std::io::Cursor::new(slice))),
-    }
 }
 
 /// Normalize output sink into a boxed writer
@@ -64,18 +60,6 @@ pub fn open_output(
         OutputSink::Writer(w) => Ok((w, None)),
         OutputSink::File(p) => Ok((Box::new(std::fs::File::create(p)?), None)),
         OutputSink::Memory => {
-            // match with_buf {
-            //     Some(true) => {
-            //         let buf = Arc::new(Mutex::new(Vec::new()));
-            //         let writer = SharedBufferWriter { buf: buf.clone() };
-            //         Ok((Box::new(writer), Some(buf)))
-            //     },
-            //     _ => {
-            //         // If we don’t need concurrent access, we can just use Cursor<Vec<u8>> directly:
-            //         let cursor = Cursor::new(Vec::new());
-            //         Ok((Box::new(cursor), None))
-            //     }
-            // }
             let buf = Arc::new(Mutex::new(Vec::new()));
             let writer = SharedBufferWriter { buf: buf.clone() };
             match with_buf {
@@ -89,18 +73,31 @@ pub fn open_output(
 #[derive(Debug)]
 pub struct PayloadReader<R: Read> {
     inner: R,
+    seekable: bool, // runtime flag
 }
 
 impl<R: Read> PayloadReader<R> {
-    /// Construct without consuming header (rarely used)
+    /// Construct without consuming header (encrypt pipeline).
     pub fn new(inner: R) -> Self {
-        PayloadReader { inner }
+        PayloadReader { inner, seekable: false }
     }
 
-    /// Consume header and return both parsed header and payload reader
+    /// Consume header and return both parsed header and payload reader (decrypt pipeline).
     pub fn with_header(mut reader: R) -> Result<(HeaderV1, Self), StreamError> {
         let header = read_header(&mut reader)?;
-        Ok((header, PayloadReader { inner: reader }))
+        Ok((header, PayloadReader { inner: reader, seekable: false }))
+    }
+
+    /// Runtime check
+    pub fn is_seekable(&self) -> bool {
+        self.seekable
+    }
+
+    pub fn detect_seekable(&mut self) -> bool
+    where
+        R: Seek,
+    {
+        self.inner.seek(SeekFrom::Current(0)).is_ok()
     }
 }
 
@@ -143,18 +140,18 @@ impl Write for SharedBufferWriter {
 }
 
 // ================= Header =================
-
 pub fn write_header<W: Write>(w: &mut W, h: &HeaderV1) -> Result<(), StreamError> {
     let buf = crate::headers::encode_header_le(h).map_err(|e| StreamError::Header(e))?;
     w.write_all(&buf)?;
     Ok(())
 }
 
-fn read_header<R: Read>(r: &mut R) -> Result<HeaderV1, StreamError> {
+pub fn read_header<R: Read>(r: &mut R) -> Result<HeaderV1, StreamError> {
     let mut buf = [0u8; HeaderV1::LEN];
     r.read_exact(&mut buf)?;
     Ok(crate::headers::decode_header_le(&buf).map_err(|e| StreamError::Header(e))?)
 }
+
 // ================= Utilities =================
 /// Ensure the reader has advanced past the header (default 80 bytes).
 pub fn assert_reader_after_header<R: Read + Seek + Send>(reader: &mut R, header_len: usize) -> Result<(), StreamError> {
@@ -186,6 +183,7 @@ pub fn read_exact_or_eof<R: Read>(
     buf.truncate(off);
     Ok(Bytes::from(buf))
 }
+
 pub fn read_exact_or_eof_1<R: Read>(
     r: &mut R,
     len: usize,
@@ -202,7 +200,6 @@ pub fn read_exact_or_eof_1<R: Read>(
 }
 
 // ================= Segment I/O =================
-
 pub fn read_segment<R: Read>(
     r: &mut R,
 ) -> Result<Option<(SegmentHeader, Bytes)>, StreamError> {

@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/segment_worker/mod.rs`
+
 //! Segment-level workers for stream_v2.
 //!
 //! A segment is a *bounded batch of frames* processed independently.
@@ -27,5 +29,5 @@ pub use types::{
     SegmentWorkerError,
 };
 
-pub use encrypt::EncryptSegmentWorker1;
-pub use decrypt::DecryptSegmentWorker1;
+pub use encrypt::{EncryptSegmentWorker1};
+pub use decrypt::{DecryptSegmentWorker1};

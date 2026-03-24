@@ -6,9 +6,14 @@ use tracing::{debug, error};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
 use crate::{
-    recovery::AsyncLogManager, stream_v2::{
-        frame_worker::{DecryptedFrame, FrameWorkerError, decrypt::{DecryptFrameWorker1}}, 
-        segment_worker::{DecryptContext, DecryptedSegment, SegmentWorkerError, dec_helpers::process_decrypt_segment_1, types::DecryptSegmentInput}
+    recovery::AsyncLogManager,
+    stream_v2::{
+        frame_worker::{DecryptedFrame, FrameWorkerError, decrypt::DecryptFrameWorker1}, 
+        segment_worker::{
+            DecryptContext, DecryptedSegment, SegmentWorkerError, 
+            types::{DecryptSegmentInput},
+            dec_helpers::process_decrypt_segment_1, 
+        },
     }, types::StreamError, utils::tracing_logger
 };
 
@@ -201,3 +206,4 @@ impl DecryptSegmentWorker1 {
 
     }
 }
+

@@ -8,7 +8,7 @@ pub const GPU_THRESHOLD: usize = 4 * 1024 * 1024; // 4 MB
 
 #[derive(Debug, Copy, Clone)]
 pub enum GpuBackend {
-    None,
+    Auto,
     Cuda,
     Wgpu,
     OpenCL,
@@ -127,7 +127,7 @@ pub fn detect_gpu_info() -> GpuInfo {
     eprintln!("[GPU DETECT] No GPU devices found");
     GpuInfo {
         count: 0,
-        backend: GpuBackend::None,
+        backend: GpuBackend::Auto,
         device_names: Vec::new(),
     }
 }

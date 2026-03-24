@@ -72,8 +72,16 @@ coverage/
 # CI temp
 *.cache/
 
+# ----------------------------
+# Docker Artifacts for (act)
+# ----------------------------
 .act-artifacts/
 .act-cache/
+
+# ----------------------------
+# Benchmarks and Test artifacts
+# ----------------------------
+results_*
 
 # Unfinished docs
 *-raw.*

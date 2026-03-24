@@ -1,3 +1,4 @@
+// ## 📦 `src/stream_v2/segment_worker/dec_helpers.rs`
 
 use std::{sync::{Arc, atomic::{AtomicBool, Ordering}}, time::Instant};
 
@@ -332,3 +333,4 @@ pub fn process_decrypt_segment_1(
         stage_times,
     })
 }
+

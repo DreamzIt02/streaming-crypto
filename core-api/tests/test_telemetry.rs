@@ -1,3 +1,4 @@
+// # 📂 `tests/test_telemetry.rs`
 #[cfg(test)]
 mod telemetry_snapshot_tests {
     use std::time::Duration;

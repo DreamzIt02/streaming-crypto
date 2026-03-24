@@ -1,3 +1,5 @@
+// # 📂 src/stream_v2/mod.rs
+
 // ## 1️⃣ `mod.rs` — public façade + re-exports
 
 //! stream_v2 — fully parallel, segment-based streaming encryption/decryption.
@@ -33,5 +35,4 @@ pub use core::{
     encrypt_stream_v2,
     decrypt_stream_v2,
 };
-
 

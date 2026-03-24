@@ -6,15 +6,10 @@ pub mod bench_metadata;
 pub mod bench_persists;
 pub mod bench_runner;
 
+pub mod v2;
+pub mod v3;
+
 #[cfg(feature = "benchmarks")]
-pub mod bench_v2_encrypt_memory;
+pub use v2::*;
 #[cfg(feature = "benchmarks")]
-pub mod bench_v2_encrypt_file;
-#[cfg(feature = "benchmarks")]
-pub mod bench_v2_encrypt_reader;
-#[cfg(feature = "benchmarks")]
-pub mod bench_v2_decrypt_memory;
-#[cfg(feature = "benchmarks")]
-pub mod bench_v2_decrypt_file;
-#[cfg(feature = "benchmarks")]
-pub mod bench_v2_decrypt_reader;
+pub use v3::*;

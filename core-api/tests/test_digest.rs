@@ -1,3 +1,4 @@
+// 📂 File: tests/test_digest.rs
 // # 🧪 Comprehensive Test Suite for `digest.rs`
 //
 // Guarantees:

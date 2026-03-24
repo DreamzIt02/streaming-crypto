@@ -5,10 +5,10 @@ use crossbeam::channel::{Receiver, Sender, bounded, unbounded};
 use tracing::{debug, error};
 
 use crate::{
-    recovery::AsyncLogManager, 
+    recovery::AsyncLogManager,
     stream_v2::{
-        frame_worker::{EncryptedFrame, FrameInput, FrameWorkerError, encrypt::{EncryptFrameWorker1}},
-        segment_worker::{EncryptContext, SegmentWorkerError, enc_helpers::{process_encrypt_segment_1}},
+        frame_worker::{EncryptedFrame, FrameInput, FrameWorkerError, encrypt::EncryptFrameWorker1},
+        segment_worker::{EncryptContext, SegmentWorkerError, enc_helpers::process_encrypt_segment_1},
     }, types::StreamError, utils::tracing_logger
 };
 use super::types::{EncryptSegmentInput, EncryptedSegment};
@@ -179,3 +179,4 @@ impl EncryptSegmentWorker1 {
     }
 
 }
+

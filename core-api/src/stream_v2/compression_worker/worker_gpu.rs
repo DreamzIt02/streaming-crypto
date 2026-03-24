@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/compression_worker/worker_gpu.rs`
+
 use crate::{
     compression::{CodecOptions, CompressionError, Compressor, Decompressor, create_compressor, create_decompressor},
     parallelism::GpuInfo,

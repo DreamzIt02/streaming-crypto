@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/compression_worker/types.rs`
+
 use std::fmt;
 
 use crate::{compression::{CodecLevel, CompressionError}, headers::HeaderV1, parallelism::GpuInfo};

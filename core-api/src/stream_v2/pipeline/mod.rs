@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/pipeline/mod.rs`
+
 pub mod compression;
 pub mod pipeline;
 pub mod types;
@@ -12,5 +14,5 @@ pub use types:: {
 };
 
 pub use pipeline:: {
-    encrypt_pipeline, decrypt_pipeline
+    encrypt_pipeline, decrypt_pipeline,
 };

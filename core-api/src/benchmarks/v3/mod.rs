@@ -1,0 +1,12 @@
+#[cfg(feature = "benchmarks")]
+pub mod bench_v3_encrypt_memory;
+#[cfg(feature = "benchmarks")]
+pub mod bench_v3_encrypt_file;
+#[cfg(feature = "benchmarks")]
+pub mod bench_v3_encrypt_reader;
+#[cfg(feature = "benchmarks")]
+pub mod bench_v3_decrypt_memory;
+#[cfg(feature = "benchmarks")]
+pub mod bench_v3_decrypt_file;
+#[cfg(feature = "benchmarks")]
+pub mod bench_v3_decrypt_reader;

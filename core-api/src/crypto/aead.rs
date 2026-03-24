@@ -16,7 +16,7 @@ use crate::crypto::types::{KEY_LEN_32, NONCE_LEN_12, TAG_LEN, CryptoError};
 // Import AEAD traits from aes_gcm's re-export to avoid unresolved `aead` path and duplicates.
 use aes_gcm::aead::{Aead, Buffer, KeyInit, Payload};
 use aes_gcm::aead::AeadInOut;
-// FIXME: Use array from serde or anything else thant hybrid_array
+// FIXME: Use array from serde or anything else than hybrid_array
 use hybrid_array::{Array, sizes::U12};
 
 // Concrete AEAD types
@@ -101,16 +101,16 @@ impl AeadImpl {
         let nonce = self.extract_nonce(nonce_12)?;
 
         // Debug information
-        debug!(
-            "[AEAD::seal] cipher={:?}, plaintext_len={}, aad_len={}, nonce={:02x?}",
-            match self {
-                AeadImpl::AesGcm(_) => "AES-GCM",
-                AeadImpl::ChaCha(_) => "ChaCha20-Poly1305",
-            },
-            plaintext.len(),
-            aad.len(),
-            nonce_12
-        );
+        // debug!(
+        //     "[AEAD::seal] cipher={:?}, plaintext_len={}, aad_len={}, nonce={:02x?}",
+        //     match self {
+        //         AeadImpl::AesGcm(_) => "AES-GCM",
+        //         AeadImpl::ChaCha(_) => "ChaCha20-Poly1305",
+        //     },
+        //     plaintext.len(),
+        //     aad.len(),
+        //     nonce_12
+        // );
 
         match self {
             AeadImpl::AesGcm(cipher) => {

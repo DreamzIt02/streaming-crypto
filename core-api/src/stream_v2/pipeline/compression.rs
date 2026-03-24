@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/pipeline/compression.rs`
+
 use std::sync::{Arc, Mutex};
 use crossbeam::channel::{Receiver, Sender};
 
@@ -22,9 +24,10 @@ pub fn spawn_compression_workers(
         profile.gpu_workers(),
         profile.gpu_threshold(),
     )));
+    let workers = (profile.cpu_workers() / 2).max(1);
     
     // spawn CPU workers
-    for i in 0..profile.cpu_workers() {
+    for i in 0..workers {
         eprintln!("[SPAWN] spawning CPU worker {}", i);
 
         let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
@@ -61,9 +64,10 @@ pub fn spawn_compression_workers_scoped<'scope>(
         profile.gpu_workers(),
         profile.gpu_threshold(),
     )));
+    let workers = (profile.cpu_workers() / 2).max(1);
 
     // spawn CPU workers IN SCOPE
-    for i in 0..profile.cpu_workers() {
+    for i in 0..workers {
         let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
         let sched = scheduler.clone();
         let rx = comp_rx.clone();
@@ -101,9 +105,10 @@ pub fn spawn_decompression_workers(
         profile.gpu_workers(),
         profile.gpu_threshold(),
     )));
+    let workers = (profile.cpu_workers() / 2).max(1);
 
     // spawn CPU workers
-    for i in 0..profile.cpu_workers() {
+    for i in 0..workers {
         let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
         let sched = scheduler.clone();
         let rx = decomp_rx.clone();
@@ -135,9 +140,10 @@ pub fn spawn_decompression_workers_scoped<'scope>(
         profile.gpu_workers(),
         profile.gpu_threshold(),
     )));
+    let workers = (profile.cpu_workers() / 2).max(1);
 
     // spawn CPU workers
-    for i in 0..profile.cpu_workers() {
+    for i in 0..workers {
         let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
         let sched = scheduler.clone();
         let rx = decomp_rx.clone();
@@ -158,3 +164,4 @@ pub fn spawn_decompression_workers_scoped<'scope>(
         });
     }
 }
+

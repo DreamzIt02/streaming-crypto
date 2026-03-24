@@ -1,3 +1,5 @@
+// ## 📦 `src/stream_v2/frame_worker/mod.rs`
+
 //! Frame-level workers for stream_v2.
 //!
 //! Responsibilities:
@@ -16,6 +18,14 @@
 pub mod types;
 pub mod encrypt;
 pub mod decrypt;
+
+pub use encrypt:: {
+    EncryptFrameWorker1,
+};
+
+pub use decrypt:: {
+    DecryptFrameWorker1,
+};
 
 pub use types::{
     FrameInput,

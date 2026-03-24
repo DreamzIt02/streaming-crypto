@@ -1,5 +1,7 @@
 
 
+use std::fmt;
+use std::ops::Deref;
 use std::future::Future;
 use std::pin::Pin;
 
@@ -9,6 +11,37 @@ use crate::{
     }, 
     stream_v2::core::MasterKey
 };
+
+#[derive(Debug, PartialEq)]
+pub enum ApiVersion {
+    V2,
+    V3,
+}
+
+impl ApiVersion {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            ApiVersion::V2 => "v2",
+            ApiVersion::V3 => "v3",
+        }
+    }
+}
+
+// Deref makes the enum act like &str
+impl Deref for ApiVersion {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.as_str()
+    }
+}
+
+impl fmt::Display for ApiVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 
 // Sync benchmarks
 pub fn run_sync_benchmarks(_master_key: &MasterKey) -> Vec<BenchmarkResult> {
@@ -30,7 +63,8 @@ pub type BenchFuture =
     Pin<Box<dyn Future<Output = Vec<BenchmarkResult>> + Send>>;
 
 // Main orchestration
-pub fn bench_v2_main(
+pub fn bench_main(
+    api: ApiVersion,
     sync_benchmark_fn: Option<Box<dyn Fn() -> Vec<BenchmarkResult>>>,
     async_benchmark_fn: Option<Box<dyn Fn() -> BenchFuture + Send>>,
 ) {
@@ -63,11 +97,11 @@ pub fn bench_v2_main(
     
     all_results.extend(async_results);
 
-    save_json(&all_results, None, "results_v2".into());
+    save_json(&all_results, None, Some(format!("results_{}", api).as_str()));
 }
 
 // ### 🔑 Key Notes
 // - `BenchmarkResult` is a placeholder; adapt fields to our actual benchmark struct.
 // - `run_sync_benchmarks` and `run_async_benchmarks` currently return empty vectors — we’ll plug in our real benchmark logic.
-// - `bench_v3_main` orchestrates sync and async runs, prints results, and saves JSON.
+// - `bench_main` orchestrates sync and async runs, prints results, and saves JSON.
 // - Uses `tokio::Runtime::block_on` to run async benchmarks inside a sync context, just like Python’s `asyncio.run`.

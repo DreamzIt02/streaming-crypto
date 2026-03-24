@@ -94,7 +94,7 @@ let (comp_tx, comp_rx) = bounded::<EncryptSegmentInput>(profile.inflight_segment
 let (seg_tx, seg_rx) = bounded::<EncryptSegmentInput>(profile.inflight_segments());
 
 // spawn CPU compression workers
-for _ in 0..profile.cpu_workers() {
+for _ in 0..workers {
     let backend = Arc::new(CpuCompressionBackend::new(codec_id, level, dict)?);
     let sched = scheduler.clone();
     let rx = comp_rx.clone();
