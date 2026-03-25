@@ -1,5 +1,4 @@
 
-use chrono::{Utc};
 use rand::Rng; // bring the Rng trait into scope
 use rand::RngCore;
 use std::fs::File;
@@ -11,8 +10,61 @@ use std::path::PathBuf;
 use sysinfo::{System, ProcessesToUpdate}; // only these are needed
 use async_stream::stream;
 use futures::Stream;
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::process;
+use std::fmt;
 
 use crate::stream_v2::core::MasterKey;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Uuid([u8; 16]);
+
+impl Uuid {
+    /// Generate a UUID v1-like (timestamp + PID based)
+    pub fn v1() -> Self {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let pid = process::id() as u128;
+
+        let mixed = nanos ^ pid as u128;
+        Uuid(mixed.to_le_bytes())
+    }
+
+    /// Generate a UUID v4 (random)
+    pub fn v4() -> Self {
+        let mut rng = rand::thread_rng();
+        let mut bytes: [u8; 16] = rng.gen();
+
+        // Set version (UUID v4)
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        // Set variant (RFC 4122)
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+        Uuid(bytes)
+    }
+
+    /// Convert to canonical UUID string
+    pub fn to_string(&self) -> String {
+        let b = &self.0;
+        format!(
+            "{:08x}-{:04x}-{:04x}-{:04x}-{:04x}{:08x}",
+            u32::from_be_bytes([b[0], b[1], b[2], b[3]]),
+            u16::from_be_bytes([b[4], b[5]]),
+            u16::from_be_bytes([b[6], b[7]]),
+            u16::from_be_bytes([b[8], b[9]]),
+            u16::from_be_bytes([b[10], b[11]]),
+            u32::from_be_bytes([b[12], b[13], b[14], b[15]])
+        )
+    }
+}
+
+impl fmt::Display for Uuid {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
 
 pub fn dummy_master_key() -> MasterKey {
     MasterKey::new(vec![0x11u8; 32]) // valid 32-byte key
@@ -20,7 +72,7 @@ pub fn dummy_master_key() -> MasterKey {
 
 /// Timestamp in ISO8601 UTC
 pub fn get_timestamp() -> String {
-    Utc::now().to_rfc3339()
+    chrono::Utc::now().to_rfc3339()
 }
 
 /// Random bytes

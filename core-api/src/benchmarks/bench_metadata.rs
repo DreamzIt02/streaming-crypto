@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use std::process::Command;
-use uuid::Uuid;
 use sysinfo::{System, Disks, get_current_pid}; // only these are needed
+
+use crate::benchmarks::bench_utils::{Uuid, get_timestamp};
 
 /// Safe helpers
 
@@ -183,11 +184,9 @@ pub fn collect_metadata() -> HashMap<String, serde_json::Value> {
     let mut map = HashMap::new();
     map.insert("schema_version".to_string(), serde_json::json!("2.0"));
     map.insert("benchmark_version".to_string(), serde_json::json!("1.0"));
-    map.insert("run_id".to_string(), serde_json::json!(Uuid::new_v4().to_string()));
-    map.insert(
-        "timestamp".to_string(),
-        serde_json::json!(chrono::Utc::now().to_rfc3339()),
-    );
+    map.insert("run_id".to_string(), serde_json::json!(Uuid::v1().to_string()));
+    map.insert("run_id".to_string(), serde_json::json!(Uuid::v1().to_string()));
+    map.insert("timestamp".to_string(), serde_json::json!(get_timestamp()));
 
     map.insert("system".to_string(), serde_json::json!(collect_system_metadata(&sys)));
     map.insert("cpu".to_string(), serde_json::json!(collect_cpu_metadata(&sys)));

@@ -9,11 +9,11 @@ mod tests {
 
     use streaming_crypto::{PyHeaderV1, PyCompressionCodec, PyAlgProfile, PyCipherSuite, PyHkdfPrf, PyStrategy, PyAadDomain};
     use streaming_crypto::{reset_copy_counters, get_output_copies, get_input_copies};
-    use streaming_crypto::ffi_api::py_encrypt_stream_v2;
-    use streaming_crypto::ffi_api::py_decrypt_stream_v2;
-    use streaming_crypto::ffi_api::PyApiConfig;
-    use streaming_crypto::ffi_api::PyDecryptParams;
-    use streaming_crypto::ffi_api::PyEncryptParams;
+    use streaming_crypto::api::py_encrypt_stream_v2;
+    use streaming_crypto::api::py_decrypt_stream_v2;
+    use streaming_crypto::api::PyApiConfig;
+    use streaming_crypto::api::PyDecryptParams;
+    use streaming_crypto::api::PyEncryptParams;
 
     #[test]
     fn test_encrypt_py_wrapper() {

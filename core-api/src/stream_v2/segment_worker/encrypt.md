@@ -257,7 +257,6 @@ This implementation achieves:
 
 * Zero‑copy plaintext via mmap / file‑backed Bytes
 * SIMD digest acceleration
-* Adaptive frame sizing
 
 But **no architectural flaws remain**.
 

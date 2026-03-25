@@ -691,9 +691,3 @@ Rust Vec<u8>  ──►  PyBytes::new_bound()  ──►  Python heap
 For `File` and `Writer` output — which is the right choice for large data — **zero copies cross the boundary at any point in the pipeline**.
 
 ---
-
-💡 TODO:
-
-- **remove **2 trait object allocations**
-- **improve throughput **15-25%**
-- **make the pipeline **fully streaming-safe for Python + Rust**.

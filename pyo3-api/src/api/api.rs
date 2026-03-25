@@ -6,27 +6,12 @@ use core_api::crypto::DigestAlg;
 use core_api::parallelism::ParallelismConfig;
 use pyo3::prelude::*;
 use pyo3::types::{PyByteArray, PyBytes};
-use pyo3::{Bound, PyObject, PyResult, Python, pyfunction, pymodule, 
-    types::{PyModule, PyModuleMethods}, wrap_pyfunction};
+use pyo3::{PyObject, PyResult, Python, pyfunction};
 
 use core_api::stream_v2::{ApiConfig, DecryptParams, EncryptParams, MasterKey, decrypt_stream_v2, encrypt_stream_v2};
 use crate::api::api_io::{classify_py_io, to_core_input, to_core_output};
 use crate::{PyDigestAlg, PyInputSource, PyParallelismConfig, PyStreamError};
 use crate::{headers::PyHeaderV1, telemetry::PyTelemetrySnapshot};
-
-#[pymodule(name = "api")]
-pub fn register_api(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // Register class
-    m.add_class::<PyEncryptParams>()?;
-    m.add_class::<PyDecryptParams>()?;
-    m.add_class::<PyApiConfig>()?;
-
-    // Register func
-    m.add_function(wrap_pyfunction!(py_encrypt_stream_v2, m)?)?;
-    m.add_function(wrap_pyfunction!(py_decrypt_stream_v2, m)?)?;
-
-    Ok(())
-}
 
 #[pyclass(name = "EncryptParams")]
 #[derive(Clone, Debug)]

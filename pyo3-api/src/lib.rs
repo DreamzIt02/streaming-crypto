@@ -31,7 +31,7 @@ thread_local! {
     pub static OUTPUT_COPIES: Cell<usize> = Cell::new(0);
 }
 
-// Helper accessors used by ffi_api and telemetry
+// Helper accessors used by pyo3_api and telemetry
 pub fn increment_input_copies() {
     INPUT_COPIES.with(|c| c.set(c.get() + 1));
 }

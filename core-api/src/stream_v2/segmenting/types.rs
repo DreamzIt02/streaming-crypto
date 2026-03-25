@@ -7,7 +7,6 @@ use crc32fast::Hasher;
 
 use crate::utils::{ChecksumAlg, compute_checksum};
 
-// FIXME: try alternative fix instead of bitflags
 bitflags::bitflags! {
     /// ## 🚩 Segment flags (explicit, extensible)
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]

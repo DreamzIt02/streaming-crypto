@@ -1,5 +1,4 @@
 
-use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::fs;
 use std::path::{PathBuf};
@@ -77,7 +76,7 @@ pub fn save_json(results: &[BenchmarkResult], file_name: Option<&str>, folder_na
 
     // File name
     let file_name = file_name.map(|s| s.to_string()).unwrap_or_else(|| {
-        let timestamp: DateTime<Utc> = Utc::now();
+        let timestamp = chrono::Utc::now();
         format!("benchmark_{}.json", timestamp.format("%Y%m%d_%H%M%S"))
     });
 
