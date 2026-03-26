@@ -124,35 +124,70 @@ pub fn process_encrypt_segment_1(
         frame_count
     );
 
+    // while received < frame_count {
+    //     // Check for cancellation during collection
+    //     if cancelled.load(Ordering::Relaxed) {
+    //         return Err(SegmentWorkerError::FrameWorkerError(
+    //             FrameWorkerError::WorkerDisconnected,
+    //         ));
+    //     }
+
+    //     match out_rx.recv() {
+    //         Ok(Ok(frame)) => {
+    //             let idx = frame.frame_index;
+    //             received += 1;
+    //             debug!(
+    //                 "[ENCRYPT SEGMENT] {} received frame {} (type {:?})",
+    //                 frame.segment_index, idx, frame.frame_type
+    //             );
+
+    //             // Merge frame telemetry
+    //             stage_times.merge(&frame.stage_times);
+    //             // data_frames.push(frame);
+    //             data_frames[idx as usize] = frame;
+    //         }
+    //         Ok(Err(e)) => {
+    //             // Frame worker returned an error
+    //             return Err(e.into());
+    //         }
+    //         Err(e) => {
+    //             // Frame output channel closed unexpectedly
+    //             return Err(SegmentWorkerError::StateError(e.to_string()));
+    //         }
+    //     }
+    // }
     while received < frame_count {
-        // Check for cancellation during collection
-        if cancelled.load(Ordering::Relaxed) {
-            return Err(SegmentWorkerError::FrameWorkerError(
-                FrameWorkerError::WorkerDisconnected,
-            ));
-        }
+        crossbeam::select! {
+            recv(out_rx) -> result => {
+                match result {
+                    Ok(Ok(frame)) => {
+                        let idx = frame.frame_index;
+                        received += 1;
+                        debug!(
+                            "[ENCRYPT SEGMENT] {} received frame {} (type {:?})",
+                            frame.segment_index, idx, frame.frame_type
+                        );
 
-        match out_rx.recv() {
-            Ok(Ok(frame)) => {
-                let idx = frame.frame_index;
-                received += 1;
-                debug!(
-                    "[ENCRYPT SEGMENT] {} received frame {} (type {:?})",
-                    frame.segment_index, idx, frame.frame_type
-                );
-
-                // Merge frame telemetry
-                stage_times.merge(&frame.stage_times);
-                // data_frames.push(frame);
-                data_frames[idx as usize] = frame;
+                        // Merge frame telemetry
+                        stage_times.merge(&frame.stage_times);
+                        // data_frames.push(frame);
+                        data_frames[idx as usize] = frame;
+                    }
+                    Ok(Err(e)) => {
+                        // Frame worker returned an error
+                        return Err(e.into());
+                    }
+                    Err(e) => {
+                        // Frame output channel closed unexpectedly
+                        return Err(SegmentWorkerError::StateError(e.to_string()));
+                    }
+                }
             }
-            Ok(Err(e)) => {
-                // Frame worker returned an error
-                return Err(e.into());
-            }
-            Err(e) => {
-                // Frame output channel closed unexpectedly
-                return Err(SegmentWorkerError::StateError(e.to_string()));
+            default(std::time::Duration::from_millis(10)) => {
+                // Check for cancellation during collection
+                if cancelled.load(Ordering::Relaxed) {
+                    return Err(SegmentWorkerError::FrameWorkerError(FrameWorkerError::WorkerDisconnected,));
+                }
             }
         }
     }
@@ -203,10 +238,19 @@ pub fn process_encrypt_segment_1(
             SegmentWorkerError::StateError(e.to_string())
         })?;
 
-    let digest_frame = match out_rx.recv() {
-        Ok(Ok(frame)) => frame,
-        Ok(Err(e)) => return Err(e.into()),
-        Err(e) => return Err(SegmentWorkerError::StateError(e.to_string()))
+    // let digest_frame = match out_rx.recv() {
+    //     Ok(Ok(frame)) => frame,
+    //     Ok(Err(e)) => return Err(e.into()),
+    //     Err(e) => return Err(SegmentWorkerError::StateError(e.to_string()))
+    // };
+    let digest_frame = crossbeam::select! {
+        recv(out_rx) -> result => {
+            match result {
+                Ok(Ok(frame)) => frame,
+                Ok(Err(e)) => return Err(e.into()),
+                Err(e) => return Err(SegmentWorkerError::StateError(e.to_string()))
+            }
+        }
     };
 
     debug!(
@@ -229,10 +273,14 @@ pub fn process_encrypt_segment_1(
             SegmentWorkerError::StateError(e.to_string())
         })?;
 
-    let terminator_frame = match out_rx.recv() {
-        Ok(Ok(frame)) => frame,
-        Ok(Err(e)) => return Err(e.into()),
-        Err(e) => return Err(SegmentWorkerError::StateError(e.to_string())),
+    let terminator_frame = crossbeam::select! {
+        recv(out_rx) -> result => {
+            match result {
+                Ok(Ok(frame)) => frame,
+                Ok(Err(e)) => return Err(e.into()),
+                Err(e) => return Err(SegmentWorkerError::StateError(e.to_string())),
+            }
+        }
     };
 
     debug!(

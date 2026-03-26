@@ -153,56 +153,112 @@ pub fn process_decrypt_segment_1(
         frame_count
     );
 
+    // while received < frame_count {
+    //     // Check for cancellation during collection
+    //     if cancelled.load(Ordering::Relaxed) {
+    //         return Err(SegmentWorkerError::FrameWorkerError(
+    //             FrameWorkerError::WorkerDisconnected,
+    //         ));
+    //     }
+
+    //     match out_rx.recv() {
+    //         Ok(Ok(frame)) => {
+    //             let idx = frame.frame_index;
+    //             received += 1;
+    //             debug!(
+    //                 "[DECRYPT SEGMENT] {} received frame {} (type {:?})",
+    //                 frame.segment_index, frame.frame_index, frame.frame_type
+    //             );
+
+    //             // Merge frame telemetry
+    //             stage_times.merge(&frame.stage_times);
+
+    //             // Categorize frame by type
+    //             match frame.frame_type {
+    //                 FrameType::Data => data_frames[idx as usize] = frame, //data_frames.push(frame),
+    //                 FrameType::Digest => {
+    //                     if digest_frame.is_some() {
+    //                         return Err(SegmentWorkerError::InvalidSegment(
+    //                             "Multiple digest frames detected".into(),
+    //                         ));
+    //                     }
+    //                     digest_frame = Some(frame);
+    //                 }
+    //                 FrameType::Terminator => {
+    //                     if terminator_frame.is_some() {
+    //                         return Err(SegmentWorkerError::InvalidSegment(
+    //                             "Multiple terminator frames detected".into(),
+    //                         ));
+    //                     }
+    //                     terminator_frame = Some(frame);
+    //                 }
+    //             }
+    //         }
+    //         Ok(Err(e)) => {
+    //             // Frame worker returned an error
+    //             error!("[DECRYPT SEGMENT] frame worker error: {:?}", e);
+    //             return Err(e.into());
+    //         }
+    //         Err(e) => {
+    //             // Frame output channel closed unexpectedly
+    //             error!("[DECRYPT SEGMENT] frame worker channel disconnected");
+    //             return Err(SegmentWorkerError::StateError(e.to_string()));
+    //         }
+    //     }
+    // }
     while received < frame_count {
-        // Check for cancellation during collection
-        if cancelled.load(Ordering::Relaxed) {
-            return Err(SegmentWorkerError::FrameWorkerError(
-                FrameWorkerError::WorkerDisconnected,
-            ));
-        }
+        crossbeam::select! {
+            recv(out_rx) -> result => {
+                match result {
+                    Ok(Ok(frame)) => {
+                        let idx = frame.frame_index;
+                        received += 1;
+                        debug!(
+                            "[DECRYPT SEGMENT] {} received frame {} (type {:?})",
+                            frame.segment_index, frame.frame_index, frame.frame_type
+                        );
 
-        match out_rx.recv() {
-            Ok(Ok(frame)) => {
-                let idx = frame.frame_index;
-                received += 1;
-                debug!(
-                    "[DECRYPT SEGMENT] {} received frame {} (type {:?})",
-                    frame.segment_index, frame.frame_index, frame.frame_type
-                );
+                        // Merge frame telemetry
+                        stage_times.merge(&frame.stage_times);
 
-                // Merge frame telemetry
-                stage_times.merge(&frame.stage_times);
-
-                // Categorize frame by type
-                match frame.frame_type {
-                    FrameType::Data => data_frames[idx as usize] = frame, //data_frames.push(frame),
-                    FrameType::Digest => {
-                        if digest_frame.is_some() {
-                            return Err(SegmentWorkerError::InvalidSegment(
-                                "Multiple digest frames detected".into(),
-                            ));
+                        // Categorize frame by type
+                        match frame.frame_type {
+                            FrameType::Data => data_frames[idx as usize] = frame, //data_frames.push(frame),
+                            FrameType::Digest => {
+                                if digest_frame.is_some() {
+                                    return Err(SegmentWorkerError::InvalidSegment(
+                                        "Multiple digest frames detected".into(),
+                                    ));
+                                }
+                                digest_frame = Some(frame);
+                            }
+                            FrameType::Terminator => {
+                                if terminator_frame.is_some() {
+                                    return Err(SegmentWorkerError::InvalidSegment(
+                                        "Multiple terminator frames detected".into(),
+                                    ));
+                                }
+                                terminator_frame = Some(frame);
+                            }
                         }
-                        digest_frame = Some(frame);
                     }
-                    FrameType::Terminator => {
-                        if terminator_frame.is_some() {
-                            return Err(SegmentWorkerError::InvalidSegment(
-                                "Multiple terminator frames detected".into(),
-                            ));
-                        }
-                        terminator_frame = Some(frame);
+                    Ok(Err(e)) => {
+                        // Frame worker returned an error
+                        error!("[DECRYPT SEGMENT] frame worker error: {:?}", e);
+                        return Err(e.into());
+                    }
+                    Err(e) => {
+                        // Frame output channel closed unexpectedly
+                        error!("[DECRYPT SEGMENT] frame worker channel disconnected");
+                        return Err(SegmentWorkerError::StateError(e.to_string()));
                     }
                 }
             }
-            Ok(Err(e)) => {
-                // Frame worker returned an error
-                error!("[DECRYPT SEGMENT] frame worker error: {:?}", e);
-                return Err(e.into());
-            }
-            Err(e) => {
-                // Frame output channel closed unexpectedly
-                error!("[DECRYPT SEGMENT] frame worker channel disconnected");
-                return Err(SegmentWorkerError::StateError(e.to_string()));
+            default(std::time::Duration::from_millis(10)) => {
+                // Check for cancellation during collection
+                if cancelled.load(Ordering::Relaxed) {
+                    return Err(SegmentWorkerError::FrameWorkerError(FrameWorkerError::WorkerDisconnected,));
+                }
             }
         }
     }
@@ -253,7 +309,7 @@ pub fn process_decrypt_segment_1(
         segment_index
     );
 
-    // Update verifier with all frame ciphertexts
+    // Update verifier with all frame ciphertext
     for frame in &data_frames {
         // Track overhead: frame header
         counters.bytes_overhead += FrameHeader::LEN as u64;

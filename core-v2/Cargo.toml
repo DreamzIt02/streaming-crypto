@@ -1,0 +1,153 @@
+[package]
+name    = "core-v2"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+default     = []
+benchmarks  = []
+
+[dependencies]
+core-api = { path = "../core-api" }
+
+# Concurrency (core-safe)
+crossbeam.workspace = true
+
+# Utilities
+bytes.workspace         = true
+paste.workspace         = true
+rand.workspace          = true
+tracing.workspace       = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+# 📦 Property‑Based Tests
+criterion.workspace = true
+proptest.workspace  = true
+tempfile.workspace  = true
+
+# 📦 Public API Tests
+[[test]]
+name = "v2_public"
+path = "tests/v2_public/mod.rs"
+[[test]]
+name = "v2_public_api"
+path = "tests/v2_public/test_public_api.rs"
+[[test]]
+name = "v2_roundtrip"
+path = "tests/v2_public/test_roundtrip.rs"
+[[test]]
+name = "v2_input_variants"
+path = "tests/v2_public/test_input_variants.rs"
+[[test]]
+name = "v2_output_variants"
+path = "tests/v2_public/test_output_variants.rs"
+[[test]]
+name = "v2_header_meta"
+path = "tests/v2_public/test_header_meta.rs"
+[[test]]
+name = "v2_corrupt_detection"
+path = "tests/v2_public/test_corrupt_detection.rs"
+[[test]]
+name = "v2_parallelism_profiles"
+path = "tests/v2_public/test_parallelism_profiles.rs"
+[[test]]
+name = "v2_telemetry_config"
+path = "tests/v2_public/test_telemetry_config.rs"
+[[test]]
+name = "v2_compression_cipher_variants"
+path = "tests/v2_public/test_compression_cipher_variants.rs"
+
+# 📦 API v2 Tests
+[[test]]
+name = "v2_api"
+path = "tests/v2/mod.rs"
+
+[[test]]
+name = "v2_frame_worker"
+path = "tests/v2/test_frame_worker.rs"
+
+[[test]]
+name = "v2_worker"
+path = "tests/v2/test_worker.rs"
+
+[[test]]
+name = "v2_segment_worker"
+path = "tests/v2/test_segment_worker.rs"
+
+[[test]]
+name = "v2_segment_worker_counters"
+path = "tests/v2/test_segment_worker_counters.rs"
+
+[[test]]
+name = "v2_segment_performance"
+path = "tests/v2/test_segment_performance.rs"
+
+[[test]]
+name = "v2_telemetry_segment"
+path = "tests/v2/test_telemetry_segment.rs"
+
+[[test]]
+name = "v2_pipeline"
+path = "tests/v2/test_pipeline.rs"
+
+[[test]]
+name = "v2_telemetry_pipeline"
+path = "tests/v2/test_telemetry_pipeline.rs"
+
+[[test]]
+name = "v2_core"
+path = "tests/v2/test_core.rs"
+
+[[bench]]
+name = "bench_aead_variants"
+harness = false
+
+[[bench]]
+name = "bench_frame_worker"
+harness = false
+
+[[bench]]
+name = "bench_frame_workers"
+harness = false
+
+[[bench]]
+name = "bench_segment_workers"
+harness = false
+
+[[bench]]
+name = "bench_io_throughput"
+harness = false
+
+[[bench]]
+name = "bench_parallelism"
+harness = false
+
+[[bench]]
+name = "bench_segment_sizes"
+harness = false
+
+[[bench]]
+name = "bench_digest_variants"
+harness = false
+
+[[bench]]
+name = "bench_memory_2_memory"
+harness = false
+
+[[bench]]
+name = "bench_file_2_file"
+harness = false
+
+[[example]]
+name = "v2-bench_memory"
+path = "examples/v2/bench_memory.rs"
+
+[[example]]
+name = "v2-bench_file"
+path = "examples/v2/bench_file.rs"
+
+[[example]]
+name = "v2-bench_reader"
+path = "examples/v2/bench_reader.rs"

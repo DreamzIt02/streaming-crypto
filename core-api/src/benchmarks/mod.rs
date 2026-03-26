@@ -7,9 +7,6 @@ pub mod bench_persists;
 pub mod bench_runner;
 
 pub mod v2;
-pub mod v3;
 
 #[cfg(feature = "benchmarks")]
 pub use v2::*;
-#[cfg(feature = "benchmarks")]
-pub use v3::*;

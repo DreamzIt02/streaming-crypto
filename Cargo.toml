@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "core-api",
+    "core-api", "core-v2", "core-v3",
     "ffi-api",
     "pyo3-api",
     "streaming-crypto"

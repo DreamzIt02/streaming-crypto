@@ -6,7 +6,7 @@ use std::time::Instant;
 
 use bytes::{Bytes, BytesMut};
 use crossbeam::channel::{Receiver, Sender};
-use tracing::{debug, error};
+use tracing::{error, info, warn};
 
 use crate::{
     crypto::{AadHeader, AeadImpl, build_aad, derive_nonce_12_tls_style}, 
@@ -63,7 +63,7 @@ impl DecryptFrameWorker1 {
     /// - `wire` bytes are moved (not copied) into the output frame
     /// - Ciphertext is referenced via range (zero-copy)
     /// - Only plaintext is allocated as new memory (crypto requirement)
-    pub fn decrypt_frame(&self, wire: Bytes) -> Result<DecryptedFrame, FrameWorkerError> {
+    pub fn decrypt_frame(&self, wire: &Bytes) -> Result<DecryptedFrame, FrameWorkerError> {
         let mut stage_times = StageTimes::default();
 
         // ---- Stage 1: Frame header parsing ----
@@ -199,60 +199,114 @@ impl DecryptFrameWorker1 {
     ) {
         // explicitly set DEBUG level
         tracing_logger(Some(tracing::Level::DEBUG));
-        // Remove thread::spawn - we're already spawned in run_v1
-        // std::thread::spawn(move || {
-            loop {
-                // Check for cancellation before blocking on receive
-                if self.cancelled.load(Ordering::Relaxed) {
-                    error!("[DECRYPT FRAME WORKER] cancelled, exiting");
-                    break;
-                }
 
-                // Receive next encrypted frame (blocks until available or channel closes)
-                let wire = match rx.recv() {
-                    Ok(wire) => wire,
-                    Err(_) => {
-                        // Channel closed normally - all frames processed
-                        debug!("[DECRYPT FRAME WORKER] rx closed, exiting");
-                        break;
-                    }
-                };
+        info!("[DECRYPT FRAME WORKER] init, starting");
+        // loop {
+        //     // Check for cancellation before blocking on receive
+        //     if self.cancelled.load(Ordering::Relaxed) {
+        //         error!("[DECRYPT FRAME WORKER] cancelled, exiting");
+        //         break;
+        //     }
 
-                // Process the encrypted frame
-                match self.decrypt_frame(wire) {
-                    Ok(frame) => {
-                        // Send decrypted frame to output
-                        if let Err(e) = tx.send(Ok(frame)) {
-                            // Output channel closed unexpectedly - pipeline is shutting down
-                            error!(
-                                "[DECRYPT FRAME WORKER] tx send failed, receiver disconnected"
-                            );
-                            let _ = self.fatal_tx.send(StreamError::FrameWorker(
-                                FrameWorkerError::StateError(e.to_string()),
-                            ));
-                            self.cancelled.store(true, Ordering::Relaxed);
-                            break;
+        //     // Receive next encrypted frame (blocks until available or channel closes)
+        //     let wire = match rx.recv() {
+        //         Ok(wire) => wire,
+        //         Err(_) => {
+        //             // Channel closed normally - all frames processed
+        //             debug!("[DECRYPT FRAME WORKER] rx closed, exiting");
+        //             break;
+        //         }
+        //     };
+
+        //     // Process the encrypted frame
+        //     match self.decrypt_frame(wire) {
+        //         Ok(frame) => {
+        //             // Send decrypted frame to output
+        //             if let Err(e) = tx.send(Ok(frame)) {
+        //                 // Output channel closed unexpectedly - pipeline is shutting down
+        //                 error!(
+        //                     "[DECRYPT FRAME WORKER] tx send failed, receiver disconnected"
+        //                 );
+        //                 let _ = self.fatal_tx.send(StreamError::FrameWorker(
+        //                     FrameWorkerError::StateError(e.to_string()),
+        //                 ));
+        //                 self.cancelled.store(true, Ordering::Relaxed);
+        //                 break;
+        //             }
+        //         }
+        //         Err(e) => {
+        //             // Decryption failed - this is a fatal error
+        //             error!("[DECRYPT FRAME WORKER] decryption error: {:?}", e);
+
+        //             // Try to send error to output (best effort)
+        //             let _ = tx.send(Err(e.clone()));
+
+        //             // Signal fatal error to pipeline monitor
+        //             let _ = self.fatal_tx.send(StreamError::FrameWorker(e));
+
+        //             // Set cancellation flag to stop other workers
+        //             self.cancelled.store(true, Ordering::Relaxed);
+        //             break;
+        //         }
+        //     }
+        // }
+        loop {
+            crossbeam::select! {
+                recv(rx) -> msg => {
+                    match msg {
+                        Ok(input) => {
+                            // Check for cancellation before blocking on receive
+                            if self.cancelled.load(Ordering::Relaxed) {
+                                error!("[DECRYPT FRAME WORKER] cancelled, exiting");
+                                break;
+                            }
+
+                            // Process the encrypted frame
+                            match self.decrypt_frame(&input) {
+                                Ok(frame) => {
+                                    // Send decrypted frame to output
+                                    if let Err(e) = tx.send(Ok(frame)) {
+                                        // Output channel closed unexpectedly - pipeline is shutting down
+                                        error!(
+                                            "[DECRYPT FRAME WORKER] tx send failed, receiver disconnected"
+                                        );
+                                        let _ = self.fatal_tx.send(StreamError::FrameWorker(
+                                            FrameWorkerError::StateError(e.to_string()),
+                                        ));
+                                        self.cancelled.store(true, Ordering::Relaxed);
+                                        break;
+                                    }
+                                }
+                                Err(e) => {
+                                    // Decryption failed - this is a fatal error
+                                    error!("[DECRYPT FRAME WORKER] decryption error: {:?}", e);
+
+                                    // Try to send error to output (best effort)
+                                    let _ = tx.send(Err(e.clone()));
+
+                                    // Signal fatal error to pipeline monitor
+                                    let _ = self.fatal_tx.send(StreamError::FrameWorker(e));
+
+                                    // Set cancellation flag to stop other workers
+                                    self.cancelled.store(true, Ordering::Relaxed);
+                                    break;
+                                }
+                            }
                         }
+                        Err(_) => break, // channel closed
                     }
-                    Err(e) => {
-                        // Decryption failed - this is a fatal error
-                        error!("[DECRYPT FRAME WORKER] decryption error: {:?}", e);
-
-                        // Try to send error to output (best effort)
-                        let _ = tx.send(Err(e.clone()));
-
-                        // Signal fatal error to pipeline monitor
-                        let _ = self.fatal_tx.send(StreamError::FrameWorker(e));
-
-                        // Set cancellation flag to stop other workers
-                        self.cancelled.store(true, Ordering::Relaxed);
+                }
+                default(std::time::Duration::from_millis(10)) => {
+                    // 🔥 THIS is the real cancellation path
+                    if self.cancelled.load(Ordering::Relaxed) {
+                        error!("[ENCRYPT FRAME WORKER] cancelled (timeout path), exiting");
                         break;
                     }
                 }
             }
+        }
 
-            debug!("[DECRYPT FRAME WORKER] thread exiting");
-        // });
+        warn!("[DECRYPT FRAME WORKER] thread exiting");
     }
 
 }

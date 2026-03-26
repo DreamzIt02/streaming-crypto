@@ -3,7 +3,7 @@
 use std::{sync::{Arc, atomic::{AtomicBool, Ordering}}, time::Instant};
 use bytes::{Bytes, BytesMut};
 use crossbeam::channel::{Receiver, Sender};
-use tracing::{debug, error};
+use tracing::{error, info, warn};
 
 use crate::{
     crypto::{AadHeader, AeadImpl, build_aad, derive_nonce_12_tls_style}, headers::HeaderV1, 
@@ -198,58 +198,110 @@ impl EncryptFrameWorker1 {
     ) {
         // explicitly set DEBUG level
         tracing_logger(Some(tracing::Level::DEBUG));
-        // Remove thread::spawn - we're already spawned in run_v1
-        // std::thread::spawn(move || {
-            loop {
-                // Check for cancellation before blocking on receive
-                if self.cancelled.load(Ordering::Relaxed) {
-                    error!("[FRAME WORKER] cancelled, exiting");
-                    break;
-                }
 
-                // Receive next frame input (blocks until available or channel closes)
-                let input = match rx.recv() {
-                    Ok(input) => input,
-                    Err(_) => {
-                        // Channel closed normally - all frames processed
-                        debug!("[FRAME WORKER] rx closed, exiting");
-                        break;
-                    }
-                };
+        info!("[ENCRYPT FRAME WORKER] init, starting");
+        // loop {
+        //     // Check for cancellation before blocking on receive
+        //     if self.cancelled.load(Ordering::Relaxed) {
+        //         error!("[ENCRYPT FRAME WORKER] cancelled, exiting");
+        //         break;
+        //     }
 
-                // Process the frame
-                match self.encrypt_frame(&input) {
-                    Ok(frame) => {
-                        // Send encrypted frame to output
-                        if let Err(e) = tx.send(Ok(frame)) {
-                            // Output channel closed unexpectedly - pipeline is shutting down
-                            error!("[FRAME WORKER] tx send failed, receiver disconnected");
-                            let _ = self.fatal_tx.send(StreamError::FrameWorker(
-                                FrameWorkerError::StateError(e.to_string()),
-                            ));
-                            self.cancelled.store(true, Ordering::Relaxed);
-                            break;
+        //     // Receive next frame input (blocks until available or channel closes)
+        //     let input = match rx.recv() {
+        //         Ok(input) => input,
+        //         Err(_) => {
+        //             // Channel closed normally - all frames processed
+        //             debug!("[ENCRYPT FRAME WORKER] rx closed, exiting");
+        //             break;
+        //         }
+        //     };
+
+        //     // Process the frame
+        //     match self.encrypt_frame(&input) {
+        //         Ok(frame) => {
+        //             // Send encrypted frame to output
+        //             if let Err(e) = tx.send(Ok(frame)) {
+        //                 // Output channel closed unexpectedly - pipeline is shutting down
+        //                 error!("[ENCRYPT FRAME WORKER] tx send failed, receiver disconnected");
+        //                 let _ = self.fatal_tx.send(StreamError::FrameWorker(
+        //                     FrameWorkerError::StateError(e.to_string()),
+        //                 ));
+        //                 self.cancelled.store(true, Ordering::Relaxed);
+        //                 break;
+        //             }
+        //         }
+        //         Err(e) => {
+        //             // Encryption failed - this is a fatal error
+        //             error!("[ENCRYPT FRAME WORKER] encryption error: {:?}", e);
+
+        //             // Try to send error to output (best effort)
+        //             let _ = tx.send(Err(e.clone()));
+
+        //             // Signal fatal error to pipeline monitor
+        //             let _ = self.fatal_tx.send(StreamError::FrameWorker(e));
+
+        //             // Set cancellation flag to stop other workers
+        //             self.cancelled.store(true, Ordering::Relaxed);
+        //             break;
+        //         }
+        //     }
+        // }
+        loop {
+            crossbeam::select! {
+                recv(rx) -> msg => {
+                    match msg {
+                        Ok(input) => {
+                            // Check for cancellation before blocking on receive
+                            if self.cancelled.load(Ordering::Relaxed) {
+                                error!("[ENCRYPT FRAME WORKER] cancelled, exiting");
+                                break;
+                            }
+
+                            // Process the frame
+                            match self.encrypt_frame(&input) {
+                                Ok(frame) => {
+                                    // Send encrypted frame to output
+                                    if let Err(e) = tx.send(Ok(frame)) {
+                                        // Output channel closed unexpectedly - pipeline is shutting down
+                                        error!("[ENCRYPT FRAME WORKER] tx send failed, receiver disconnected");
+                                        let _ = self.fatal_tx.send(StreamError::FrameWorker(
+                                            FrameWorkerError::StateError(e.to_string()),
+                                        ));
+                                        self.cancelled.store(true, Ordering::Relaxed);
+                                        break;
+                                    }
+                                }
+                                Err(e) => {
+                                    // Encryption failed - this is a fatal error
+                                    error!("[ENCRYPT FRAME WORKER] encryption error: {:?}", e);
+
+                                    // Try to send error to output (best effort)
+                                    let _ = tx.send(Err(e.clone()));
+
+                                    // Signal fatal error to pipeline monitor
+                                    let _ = self.fatal_tx.send(StreamError::FrameWorker(e));
+
+                                    // Set cancellation flag to stop other workers
+                                    self.cancelled.store(true, Ordering::Relaxed);
+                                    break;
+                                }
+                            }
                         }
+                        Err(_) => break, // channel closed
                     }
-                    Err(e) => {
-                        // Encryption failed - this is a fatal error
-                        error!("[FRAME WORKER] encryption error: {:?}", e);
-
-                        // Try to send error to output (best effort)
-                        let _ = tx.send(Err(e.clone()));
-
-                        // Signal fatal error to pipeline monitor
-                        let _ = self.fatal_tx.send(StreamError::FrameWorker(e));
-
-                        // Set cancellation flag to stop other workers
-                        self.cancelled.store(true, Ordering::Relaxed);
+                }
+                default(std::time::Duration::from_millis(10)) => {
+                    // 🔥 THIS is the real cancellation path
+                    if self.cancelled.load(Ordering::Relaxed) {
+                        error!("[ENCRYPT FRAME WORKER] cancelled (timeout path), exiting");
                         break;
                     }
                 }
             }
+        }
 
-            debug!("[FRAME WORKER] thread exiting");
-        // });
+        warn!("[ENCRYPT FRAME WORKER] thread exiting");
     }
 
 }

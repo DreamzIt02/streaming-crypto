@@ -61,7 +61,7 @@ mod tests {
         let input = sample_input(0, b"hello world");
 
         let encrypted = enc.encrypt_frame(&input).unwrap();
-        let decrypted = dec.decrypt_frame(encrypted.wire.clone()).unwrap();
+        let decrypted = dec.decrypt_frame(&encrypted.wire.clone()).unwrap();
 
         assert_eq!(decrypted.frame_index, 0);
         assert_eq!(&decrypted.plaintext[..], b"hello world");
@@ -98,7 +98,7 @@ mod tests {
         let last = wire.len() - 1;
         wire[last] ^= 0xFF;
 
-        assert!(dec.decrypt_frame(wire.freeze()).is_err());
+        assert!(dec.decrypt_frame(&wire.freeze()).is_err());
     }
 
     // ❌ 4. Wrong key fails
@@ -115,7 +115,7 @@ mod tests {
         let input = sample_input(0, b"secret");
         let encrypted = enc.encrypt_frame(&input).unwrap();
 
-        assert!(dec.decrypt_frame(encrypted.wire).is_err());
+        assert!(dec.decrypt_frame(&encrypted.wire).is_err());
     }
 
     // ❌ 5. Wrong header (salt)
@@ -133,7 +133,7 @@ mod tests {
         let input = sample_input(1, b"oops");
         let encrypted = enc.encrypt_frame(&input).unwrap();
 
-        assert!(dec.decrypt_frame(encrypted.wire).is_err());
+        assert!(dec.decrypt_frame(&encrypted.wire).is_err());
     }
 
     // ✅ 6. DATA frame cannot be empty
@@ -241,7 +241,7 @@ mod tests {
         };
 
         let encrypted = enc.encrypt_frame(&input).unwrap();
-        let decrypted = dec.decrypt_frame(encrypted.wire).unwrap();
+        let decrypted = dec.decrypt_frame(&encrypted.wire).unwrap();
 
         assert_eq!(decrypted.frame_type, FrameType::Digest);
         assert_eq!(&decrypted.plaintext[..], b"done");

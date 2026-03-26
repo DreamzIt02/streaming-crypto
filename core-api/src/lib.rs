@@ -52,7 +52,6 @@ pub mod parallelism;
 
 // Stream layers
 pub mod stream_v2;
-pub mod stream_v3;
 
 // Benchmark shared
 pub mod benchmarks;
@@ -65,4 +64,3 @@ pub mod prelude {
 }
 
 pub use stream_v2::*;
-// pub use stream_v3::*;
