@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [features]
-default     = ["benchmarks"]
+default     = []
 cuda        = ["cudarc"]      # CUDA backend
 metal       = ["wgpu"]        # WGPU backend
 opencl      = ["opencl3"]     # OpenCL backend

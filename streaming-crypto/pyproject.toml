@@ -30,8 +30,8 @@ include = [
     "streaming_crypto/__init__.pyi",
     "streaming_crypto/py.typed",
 
-    "streaming_crypto/api.py",
-    "streaming_crypto/api.pyi",
+    "streaming_crypto/v2.py",
+    "streaming_crypto/v2.pyi",
 
     "streaming_crypto/constants.py",
     "streaming_crypto/constants.pyi",

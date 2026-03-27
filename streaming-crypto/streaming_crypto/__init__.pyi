@@ -5,16 +5,7 @@ from typing import IO, Union
 
 from .errors import StreamError 
 from .telemetry import TelemetrySnapshot
-from .api import (
-    # Params
-    EncryptParams,
-    DecryptParams,
-    ApiConfig,
 
-    # Streaming functions
-    encrypt_stream_v2,
-    decrypt_stream_v2,
-)
 """
 High-performance streaming encryption library powered by Rust.
 
@@ -217,16 +208,9 @@ __all__ = [
     # Params
     "InputSource",
     "OutputSink",
-    "EncryptParams",
-    "DecryptParams",
-    "ApiConfig",
 
     # Telemetry
     "TelemetrySnapshot",
     # Error Types
     "StreamError",
-
-    # Streaming functions
-    "encrypt_stream_v2",
-    "decrypt_stream_v2",
 ]

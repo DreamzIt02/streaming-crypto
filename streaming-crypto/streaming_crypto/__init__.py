@@ -8,20 +8,11 @@ from typing import Union, IO
 from .streaming_crypto import (
     encrypt,
 
-    # Params
-    EncryptParams,
-    DecryptParams,
-    ApiConfig,
-
     # Telemetry
     TelemetrySnapshot,
 
     # Error Types
     StreamError,
-
-    # Streaming functions
-    encrypt_stream_v2,
-    decrypt_stream_v2,
 )
 
 class InputSource:
@@ -202,15 +193,8 @@ __all__ = [
     # Params
     "InputSource", 
     "OutputSink", 
-    "EncryptParams",
-    "DecryptParams",
-    "ApiConfig",
     # Telemetry
     "TelemetrySnapshot",
     # Error Types
     "StreamError",
-
-    # Streaming functions
-    "encrypt_stream_v2",
-    "decrypt_stream_v2",
 ]

@@ -14,7 +14,7 @@ categories  = ["cryptography", "api-bindings"]
 # --- FEATURES DYNAMIC START ---
 # This block will be replaced with Publish Block, content from Cargo.publish.features
 # Any common features for development and publish must be added at the end of this block
-default     = ["pyo3-api"]
+default     = ["core-api"]
 core-api    = ["dep:core-api"]
 ffi-api     = ["dep:ffi-api"]
 pyo3-api    = ["dep:pyo3-api", "pyo3"]
@@ -29,17 +29,6 @@ ffi-api     = { path = "../ffi-api",  optional = true }
 pyo3-api    = { path = "../pyo3-api", optional = true }
 
 pyo3        = { version = "0.22", features = ["auto-initialize"], optional = true }
-
-
-# Concurrency (core-safe)
-crossbeam.workspace = true
-
-# Utilities
-bytes.workspace         = true
-paste.workspace         = true
-rand.workspace          = true
-tracing.workspace       = true
-tracing-subscriber.workspace = true
 
 [dev-dependencies]
 core-api = { path = "../core-api" }
