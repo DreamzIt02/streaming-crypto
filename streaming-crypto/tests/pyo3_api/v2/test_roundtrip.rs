@@ -2,8 +2,6 @@
 #[cfg(feature = "pyo3-api")]
 #[cfg(test)]
 mod tests {
-    use pyo3::prelude::*;
-    use pyo3::Py;
     use pyo3::{Python, IntoPy, types::{PyBytes, PyBytesMethods}};
 
     use core_api::constants::{MAGIC_RSE1, HEADER_V1};

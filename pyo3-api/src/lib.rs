@@ -25,6 +25,8 @@ pub use errors::*;
 pub use parallelism::*;
 pub use crypto::*;
 
+// Stream layers
+pub mod v2;
 
 thread_local! {
     pub static INPUT_COPIES: Cell<usize> = Cell::new(0);
@@ -140,6 +142,12 @@ pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()>
     let sys_modules = py.import_bound("sys")?
         .getattr("modules")?;
 
+    // Register errors
+    errors::register_errors(py, m)?;
+
+    // Register telemetry
+    telemetry::register_telemetry(py, m)?;
+
     // Register constants
     let s = PyModule::new_bound(py, "constants")?;
     constants::register_constants(py, &s)?;
@@ -182,14 +190,11 @@ pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()>
     m.add_submodule(&s)?;
     sys_modules.set_item("streaming_crypto.io", &s)?;
 
-    // Register errors
-    errors::register_errors(py, m)?;
-
-    // Register telemetry
-    telemetry::register_telemetry(py, m)?;
-
-    // Register pyo3 api
-    // api::register_api(py, m)?;
+    // Register pyo3 api (v2)
+    let s = PyModule::new_bound(py, "v2")?;
+    v2::register_api(py, &s)?;
+    m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.v2", &s)?;
 
     // Register public api
     m.add_function(wrap_pyfunction!(encrypt, m)?)?;

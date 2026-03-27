@@ -14,7 +14,7 @@ categories  = ["cryptography", "api-bindings"]
 # --- FEATURES DYNAMIC START ---
 # This block will be replaced with Publish Block, content from Cargo.publish.features
 # Any common features for development and publish must be added at the end of this block
-default     = ["core-api"]
+default     = ["pyo3-api"]
 core-api    = ["dep:core-api"]
 ffi-api     = ["dep:ffi-api"]
 pyo3-api    = ["dep:pyo3-api", "pyo3"]
