@@ -39,8 +39,8 @@ macro_rules! bench_v3_encrypt_memory {
                     comp_name
                 );
 
-                let master_key = &dummy_master_key();
-                let params_enc = EncryptParams { header: dummy_header(chunk_size, compression), dict: None };
+                let master_key = dummy_master_key();
+                let params_enc = EncryptParams { header: dummy_header(chunk_size, compression), dict: None, master_key: master_key };
                 let api_config = ApiConfig::new(Some(true), None, None, Some(parallelism));
 
                 let mem_before = measure_memory_mb();
@@ -48,7 +48,6 @@ macro_rules! bench_v3_encrypt_memory {
                 let snapshot_enc = encrypt_stream_v3(
                     InputSource::Memory(&payload),
                     $out_expr,
-                    master_key,
                     params_enc,
                     api_config,
                 ).unwrap();

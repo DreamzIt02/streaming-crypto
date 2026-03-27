@@ -33,8 +33,8 @@ macro_rules! bench_v3_decrypt_reader {
                     comp_name
                 );
 
-                let master_key = &dummy_master_key();
-                let params_dec = DecryptParams { };
+                let master_key = dummy_master_key();
+                let params_dec = DecryptParams { master_key: master_key };
                 let api_config = ApiConfig::new(Some(true), None, None, Some(parallelism));
 
                 let mem_before = measure_memory_mb();
@@ -42,7 +42,6 @@ macro_rules! bench_v3_decrypt_reader {
                 let snapshot_dec = decrypt_stream_v3(
                     InputSource::Reader(Box::new(reader.clone())),   // <-- Reader input
                     $out_expr,
-                    master_key,
                     params_dec,
                     api_config,
                 ).unwrap();

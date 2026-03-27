@@ -38,8 +38,8 @@ macro_rules! bench_v2_encrypt_reader {
                     comp_name
                 );
 
-                let master_key = &dummy_master_key();
-                let params_enc = EncryptParams { header: dummy_header(chunk_size, compression), dict: None };
+                let master_key = dummy_master_key();
+                let params_enc = EncryptParams { header: dummy_header(chunk_size, compression), dict: None, master_key: master_key };
                 let api_config = ApiConfig::new(Some(true), None, None, Some(parallelism));
 
                 let mem_before = measure_memory_mb();
@@ -47,7 +47,6 @@ macro_rules! bench_v2_encrypt_reader {
                 let snapshot_enc = encrypt_stream_v2(
                     InputSource::Reader(Box::new(reader.clone())),
                     $out_expr,
-                    master_key,
                     params_enc,
                     api_config,
                 ).unwrap();
