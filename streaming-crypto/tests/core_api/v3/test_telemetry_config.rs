@@ -16,7 +16,8 @@ mod tests {
     fn telemetry_with_buf_true_captures_ciphertext() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"telemetry buffer capture".to_vec();
@@ -24,8 +25,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -41,8 +41,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 
@@ -53,7 +52,8 @@ mod tests {
     fn telemetry_with_buf_none_does_not_capture_ciphertext() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(None, None, None, None );
 
         let plaintext = b"telemetry no buffer".to_vec();
@@ -61,8 +61,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -74,7 +73,8 @@ mod tests {
     fn telemetry_collect_metrics_futureproof() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"telemetry metrics test".to_vec();
@@ -82,8 +82,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 

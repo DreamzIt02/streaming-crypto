@@ -37,7 +37,7 @@ use core_api::{
 };
 use core_v2::frame_worker::{DecryptFrameWorker1, EncryptFrameWorker1};
 
-fn bench_frame_workers_enc(c: &mut Criterion) {
+fn _bench_frame_workers_enc(c: &mut Criterion) {
     let mut rng = rand::thread_rng();
     let key: [u8; 32] = rng.gen();
 

@@ -9,7 +9,7 @@ mod api;
 pub use api::*;
 pub use api_io::*;
 
-#[pymodule(name = "api_v2")]
+#[pymodule(name = "api_v3")]
 pub fn register_api(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Register class
     m.add_class::<PyEncryptParams>()?;
@@ -17,8 +17,8 @@ pub fn register_api(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyApiConfig>()?;
 
     // Register func
-    m.add_function(wrap_pyfunction!(py_encrypt_stream_v2, m)?)?;
-    m.add_function(wrap_pyfunction!(py_decrypt_stream_v2, m)?)?;
+    m.add_function(wrap_pyfunction!(py_encrypt_stream_v3, m)?)?;
+    m.add_function(wrap_pyfunction!(py_decrypt_stream_v3, m)?)?;
 
     Ok(())
 }

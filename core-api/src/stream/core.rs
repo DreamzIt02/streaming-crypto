@@ -9,7 +9,7 @@ use crate::{
     types::StreamError
 };
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct MasterKey(Vec<u8>);
 
 impl Deref for MasterKey {

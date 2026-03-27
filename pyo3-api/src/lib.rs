@@ -27,6 +27,7 @@ pub use crypto::*;
 
 // Stream layers
 pub mod v2;
+pub mod v3;
 
 thread_local! {
     pub static INPUT_COPIES: Cell<usize> = Cell::new(0);
@@ -195,6 +196,12 @@ pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()>
     v2::register_api(py, &s)?;
     m.add_submodule(&s)?;
     sys_modules.set_item("streaming_crypto.v2", &s)?;
+
+    // Register pyo3 api (v3)
+    let s = PyModule::new_bound(py, "v3")?;
+    v3::register_api(py, &s)?;
+    m.add_submodule(&s)?;
+    sys_modules.set_item("streaming_crypto.v3", &s)?;
 
     // Register public api
     m.add_function(wrap_pyfunction!(encrypt, m)?)?;

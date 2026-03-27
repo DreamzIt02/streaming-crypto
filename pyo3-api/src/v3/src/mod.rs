@@ -1,16 +1,43 @@
-// ## 🧪 Test File: `tests/pyo3_api/test_telemetry_config.rs`
-#[cfg(feature = "pyo3-api")]
+// ## 📝 pyo3-api/src/lib.rs
+#![allow(unexpected_cfgs)]
+
+use pyo3::prelude::*;
+
+pub mod api;
+
+pub use api::*;
+
+#[pymodule(name = "v3")]
+pub fn streaming_crypto(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
+
+    // Register pyo3 api
+    api::register_api(py, m)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
-    use pyo3::prelude::*;
-    use pyo3::Py;
-    use pyo3::{Python, IntoPy, types::{PyBytes}};
+    use super::*;
+    use pyo3::types::{PyBytes};
 
-    use core_api::constants::{MAGIC_RSE1, HEADER_V1};
+    use core_api::constants::{HEADER_V1, MAGIC_RSE1};
+    use crate::{PyAadDomain, PyAlgProfile, PyCipherSuite, PyCompressionCodec, PyHeaderV1, PyHkdfPrf, PyStrategy, encrypt, get_input_copies, get_output_copies, reset_copy_counters};
+    use crate::v3::{PyApiConfig, PyDecryptParams, PyEncryptParams, py_decrypt_stream_v3, py_encrypt_stream_v3};
 
-    use streaming_crypto::{PyHeaderV1, PyCompressionCodec, PyAlgProfile, PyCipherSuite, PyHkdfPrf, PyStrategy, PyAadDomain};
-    use streaming_crypto::{reset_copy_counters, get_output_copies, get_input_copies};
-    use streaming_crypto::v2::{PyApiConfig, PyDecryptParams, PyEncryptParams, py_encrypt_stream_v2};
+    #[test]
+    fn test_encrypt_py_api() {
+        Python::with_gil(|py| {
+            let data = PyBytes::new_bound(py, &[1, 2, 3]);
+
+            // Pass raw slice
+            let encrypted = encrypt(py, &data).unwrap();
+
+            assert_eq!(encrypted[0], 1 ^ 0xAA);
+            assert_eq!(encrypted[1], 2 ^ 0xAA);
+            assert_eq!(encrypted[2], 3 ^ 0xAA);
+        });
+    }
 
     fn make_header(_py: Python) -> PyHeaderV1 {
         PyHeaderV1 {
@@ -42,7 +69,7 @@ mod tests {
             master_key: vec![0u8; 32],  // 32-byte zeroed key
         }
     }
-    fn _make_params_dec(_py: Python) -> PyDecryptParams {
+    fn make_params_dec(_py: Python) -> PyDecryptParams {
         PyDecryptParams {
             master_key: vec![0u8; 32],  // 32-byte zeroed key
         }
@@ -59,7 +86,7 @@ mod tests {
 
     // ── Main test ────────────────────────────────────────────────────────────
     #[test]
-    fn test_encrypt_stream_v2_zero_copy_input_one_copy_output() {
+    fn test_encrypt_stream_v3_zero_copy_input_one_copy_output() {
         Python::with_gil(|py| {
             reset_copy_counters();  // safe — thread-local, only affects this thread
 
@@ -72,7 +99,7 @@ mod tests {
             let config = make_config();
 
             // ── Call ─────────────────────────────────────────────────────────
-            let snapshot = py_encrypt_stream_v2(
+            let snapshot = py_encrypt_stream_v3(
                 py,
                 py_input,
                 py_output,
@@ -134,5 +161,55 @@ mod tests {
             );
         });
     }
-    
+
+    // ── Roundtrip: encrypt → decrypt ─────────────────────────────────────────
+    #[test]
+    fn test_encrypt_decrypt_roundtrip_memory() {
+        Python::with_gil(|py| {
+            reset_copy_counters();  // safe — thread-local, only affects this thread
+
+            let plaintext = vec![0x42u8; 1024];
+            // Encrypt
+            let py_input  = PyBytes::new_bound(py, &plaintext).into_py(py);
+            let py_output = PyBytes::new_bound(py, &[]).into_py(py);
+
+            let enc_snapshot = py_encrypt_stream_v3(
+                py,
+                py_input,
+                py_output,
+                make_params_enc(py),
+                make_config(),
+            ).expect("encryption should succeed");
+
+            let ciphertext_obj = enc_snapshot.output
+                .as_ref()
+                .expect("ciphertext should be captured");
+
+            // Decrypt — feed PyBytes ciphertext back in (zero-copy input)
+            let py_cipher_input = ciphertext_obj.clone_ref(py).into_py(py);
+            let py_dec_output   = PyBytes::new_bound(py, &[]).into_py(py);
+
+            let dec_snapshot = py_decrypt_stream_v3(
+                py,
+                py_cipher_input,
+                py_dec_output,
+                make_params_dec(py),
+                make_config(),
+            ).expect("decryption should succeed");
+
+            let recovered = dec_snapshot.output
+                .as_ref()
+                .expect("decrypted output should be captured");
+
+            // Roundtrip = 2 output copies: one for encrypt, one for decrypt
+            assert_eq!(get_input_copies(),  0, "PyBytes input must be zero-copy");
+            assert_eq!(get_output_copies(), 2, "roundtrip must be exactly two copies (enc + dec)");
+
+            let recovered_bytes = recovered.bind(py).as_bytes();
+            assert_eq!(
+                recovered_bytes, plaintext.as_slice(),
+                "decrypted output must match original plaintext"
+            );
+        });
+    }
 }

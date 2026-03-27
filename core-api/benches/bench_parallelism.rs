@@ -43,7 +43,8 @@ fn bench_parallelism(c: &mut Criterion) {
 
     let master_key = dummy_master_key();
     let header = dummy_header();
-    let params = EncryptParams { header, dict: None };
+    let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+    let params_dec      = DecryptParams { master_key: master_key };
 
     // Precompute ciphertext once
     let config_base = ApiConfig {
@@ -56,8 +57,7 @@ fn bench_parallelism(c: &mut Criterion) {
     encrypt_stream_v2(
         InputSource::File(input_path.clone()),
         OutputSink::File(enc_path.clone()),
-        &master_key,
-        params.clone(),
+        params_enc.clone(),
         config_base.clone(),
     ).expect("encryption failed");
 
@@ -75,8 +75,7 @@ fn bench_parallelism(c: &mut Criterion) {
                 encrypt_stream_v2(
                     InputSource::File(input_path.clone()),
                     OutputSink::File(enc_path.clone()),
-                    &master_key,
-                    params.clone(),
+                    params_enc.clone(),
                     config.clone(),
                 ).unwrap();
             });
@@ -88,8 +87,7 @@ fn bench_parallelism(c: &mut Criterion) {
                 decrypt_stream_v2(
                     InputSource::File(enc_path.clone()),
                     OutputSink::File(dec_path.clone()),
-                    &master_key,
-                    DecryptParams,
+                    params_dec.clone(),
                     config.clone(),
                 ).unwrap();
             });

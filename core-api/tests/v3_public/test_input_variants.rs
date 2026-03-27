@@ -23,7 +23,8 @@ mod tests {
     fn roundtrip_memory_input() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"hello from memory".to_vec();
@@ -31,8 +32,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -45,8 +45,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 
@@ -57,7 +56,8 @@ mod tests {
     fn roundtrip_file_input() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"hello from file".to_vec();
@@ -70,8 +70,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::File(tmpfile.path().to_path_buf()),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).unwrap();
 
@@ -85,8 +84,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).unwrap();
 
@@ -97,7 +95,8 @@ mod tests {
     fn roundtrip_reader_input() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"hello from reader".to_vec();
@@ -106,8 +105,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Reader(Box::new(cursor)),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).unwrap();
 
@@ -120,8 +118,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).unwrap();
 

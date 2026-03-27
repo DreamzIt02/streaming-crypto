@@ -35,7 +35,8 @@ mod tests {
     fn roundtrip_memory_output() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"hello world".to_vec();
@@ -43,8 +44,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v2(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -57,8 +57,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v2(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 
@@ -69,15 +68,15 @@ mod tests {
     fn detects_corrupted_ciphertext() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = vec![0xAB; 1024];
         let snapshot_enc = encrypt_stream_v2(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params,
+            params_enc,
             config.clone(),
         ).unwrap();
 
@@ -92,8 +91,7 @@ mod tests {
         let err = decrypt_stream_v2(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).unwrap_err();
 

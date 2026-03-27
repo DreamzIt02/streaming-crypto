@@ -12,7 +12,7 @@ use core_api::stream::{MasterKey};
 use core_v2::stream_v2::{core::{ApiConfig, EncryptParams, DecryptParams}, encrypt_stream_v2, decrypt_stream_v2};
 use pyo3_api::{
     PyDigestAlg, PyInputSource, PyParallelismConfig, PyStreamError, headers::PyHeaderV1, telemetry::PyTelemetrySnapshot, 
-    api::{classify_py_io, to_core_input, to_core_output},
+    v2::{api::{classify_py_io, to_core_input, to_core_output}},
     increment_input_copies
 };
 

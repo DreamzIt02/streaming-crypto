@@ -19,7 +19,8 @@ mod tests {
     fn roundtrip_single_threaded_profile() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"single threaded profile test".to_vec();
@@ -27,8 +28,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -41,8 +41,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 
@@ -55,7 +54,8 @@ mod tests {
         let mut header = dummy_header();
         // Multi-threaded profile
         header.strategy = Strategy::Parallel as u16; // Explicit parallel profile
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config_para = ParallelismConfig::new(4, 4, 0.5, 8);
         let config = ApiConfig::new(Some(true), None, None, Some(config_para));
 
@@ -64,8 +64,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -78,8 +77,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 
@@ -92,7 +90,8 @@ mod tests {
         let mut header = dummy_header();
         // Extreme backpressure profile: many threads but tiny queue
         header.strategy = Strategy::Parallel as u16; // Explicit parallel profile
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config_para = ParallelismConfig::new(4, 4, 0.5, 1);
         let config = ApiConfig::new(Some(true), None, None, Some(config_para));
 
@@ -102,8 +101,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed under pressure");
 
@@ -117,8 +115,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed under pressure");
 

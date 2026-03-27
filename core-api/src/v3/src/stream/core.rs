@@ -4,9 +4,9 @@
 use std::sync::Arc;
 
 use crate::{
-    constants::{DEFAULT_QUEUE_CAP, DEFAULT_WORKERS, MAGIC_DICT, MASTER_KEY_LENGTHS, MAX_DICT_LEN, MIN_DICT_LEN, QUEUE_CAPS, WORKERS_COUNT}, 
+    constants::{DEFAULT_QUEUE_CAP, DEFAULT_WORKERS, MAGIC_DICT, MAX_DICT_LEN, MIN_DICT_LEN, QUEUE_CAPS, WORKERS_COUNT}, 
     core::MasterKey, 
-    crypto::{CryptoError, DigestAlg, derive_session_key_32}, 
+    crypto::{DigestAlg, derive_session_key_32}, 
     headers::HeaderV1, 
     parallelism::{HybridParallelismProfile, ParallelismConfig}, 
     recovery::AsyncLogManager, 
@@ -19,23 +19,28 @@ use crate::{
 
 use crate::v3::{pipeline::types::PipelineConfig, stream::pipeline::{decrypt_pipeline, decrypt_read_header, encrypt_pipeline}};
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub struct EncryptParams<'a> {
-    pub header: HeaderV1,
-    pub dict: Option<&'a [u8]>,
+    pub header      : HeaderV1,
+    pub dict        : Option<&'a [u8]>,
+    pub master_key  : MasterKey,
 }
 impl<'a> EncryptParams<'a> {
     pub fn validate(&self) -> Result<(), StreamError> {
+        MasterKey::validate(&self.master_key)?;
         validate_dictionary(self.dict.as_deref())?;
         // If HeaderV1 has validation logic, we can enable it here:
         // self.header.validate_header()?;
         Ok(())
     }
 }
-#[derive(Clone, Debug)]
-pub struct DecryptParams;
+#[derive(Debug, Clone)]
+pub struct DecryptParams {
+    pub master_key  : MasterKey,
+}
 impl DecryptParams {
     pub fn validate(&self) -> Result<(), StreamError> {
+        MasterKey::validate(&self.master_key)?;
         Ok(())
     }
 }
@@ -124,12 +129,11 @@ fn setup_dec_context(master_key: &MasterKey, header: &HeaderV1, config: ApiConfi
 pub fn encrypt_stream_v3(
     input: InputSource,          // 👈 pass directly
     output: OutputSink,
-    master_key: &MasterKey,
     params: EncryptParams,
     config: ApiConfig,
 ) -> Result<TelemetrySnapshot, StreamError> {
     // Validate parameters
-    validate_encrypt_params(&master_key, &params, None, None)?;
+    validate_encrypt_params(&params, None, None)?;
 
     // Normalize with defaults
     let final_config = config.with_defaults();
@@ -139,7 +143,7 @@ pub fn encrypt_stream_v3(
 
     // Setup crypto context, parallelism profile, and logging
     let (crypto, profile, log_manager) =
-        setup_enc_context(&master_key, &params.header, final_config)?;
+        setup_enc_context(&params.master_key, &params.header, final_config)?;
     let config_pipe = PipelineConfig::new(profile, maybe_buf.clone());
 
     // Wrap crypto in Arc before passing into pipeline
@@ -167,12 +171,11 @@ pub fn encrypt_stream_v3(
 pub fn decrypt_stream_v3(
     input: InputSource,          // 👈 pass raw InputSource
     output: OutputSink,
-    master_key: &MasterKey,
     params: DecryptParams,
     config: ApiConfig,
 ) -> Result<TelemetrySnapshot, StreamError> {
     // Validate parameters
-    validate_decrypt_params(&master_key, &params, None, None)?;
+    validate_decrypt_params(&params, None, None)?;
 
     // Normalize with defaults
     let final_config = config.with_defaults();
@@ -184,7 +187,7 @@ pub fn decrypt_stream_v3(
     let (writer, maybe_buf) = open_output(output, final_config.with_buf)?;
 
     // Setup crypto context, parallelism profile, and logging
-    let (crypto, profile, log_manager) = setup_dec_context(&master_key, &header, final_config)?;
+    let (crypto, profile, log_manager) = setup_dec_context(&params.master_key, &header, final_config)?;
     let config_pipe = PipelineConfig::new(profile, maybe_buf.clone());
 
     // Wrap crypto in Arc before passing into pipeline
@@ -210,14 +213,13 @@ pub fn decrypt_stream_v3(
 
 
 pub fn validate_encrypt_params(
-    master_key: &MasterKey,
     params: &EncryptParams,
     workers: Option<usize>,
     queue_cap: Option<usize>,
 
 ) -> Result<(), StreamError> {
     // --- Master key length ---
-    MasterKey::validate(&master_key)?;
+    MasterKey::validate(&params.master_key)?;
 
     // --- Resolve defaults ---
     let w  = workers.unwrap_or(DEFAULT_WORKERS);
@@ -241,17 +243,12 @@ pub fn validate_encrypt_params(
 }
 
 pub fn validate_decrypt_params(
-    master_key: &MasterKey,
     params: &DecryptParams,
     workers: Option<usize>,
     queue_cap: Option<usize>,
 ) -> Result<(), StreamError> {
-    if !MASTER_KEY_LENGTHS.contains(&master_key.len()) {
-        return Err(StreamError::Crypto(CryptoError::InvalidKeyLen {
-            expected: &MASTER_KEY_LENGTHS,
-            actual: master_key.len(),
-        }));
-    }
+    // --- Master key length ---
+    MasterKey::validate(&params.master_key)?;
 
     // --- Resolve defaults ---
     let w  = workers.unwrap_or(DEFAULT_WORKERS);

@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use streaming_crypto::{headers::HeaderV1, stream::{InputSource, OutputSink, framing::FrameHeader, segmenting::SegmentHeader, core::{MasterKey}}, v3::{ApiConfig, EncryptParams, DecryptParams, encrypt_stream_v3, decrypt_stream_v3}, types::StreamError};
+    use streaming_crypto::{headers::HeaderV1, stream::{InputSource, OutputSink, framing::FrameHeader, segmenting::SegmentHeader, core::{MasterKey}}, v3::{ApiConfig, DecryptParams, EncryptParams, encrypt_stream_v3, decrypt_stream_v3}, types::StreamError};
 
     use std::{io::{Read, Write}, sync::atomic::{AtomicUsize, Ordering}};
 
@@ -19,7 +19,8 @@ mod tests {
     fn encrypt_pipeline_success() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None);
 
         // Single segment: 64KB plaintext
@@ -28,8 +29,7 @@ mod tests {
         let result = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params,
+            params_enc,
             config,
         );
 
@@ -73,7 +73,8 @@ mod tests {
         
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None);
 
         // Track which segments get processed
@@ -115,8 +116,7 @@ mod tests {
         let result = encrypt_stream_v3(
             InputSource::Reader(Box::new(reader)),
             OutputSink::Writer(Box::new(writer)),
-            &master_key,
-            params,
+            params_enc,
             config,
         );
 
@@ -182,14 +182,14 @@ mod tests {
 
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None);
 
         let result = encrypt_stream_v3(
             InputSource::Reader(Box::new(reader)),
             OutputSink::Memory,
-            &master_key,
-            params,
+            params_enc,
             config,
         );
 
@@ -219,7 +219,8 @@ mod tests {
         // Corrupt the header to cause AEAD initialization to fail
         header.cipher = 0xFFFF; // Invalid cipher suite
         
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None);
 
         let plaintext = vec![0xAB; 10 * 64 * 1024];
@@ -227,8 +228,7 @@ mod tests {
         let result = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params,
+            params_enc,
             config,
         );
 
@@ -254,7 +254,8 @@ mod tests {
     fn detects_bitflip_in_ciphertext() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = vec![0xAB; 2 * 64 * 1024]; // multiple chunks / 64KB default chunk size
@@ -262,8 +263,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -283,8 +283,7 @@ mod tests {
         let err = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).unwrap_err();
 
@@ -295,7 +294,8 @@ mod tests {
     fn detects_header_corruption() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"header corruption test".to_vec();
@@ -303,8 +303,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -321,8 +320,7 @@ mod tests {
         let err = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).unwrap_err();
 

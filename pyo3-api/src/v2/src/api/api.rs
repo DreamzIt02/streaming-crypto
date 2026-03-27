@@ -12,8 +12,8 @@ use core_api::stream::{MasterKey};
 use core_api::v2::stream::{core::{ApiConfig, EncryptParams, DecryptParams}, encrypt_stream_v2, decrypt_stream_v2};
 use crate::{
     PyDigestAlg, PyInputSource, PyParallelismConfig, PyStreamError, headers::PyHeaderV1, telemetry::PyTelemetrySnapshot, 
-    api::{classify_py_io, to_core_input, to_core_output},
-    increment_input_copies
+    increment_input_copies,
+    v2::{api::{classify_py_io, to_core_input, to_core_output}}
 };
 
 #[pyclass(name = "EncryptParams")]
@@ -39,8 +39,9 @@ impl PyEncryptParams {
 impl<'a> From<&'a PyEncryptParams> for EncryptParams<'a> {
     fn from(c: &'a PyEncryptParams) -> Self {
         EncryptParams {
-            header: c.header.clone().into(),
-            dict: c.dict.as_deref(),
+            header      : c.header.clone().into(),
+            dict        : c.dict.as_deref(),
+            master_key  : MasterKey::new(c.master_key.clone()),
         }
     }
 }
@@ -61,8 +62,9 @@ impl PyDecryptParams {
 }
 
 impl From<PyDecryptParams> for DecryptParams {
-    fn from(_c: PyDecryptParams) -> Self {
+    fn from(c: PyDecryptParams) -> Self {
         DecryptParams {
+            master_key  : MasterKey::new(c.master_key.clone()),
         }
     }
 }
@@ -137,7 +139,6 @@ pub fn py_encrypt_stream_v2(
     config: PyApiConfig,
 ) -> PyResult<PyTelemetrySnapshot> {
 
-    let master_key = MasterKey::new(params.clone().master_key);
     let params = EncryptParams::from(&params);
     let config: ApiConfig = ApiConfig::from(config);
 
@@ -157,7 +158,6 @@ pub fn py_encrypt_stream_v2(
                 encrypt_stream_v2(
                     InputSource::Memory(slice),
                     output_sink,
-                    &master_key,
                     params,
                     config,
                 )
@@ -177,7 +177,6 @@ pub fn py_encrypt_stream_v2(
                 encrypt_stream_v2(
                     InputSource::Memory(&bytes),
                     output_sink,
-                    &master_key,
                     params,
                     config,
                 )
@@ -188,7 +187,7 @@ pub fn py_encrypt_stream_v2(
             // File / Reader path: normal flow
             let input_src = to_core_input(py, py_input, Some(params.header.chunk_size as usize), Some(true))?;
             py.allow_threads(|| {
-                encrypt_stream_v2(input_src, output_sink, &master_key, params, config)
+                encrypt_stream_v2(input_src, output_sink, params, config)
             })
         }
     };
@@ -208,7 +207,6 @@ pub fn py_decrypt_stream_v2(
     config: PyApiConfig,
 ) -> PyResult<PyTelemetrySnapshot> {
 
-    let master_key = MasterKey::new(params.clone().master_key);
     let params = DecryptParams::from(params);
     let config: ApiConfig = ApiConfig::from(config);
 
@@ -224,7 +222,6 @@ pub fn py_decrypt_stream_v2(
                 decrypt_stream_v2(
                     InputSource::Memory(slice),
                     output_sink,
-                    &master_key,
                     params,
                     config,
                 )
@@ -240,7 +237,6 @@ pub fn py_decrypt_stream_v2(
                 decrypt_stream_v2(
                     InputSource::Memory(&bytes),
                     output_sink,
-                    &master_key,
                     params,
                     config,
                 )
@@ -254,7 +250,6 @@ pub fn py_decrypt_stream_v2(
                 decrypt_stream_v2(
                     input_src,
                     output_sink,
-                    &master_key,
                     params,
                     config,
                 )

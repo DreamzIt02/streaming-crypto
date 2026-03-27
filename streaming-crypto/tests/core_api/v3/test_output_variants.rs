@@ -19,7 +19,8 @@ mod tests {
     fn roundtrip_output_memory_sink() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"hello memory sink".to_vec();
@@ -27,8 +28,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -42,8 +42,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 
@@ -54,7 +53,8 @@ mod tests {
     fn roundtrip_output_file_sink() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"hello file sink".to_vec();
@@ -64,8 +64,7 @@ mod tests {
         let _ = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::File(tmpfile.path().to_path_buf()),
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -73,8 +72,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::File(tmpfile.path().to_path_buf()),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 
@@ -85,7 +83,8 @@ mod tests {
     fn roundtrip_output_writer_sink() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None);
 
         let plaintext = b"hello writer sink".to_vec();
@@ -96,8 +95,7 @@ mod tests {
         let _ = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Writer(Box::new(cursor_writer)),
-            &master_key,
-            params.clone(),
+            params_enc.clone(),
             config.clone(),
         ).expect("encryption should succeed");
 
@@ -107,8 +105,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).unwrap();
 
@@ -122,8 +119,7 @@ mod tests {
         let snapshot_dec = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).expect("decryption should succeed");
 

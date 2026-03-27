@@ -54,16 +54,14 @@ fn bench_segment_sizes(c: &mut Criterion) {
             alg: None,
             parallelism: None,
         };
-
         let header = dummy_header(seg_size);
-        let params = EncryptParams { header, dict: None };
-
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key: master_key.clone() };
         // Precompute ciphertext once for decrypt benchmarks
         encrypt_stream_v2(
             InputSource::File(input_path.clone()),
             OutputSink::File(enc_path.clone()),
-            &master_key,
-            params.clone(),
+            params_enc.clone(),
             config.clone(),
         ).expect("encryption failed");
 
@@ -74,8 +72,7 @@ fn bench_segment_sizes(c: &mut Criterion) {
                 encrypt_stream_v2(
                     InputSource::File(input_path.clone()),
                     OutputSink::File(enc_path.clone()),
-                    &master_key,
-                    params.clone(),
+                    params_enc.clone(),
                     config.clone(),
                 ).unwrap();
             });
@@ -88,8 +85,7 @@ fn bench_segment_sizes(c: &mut Criterion) {
                 decrypt_stream_v2(
                     InputSource::File(enc_path.clone()),
                     OutputSink::File(dec_path.clone()),
-                    &master_key,
-                    DecryptParams,
+                    params_dec.clone(),
                     config.clone(),
                 ).unwrap();
             });

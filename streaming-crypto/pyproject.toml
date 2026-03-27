@@ -33,6 +33,9 @@ include = [
     "streaming_crypto/v2.py",
     "streaming_crypto/v2.pyi",
 
+    "streaming_crypto/v3.py",
+    "streaming_crypto/v3.pyi",
+
     "streaming_crypto/constants.py",
     "streaming_crypto/constants.pyi",
 

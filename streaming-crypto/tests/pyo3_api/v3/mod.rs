@@ -1,5 +1,5 @@
 #[cfg(feature = "pyo3-api")]
-mod v2;
+mod test_roundtrip;
 
 #[cfg(feature = "pyo3-api")]
-mod v3;
+mod test_telemetry_config;

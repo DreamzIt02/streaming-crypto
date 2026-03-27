@@ -31,7 +31,8 @@ fn bench_memory_to_memory(c: &mut Criterion) {
     let master_key = dummy_master_key();
     let header = dummy_header();
 
-    let params = EncryptParams { header, dict: None };
+    let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+    let params_dec      = DecryptParams { master_key: master_key };
     let config = ApiConfig { 
         with_buf: Some(true), 
         collect_metrics: Some(true), 
@@ -43,8 +44,7 @@ fn bench_memory_to_memory(c: &mut Criterion) {
     let enc_snapshot = encrypt_stream_v2(
         InputSource::Memory(&input_data),
         OutputSink::Memory,
-        &master_key,
-        params.clone(),
+        params_enc.clone(),
         config.clone(),
     ).expect("encryption failed");
 
@@ -58,8 +58,7 @@ fn bench_memory_to_memory(c: &mut Criterion) {
             let _snapshot = encrypt_stream_v2(
                 InputSource::Memory(&input_data),
                 OutputSink::Memory,
-                &master_key,
-                params.clone(),
+                params_enc.clone(),
                 config.clone(),
             ).unwrap();
         });
@@ -71,8 +70,7 @@ fn bench_memory_to_memory(c: &mut Criterion) {
             let _dec_snapshot = decrypt_stream_v2(
                 InputSource::Memory(&encrypted_buf),
                 OutputSink::Memory,
-                &master_key,
-                DecryptParams,
+                params_dec.clone(),
                 config.clone(),
             ).unwrap();
         });
@@ -92,7 +90,8 @@ fn bench_file_to_file(c: &mut Criterion) {
 
     let master_key = dummy_master_key();
     let header = dummy_header();
-    let params = EncryptParams { header, dict: None };
+    let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+    let params_dec      = DecryptParams { master_key: master_key };
     let config = ApiConfig { with_buf: None, collect_metrics: Some(true), alg: None, parallelism: None };
 
     // Encryption benchmark
@@ -101,8 +100,7 @@ fn bench_file_to_file(c: &mut Criterion) {
             let _enc_snapshot = encrypt_stream_v2(
                 InputSource::File(input_path.clone()),
                 OutputSink::File(enc_path.clone()),
-                &master_key,
-                params.clone(),
+                params_enc.clone(),
                 config.clone(),
             ).unwrap();
         });
@@ -115,8 +113,7 @@ fn bench_file_to_file(c: &mut Criterion) {
             let _enc_snapshot = encrypt_stream_v2(
                 InputSource::File(input_path.clone()),
                 OutputSink::File(enc_path.clone()),
-                &master_key,
-                params.clone(),
+                params_enc.clone(),
                 config.clone(),
             ).unwrap();
 
@@ -124,8 +121,7 @@ fn bench_file_to_file(c: &mut Criterion) {
             let _dec_snapshot = decrypt_stream_v2(
                 InputSource::File(enc_path.clone()),
                 OutputSink::File(dec_path.clone()),
-                &master_key,
-                DecryptParams,
+                params_dec.clone(),
                 config.clone(),
             ).unwrap();
         });
@@ -145,15 +141,15 @@ fn bench_file_to_file_uni(c: &mut Criterion) {
 
     let master_key = dummy_master_key();
     let header = dummy_header();
-    let params = EncryptParams { header, dict: None };
+    let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
     let config = ApiConfig::default();
 
     // 🔑 Precompute ciphertext once outside the benchmark loop
     encrypt_stream_v2(
         InputSource::File(input_path.clone()),
         OutputSink::File(enc_path.clone()),
-        &master_key,
-        params.clone(),
+        params_enc.clone(),
         config.clone(),
     ).expect("encryption failed");
 
@@ -163,8 +159,7 @@ fn bench_file_to_file_uni(c: &mut Criterion) {
             let _ = encrypt_stream_v2(
                 InputSource::File(input_path.clone()),
                 OutputSink::File(enc_path.clone()),
-                &master_key,
-                params.clone(),
+                params_enc.clone(),
                 config.clone(),
             ).unwrap();
         });
@@ -176,8 +171,7 @@ fn bench_file_to_file_uni(c: &mut Criterion) {
             let _ = decrypt_stream_v2(
                 InputSource::File(enc_path.clone()),
                 OutputSink::File(dec_path.clone()),
-                &master_key,
-                DecryptParams,
+                params_dec.clone(),
                 config.clone(),
             ).unwrap();
         });
@@ -194,7 +188,8 @@ fn bench_file_to_memory(c: &mut Criterion) {
 
     let master_key = dummy_master_key();
     let header = dummy_header();
-    let params = EncryptParams { header, dict: None };
+    let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+    let _params_dec      = DecryptParams { master_key: master_key };
     let config = ApiConfig { with_buf: Some(true), collect_metrics: Some(true), alg: None, parallelism: None };
 
     c.bench_function("encrypt_file_to_memory", |b| {
@@ -202,8 +197,7 @@ fn bench_file_to_memory(c: &mut Criterion) {
             let _ = encrypt_stream_v2(
                 InputSource::File(input_path.clone()),
                 OutputSink::Memory,
-                &master_key,
-                params.clone(),
+                params_enc.clone(),
                 config.clone(),
             ).unwrap();
         });
@@ -219,7 +213,8 @@ fn bench_memory_to_file(c: &mut Criterion) {
 
     let master_key = dummy_master_key();
     let header = dummy_header();
-    let params = EncryptParams { header, dict: None };
+    let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+    let _params_dec      = DecryptParams { master_key: master_key };
     let config = ApiConfig { with_buf: None, collect_metrics: Some(true), alg: None, parallelism: None };
 
     c.bench_function("encrypt_memory_to_file", |b| {
@@ -227,8 +222,7 @@ fn bench_memory_to_file(c: &mut Criterion) {
             let _ = encrypt_stream_v2(
                 InputSource::Memory(&input_data),
                 OutputSink::File(output_path.clone()),
-                &master_key,
-                params.clone(),
+                params_enc.clone(),
                 config.clone(),
             ).unwrap();
         });

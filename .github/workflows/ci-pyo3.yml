@@ -81,17 +81,17 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      - name: Install Python
-        if: ${{ env.IS_LOCAL != 'true' }}
-        id: setup-python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      # - name: Install Python
+      #   if: ${{ env.IS_LOCAL != 'true' }}
+      #   id: setup-python
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: '3.12'
 
-      - name: Export PYO3_PYTHON
-        if: ${{ env.IS_LOCAL != 'true' }}
-        shell: bash
-        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+      # - name: Export PYO3_PYTHON
+      #   if: ${{ env.IS_LOCAL != 'true' }}
+      #   shell: bash
+      #   run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
       # -------------------------------------------------
       # Test actual crates (real logic)

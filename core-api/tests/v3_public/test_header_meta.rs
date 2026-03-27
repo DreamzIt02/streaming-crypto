@@ -22,7 +22,8 @@ mod tests {
     fn header_presence_in_ciphertext() {
         let master_key = dummy_master_key();
         let header = dummy_header();
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"header presence test".to_vec();
@@ -30,8 +31,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params,
+            params_enc,
             config,
         ).expect("encryption should succeed");
 
@@ -53,7 +53,8 @@ mod tests {
         let master_key = dummy_master_key();
         let mut header = dummy_header();
         header.flags = flags::HAS_TOTAL_LEN | flags::HAS_CRC32;
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let _params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"flags preservation test".to_vec();
@@ -61,8 +62,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).unwrap();
 
@@ -84,7 +84,8 @@ mod tests {
         let master_key = dummy_master_key();
         let mut header = dummy_header();
         header.aad_domain = AadDomain::FileEnvelope as u16; // mismatch domain
-        let params = EncryptParams { header, dict: None };
+        let params_enc  = EncryptParams { header, dict: None, master_key: master_key.clone() };
+        let params_dec      = DecryptParams { master_key };
         let config = ApiConfig::new(Some(true), None, None, None );
 
         let plaintext = b"aad mismatch test".to_vec();
@@ -92,8 +93,7 @@ mod tests {
         let snapshot_enc = encrypt_stream_v3(
             InputSource::Memory(&plaintext),
             OutputSink::Memory,
-            &master_key,
-            params.clone(),
+            params_enc,
             config.clone(),
         ).unwrap();
 
@@ -113,8 +113,7 @@ mod tests {
         let err = decrypt_stream_v3(
             InputSource::Memory(&ciphertext),
             OutputSink::Memory,
-            &master_key,
-            DecryptParams,
+            params_dec,
             config,
         ).unwrap_err();
 

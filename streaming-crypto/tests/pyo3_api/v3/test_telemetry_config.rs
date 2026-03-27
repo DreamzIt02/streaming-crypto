@@ -10,7 +10,7 @@ mod tests {
 
     use streaming_crypto::{PyHeaderV1, PyCompressionCodec, PyAlgProfile, PyCipherSuite, PyHkdfPrf, PyStrategy, PyAadDomain};
     use streaming_crypto::{reset_copy_counters, get_output_copies, get_input_copies};
-    use streaming_crypto::v2::{PyApiConfig, PyDecryptParams, PyEncryptParams, py_encrypt_stream_v2};
+    use streaming_crypto::v3::{PyApiConfig, PyDecryptParams, PyEncryptParams, py_encrypt_stream_v3};
 
     fn make_header(_py: Python) -> PyHeaderV1 {
         PyHeaderV1 {
@@ -59,7 +59,7 @@ mod tests {
 
     // ── Main test ────────────────────────────────────────────────────────────
     #[test]
-    fn test_encrypt_stream_v2_zero_copy_input_one_copy_output() {
+    fn test_encrypt_stream_v3_zero_copy_input_one_copy_output() {
         Python::with_gil(|py| {
             reset_copy_counters();  // safe — thread-local, only affects this thread
 
@@ -72,7 +72,7 @@ mod tests {
             let config = make_config();
 
             // ── Call ─────────────────────────────────────────────────────────
-            let snapshot = py_encrypt_stream_v2(
+            let snapshot = py_encrypt_stream_v3(
                 py,
                 py_input,
                 py_output,
