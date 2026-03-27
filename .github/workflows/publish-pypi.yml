@@ -160,14 +160,14 @@ jobs:
           mkdir -p wheelhouse
           cibuildwheel --platform auto --output-dir wheelhouse
         env:
-          CIBW_BUILD      : cp3{11,12,13}-*                 # do not restrict to Python 3.12 only
-          CIBW_SKIP       : "cp312-musllinux_x86_64 cp312-musllinux_aarch64 pp*" # skip musllinux and PyPy
-          CIBW_ARCHS_LINUX: x86_64                  # skip aarch64
+          CIBW_BUILD      : cp311-* cp312-* cp313-*             # do not restrict to Python 3.12 only
+          CIBW_SKIP       : "cp314-* cp315-* pp* *-musllinux_*" # skip musllinux and PyPy
+          CIBW_ARCHS_LINUX: x86_64                              # skip aarch64
           CIBW_CONTAINER_ENGINE       : docker
           CIBW_MANYLINUX_X86_64_IMAGE : manylinux-custom-x86_64
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux-custom-aarch64
-          CIBW_MUSLLINUX_X86_64_IMAGE : "" #musllinux-custom-x86_64
-          CIBW_MUSLLINUX_AARCH64_IMAGE: "" #musllinux-custom-aarch64
+          CIBW_MUSLLINUX_X86_64_IMAGE : ""                      # musllinux-custom-x86_64
+          CIBW_MUSLLINUX_AARCH64_IMAGE: ""                      # musllinux-custom-aarch64
 
       # 5️⃣ Build wheels for each OS (dummy)
       # - name: Build wheels (dummy)
@@ -186,8 +186,8 @@ jobs:
           mkdir -p wheelhouse
           cibuildwheel --platform auto --output-dir wheelhouse
         env:
-          CIBW_BUILD: cp312-*                     # restrict to Python 3.12
-          CIBW_SKIP : "pp*"                       # skip musllinux and PyPi: "cp312-musllinux* pp*""
+          CIBW_BUILD      : cp311-* cp312-* cp313-*             # do not restrict to Python 3.12 only
+          CIBW_SKIP       : "cp314-* cp315-* pp*"               # skip musllinux and PyPy
           CIBW_ARCHS_LINUX      : x86_64          # build both Intel + ARM linux wheels (github.com, not ARM supporter)
           CIBW_ARCHS_MACOS      : x86_64 arm64    # build both Intel + ARM macOS wheels
           CIBW_ARCHS_WINDOWS    : AMD64           # build both Intel + ARM winOS wheels (github.com, not ARM supporter)

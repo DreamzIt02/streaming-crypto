@@ -30,13 +30,27 @@ jobs:
             echo 'os-list=["ubuntu-latest","macos-latest","windows-latest"]' >> $GITHUB_OUTPUT
           fi
 
+  pre-python-check:
+    runs-on: ubuntu-latest
+    outputs:
+      python-list: ${{ steps.set-python.outputs.python-list }}
+    steps:
+      - id: set-python
+        run: |
+          if [ "${{ env.ACT }}" = "true" ]; then
+            echo 'python-list=["3.12"]' >> $GITHUB_OUTPUT
+          else
+            echo 'python-list=["3.11","3.12","3.13"]' >> $GITHUB_OUTPUT
+          fi
+
   build-test:
     name: Build & Test (pyo3)
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' }}
-    needs: [detect-tag, pre-os-check]
+    needs: [detect-tag, pre-os-check, pre-python-check]
     strategy: 
       matrix: 
         os: ${{ fromJson(needs.pre-os-check.outputs.os-list) }}
+        python: ${{ fromJson(needs.pre-python-check.outputs.python-list) }}
         rust: [stable]
     runs-on: ${{ matrix.os }}
 
@@ -81,17 +95,15 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
 
-      # - name: Install Python
-      #   if: ${{ env.IS_LOCAL != 'true' }}
-      #   id: setup-python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.12'
+      - name: Install Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
 
-      # - name: Export PYO3_PYTHON
-      #   if: ${{ env.IS_LOCAL != 'true' }}
-      #   shell: bash
-      #   run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+      - name: Export PYO3_PYTHON
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
       # -------------------------------------------------
       # Test actual crates (real logic)
