@@ -3,10 +3,17 @@
 #[cfg(test)]
 mod tests {
     use std::{sync::{Arc, atomic::AtomicBool}, thread};
-
     use bytes::Bytes;
     use crossbeam::channel::{Receiver, Sender, unbounded};
-    use core_api::{crypto::{DigestAlg, KEY_LEN_32}, headers::HeaderV1, recovery::AsyncLogManager, parallelism::HybridParallelismProfile, stream_v2::{segment_worker::{DecryptContext, DecryptSegmentInput, DecryptSegmentWorker1, DecryptedSegment, EncryptContext, EncryptSegmentInput, EncryptSegmentWorker1, EncryptedSegment, SegmentWorkerError}, segmenting::types::SegmentFlags}, telemetry::StageTimes, types::StreamError};
+    
+    use core_api::{
+        crypto::{DigestAlg, KEY_LEN_32}, 
+        headers::HeaderV1, recovery::AsyncLogManager, 
+        parallelism::HybridParallelismProfile, 
+        stream::{segment_worker::{DecryptContext, DecryptSegmentInput, DecryptedSegment, EncryptContext, EncryptSegmentInput, EncryptedSegment, SegmentWorkerError}, 
+        segmenting::types::SegmentFlags}, telemetry::StageTimes, types::StreamError
+    };
+    use core_api::v2::segment_worker::{DecryptSegmentWorker1, EncryptSegmentWorker1};
 
     fn setup_enc_context(alg: DigestAlg, chunk_size: usize) -> (EncryptContext, Arc<AsyncLogManager>) {
         let header = HeaderV1{ chunk_size: chunk_size as u32, ..HeaderV1::test_header() }; // Mock header

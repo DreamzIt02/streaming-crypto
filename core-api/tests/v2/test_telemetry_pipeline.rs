@@ -25,13 +25,13 @@ mod telemetry_pipeline_tests {
         headers::HeaderV1,
         recovery::AsyncLogManager,
         parallelism::HybridParallelismProfile,
-        stream_v2::{
+        stream::{
             io::PayloadReader,
-            pipeline::{PipelineConfig, encrypt_pipeline, decrypt_pipeline},
             segment_worker::{EncryptContext, DecryptContext},
         },
         telemetry::TelemetrySnapshot,
     };
+    use core_api::v2::pipeline::{PipelineConfig, encrypt_pipeline, decrypt_pipeline};
 
     // ## 1️⃣ Helpers
     fn setup_enc_context(alg: DigestAlg) -> (EncryptContext, HybridParallelismProfile, Arc<AsyncLogManager>) {

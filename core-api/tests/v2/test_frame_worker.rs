@@ -16,17 +16,13 @@
 mod tests {
     use std::sync::Arc;
     use std::sync::atomic::AtomicBool;
-
     use bytes::Bytes;
-    use core_api::crypto::KEY_LEN_32;
-    use core_api::headers::types::HeaderV1;
-    use core_api::stream_v2::frame_worker::{
-        DecryptedFrame, EncryptedFrame, FrameInput, FrameWorkerError,
+
+    use core_api::{
+        crypto::KEY_LEN_32, frame_worker::{DecryptedFrame, EncryptedFrame, FrameInput, FrameWorkerError}, framing::FrameType, headers::HeaderV1, types::StreamError
     };
-    use core_api::stream_v2::frame_worker::decrypt::DecryptFrameWorker1;
-    use core_api::stream_v2::frame_worker::encrypt::EncryptFrameWorker1;
-    use core_api::stream_v2::framing::FrameType;
-    use core_api::types::StreamError;
+    use core_api::v2::frame_worker::{DecryptFrameWorker1, EncryptFrameWorker1};
+
 
     fn test_key() -> Vec<u8> {
         vec![0x42u8; KEY_LEN_32]

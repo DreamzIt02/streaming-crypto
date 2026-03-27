@@ -4,7 +4,7 @@ mod tests {
     use bytes::Bytes;
     use core_api::{
         compression::{CodecLevel, CompressionError, codec_ids}, 
-        stream_v2::{compression_worker::{CodecInfo, CompressionBackend, GpuCompressionBackend}, 
+        stream::{compression_worker::{CodecInfo, CompressionBackend, GpuCompressionBackend}, 
         segment_worker::EncryptSegmentInput, segmenting::types::SegmentFlags}, telemetry::StageTimes};
 
     fn make_codec_info() -> CodecInfo<'static> {

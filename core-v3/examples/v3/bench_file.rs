@@ -5,7 +5,7 @@ use core_api::{
     benchmarks::{bench_results::BenchmarkResult, bench_runner::{ApiVersion, BenchFuture, bench_main}, bench_utils::{dummy_master_key, random_bytes}}, 
     compression::CompressionCodec, 
     parallelism::ParallelismConfig,
-    stream_v2::{core::MasterKey}
+    stream::{core::MasterKey}
 };
 #[cfg(feature = "benchmarks")]
 use core_v3::{

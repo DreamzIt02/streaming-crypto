@@ -6,7 +6,15 @@ pub mod bench_metadata;
 pub mod bench_persists;
 pub mod bench_runner;
 
+
+#[cfg(feature = "benchmarks")]
 pub mod v2;
 
 #[cfg(feature = "benchmarks")]
 pub use v2::*;
+
+#[cfg(feature = "benchmarks")]
+pub mod v3;
+
+#[cfg(feature = "benchmarks")]
+pub use v3::*;

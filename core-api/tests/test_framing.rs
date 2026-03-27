@@ -9,7 +9,7 @@
 
 #[cfg(test)]
 mod tests {
-    use core_api::stream_v2::framing::{decode::{decode_frame, decode_frame_header}, encode::encode_frame, types::{
+    use core_api::stream::framing::{decode::{decode_frame, decode_frame_header}, encode::encode_frame, types::{
         FRAME_VERSION, FrameError, FrameHeader, FrameView, FrameType
     }};
 

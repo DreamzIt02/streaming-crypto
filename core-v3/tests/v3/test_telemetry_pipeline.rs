@@ -20,12 +20,12 @@ mod telemetry_pipeline_tests {
     use std::sync::Arc;
 
     use core_api::{
-        InputSource, constants::MAX_CHUNK_SIZE, crypto::{DigestAlg, KEY_LEN_32}, headers::HeaderV1, parallelism::HybridParallelismProfile, recovery::AsyncLogManager, stream_v2::{
-            pipeline::PipelineConfig,
+        InputSource, constants::MAX_CHUNK_SIZE, crypto::{DigestAlg, KEY_LEN_32}, headers::HeaderV1, parallelism::HybridParallelismProfile, recovery::AsyncLogManager, 
+        stream::{
             segment_worker::{DecryptContext, EncryptContext},
         }, telemetry::TelemetrySnapshot
     };
-    use core_v3::stream_v3::pipeline::{decrypt_pipeline, decrypt_read_header, encrypt_pipeline};
+    use core_v3::{pipeline::PipelineConfig, stream_v3::pipeline::{decrypt_pipeline, decrypt_read_header, encrypt_pipeline}};
 
     // ## 1️⃣ Helpers
     fn setup_enc_context(alg: DigestAlg) -> (EncryptContext, HybridParallelismProfile, Arc<AsyncLogManager>) {

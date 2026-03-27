@@ -7,15 +7,10 @@ use crate::{
     benchmarks::{
         bench_results::{BenchmarkResult, make_result},
         bench_utils::{dummy_master_key, measure_memory_mb},
-    },
-    compression::CompressionCodec,
-    headers::HeaderV1,
-    parallelism::ParallelismConfig,
-    stream_v2::{
-        ApiConfig, EncryptParams, InputSource, OutputSink, encrypt_stream_v2,
-    },
-    utils::enum_name_or_hex,
+    }, compression::CompressionCodec, headers::HeaderV1, parallelism::ParallelismConfig, stream::{InputSource, OutputSink}, utils::enum_name_or_hex
 };
+
+use crate::v2::stream::{core::{ApiConfig, EncryptParams}, encrypt_stream_v2,};
 
 fn dummy_header(chunk_size: usize, compression: CompressionCodec) -> HeaderV1 {
     HeaderV1 {

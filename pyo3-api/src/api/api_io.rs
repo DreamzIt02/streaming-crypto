@@ -8,7 +8,7 @@ use std::{io::{Read, Write}, path::PathBuf};
 use pyo3::{PyObject, PyResult, Python, types::{PyByteArray, PyByteArrayMethods, PyBytes, PyBytesMethods, PyMemoryView}};
 use pyo3::types::PyAnyMethods; // ✅ bring both traits into scope
 
-use core_api::{stream_v2::{InputSource, OutputSink}};
+use core_api::{stream::{InputSource, OutputSink}};
 use crate::{PyInputSource, PyOutputSink, io::{PyReader, PyReaderHT, PyReaderReadInto, PyWriter, PyWriterHT, PyWriterWriteInto}};
 
 // ```rust

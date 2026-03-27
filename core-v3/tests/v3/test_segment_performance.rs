@@ -3,10 +3,12 @@
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
-
     use bytes::Bytes;
     use crossbeam::channel::unbounded;
-    use core_api::{crypto::{DigestAlg, KEY_LEN_32}, headers::HeaderV1, parallelism::HybridParallelismProfile, recovery::AsyncLogManager, segmenting::SegmentHeader, stream_v2::{segment_worker::{DecryptContext, DecryptedSegment, EncryptContext, EncryptedSegment, SegmentWorkerError}, segmenting::types::SegmentFlags}, types::StreamError};
+
+    use core_api::{crypto::{DigestAlg, KEY_LEN_32},
+        headers::HeaderV1, parallelism::HybridParallelismProfile, recovery::AsyncLogManager, segmenting::SegmentHeader, 
+        stream::{segment_worker::{DecryptContext, DecryptedSegment, EncryptContext, EncryptedSegment, SegmentWorkerError}, segmenting::types::SegmentFlags}, types::StreamError};
     use core_v3::stream_v3::{pipeline::{Monitor, PipelineMonitor}, segment_worker::{DecryptSegmentWorker3, EncryptSegmentWorker3, SegmentInput}};
 
     fn setup_enc_context(alg: DigestAlg, chunk_size: usize) -> (EncryptContext, Arc<AsyncLogManager>) {

@@ -3,10 +3,18 @@
 #[cfg(test)]
 mod tests {
     use std::sync::{Arc, atomic::AtomicBool};
-
     use bytes::Bytes;
     use crossbeam::channel::{self, bounded};
-    use core_api::{crypto::DigestAlg, stream_v2::{frame_worker::{EncryptedFrame, FrameInput, FrameWorkerError}, segment_worker::{EncryptSegmentInput, enc_helpers::process_encrypt_segment_1}, segmenting::types::SegmentFlags}, telemetry::{StageTimes, TelemetryCounters}};
+
+    use core_api::{
+        crypto::DigestAlg, frame_worker::{EncryptedFrame, FrameInput, FrameWorkerError}, 
+        stream::{
+            segment_worker::EncryptSegmentInput, 
+            segmenting::types::SegmentFlags
+        }, 
+        telemetry::{StageTimes, TelemetryCounters}
+    };
+    use core_api::v2::segment_worker::enc_helpers::process_encrypt_segment_1;
 
     fn setup_channels() -> (
         channel::Sender<FrameInput>,

@@ -44,12 +44,12 @@ jobs:
       prefix: 'v'
       suffix: 'crates'
 
-  # ✅ prepare-publish
+  # ✅ prepare-crates
   prepare:
     name: Prepare Publish Crate
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' }}
     needs: [detect-tag]
-    uses: ./.github/workflows/prepare-publish.yml
+    uses: ./.github/workflows/prepare-crates.yml
     with:
       tag: ${{ needs.detect-tag.outputs.tag_version }}
       modules: |

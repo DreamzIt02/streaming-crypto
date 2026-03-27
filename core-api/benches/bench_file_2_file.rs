@@ -2,12 +2,17 @@ use criterion::{criterion_group, criterion_main, Criterion};
 #[cfg(feature = "benchmarks")]
 use core_api::{
     benchmarks::{
-        bench_v2_encrypt_file::bench_v2_encrypt_file_2_file_sync,
         bench_utils::random_bytes,
     },
     compression::CompressionCodec,
     parallelism::ParallelismConfig,
 };
+
+#[cfg(feature = "benchmarks")]
+use core_api::benchmarks::{
+    bench_v2_encrypt_file::bench_v2_encrypt_file_2_file_sync,
+};
+
 #[cfg(feature = "benchmarks")]
 use std::{fs::File, io::Write, path::PathBuf};
 

@@ -3,7 +3,34 @@
 use std::{any::Any, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}};
 use crossbeam::channel::{Receiver, Sender};
 
-use core_api::{telemetry::TelemetryEvent, types::StreamError};
+use core_api::{parallelism::HybridParallelismProfile, telemetry::TelemetryEvent, types::StreamError};
+
+#[derive(Debug, Clone)]
+pub struct PipelineConfig {
+    pub profile: HybridParallelismProfile,
+    /// The final encrypted stream bytes, if the output sink was memory-backed.
+    ///
+    /// - `None` if the output was written directly to a file or external sink.
+    /// - `Some(Vec<u8>)` if the pipeline wrote into an in-memory buffer.
+    ///
+    /// This field is primarily useful in tests, benchmarks, or integrations
+    /// where we want to inspect the produced ciphertext alongside telemetry
+    /// counters and stage timings.
+    pub buf: Option<Arc<Mutex<Vec<u8>>>>,
+}
+
+impl PipelineConfig {
+    pub fn new(profile: HybridParallelismProfile, buf: Option<Arc<Mutex<Vec<u8>>>>) -> Self {
+        Self {
+            profile,
+            buf,
+        }
+    }
+    pub fn with_buf(profile: HybridParallelismProfile) -> (Self, Arc<Mutex<Vec<u8>>>) {
+        let buf = Arc::new(Mutex::new(Vec::new()));
+        (Self { profile, buf: Some(buf.clone()) }, buf)
+    }
+}
 
 pub trait PipelineMonitor {
     fn report_error(&self, err: StreamError);

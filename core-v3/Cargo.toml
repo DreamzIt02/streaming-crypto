@@ -9,7 +9,7 @@ default     = []
 benchmarks  = []
 
 [dependencies]
-core-api = { path = "../core-api" }
+core-api    = { path = "../core-api" }
 
 # Concurrency (core-safe)
 crossbeam.workspace = true
@@ -99,46 +99,6 @@ path = "tests/v3/test_telemetry_pipeline.rs"
 [[test]]
 name = "v3_core"
 path = "tests/v3/test_core.rs"
-
-[[bench]]
-name = "bench_aead_variants"
-harness = false
-
-[[bench]]
-name = "bench_frame_worker"
-harness = false
-
-[[bench]]
-name = "bench_frame_workers"
-harness = false
-
-[[bench]]
-name = "bench_segment_workers"
-harness = false
-
-[[bench]]
-name = "bench_io_throughput"
-harness = false
-
-[[bench]]
-name = "bench_parallelism"
-harness = false
-
-[[bench]]
-name = "bench_segment_sizes"
-harness = false
-
-[[bench]]
-name = "bench_digest_variants"
-harness = false
-
-[[bench]]
-name = "bench_memory_2_memory"
-harness = false
-
-[[bench]]
-name = "bench_file_2_file"
-harness = false
 
 [[example]]
 name = "v3-bench_memory"

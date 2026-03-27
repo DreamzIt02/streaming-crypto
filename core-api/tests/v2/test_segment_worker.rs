@@ -3,24 +3,19 @@
 #[cfg(test)]
 mod tests {
 
-use std::sync::Arc;
-use std::sync::atomic::AtomicBool;
+    use std::sync::Arc;
+    use std::sync::atomic::AtomicBool;
+    use bytes::Bytes;
+    use core_api::v2::segment_worker::{DecryptSegmentWorker1, EncryptSegmentWorker1};
+    use crossbeam::channel::{Receiver, Sender, unbounded};
 
-use bytes::Bytes;
-use crossbeam::channel::{Receiver, Sender, unbounded};
-use core_api::crypto::{DigestAlg, KEY_LEN_32};
-use core_api::headers::HeaderV1;
-use core_api::parallelism::HybridParallelismProfile;
-use core_api::stream_v2::segment_worker::decrypt::DecryptSegmentWorker1;
-use core_api::stream_v2::segment_worker::encrypt::EncryptSegmentWorker1;
-use core_api::stream_v2::segment_worker::{
-    DecryptContext, DecryptSegmentInput, DecryptedSegment, EncryptContext, EncryptSegmentInput, EncryptedSegment, SegmentWorkerError
-};
-use core_api::recovery::persist::AsyncLogManager;
-use core_api::stream_v2::segmenting::types::SegmentFlags;
-use core_api::telemetry::StageTimes;
-use core_api::types::StreamError;
-
+    use core_api::{
+        crypto::{DigestAlg, KEY_LEN_32}, headers::HeaderV1, parallelism::HybridParallelismProfile, recovery::AsyncLogManager, segment_worker::{DecryptContext, DecryptSegmentInput, DecryptedSegment, EncryptContext, EncryptedSegment, SegmentWorkerError}, stream::{
+            segment_worker::EncryptSegmentInput, 
+            segmenting::types::SegmentFlags
+        }, telemetry::StageTimes, types::StreamError
+    };
+    
     fn setup_enc_context(alg: DigestAlg) -> (EncryptContext, Arc<AsyncLogManager>) {
         let header = HeaderV1::test_header(); // Mock header
         let profile = HybridParallelismProfile::semi_dynamic(header.chunk_size as u32, 0.50, 64);

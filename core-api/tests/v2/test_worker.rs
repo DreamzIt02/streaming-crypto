@@ -4,12 +4,13 @@
 mod worker_tests {
     use std::sync::{Arc, Mutex};
     use bytes::Bytes;
+    use core_api::v2::compression_worker::run_compression_worker;
     use crossbeam::channel;
 
     use core_api::{compression::{CodecLevel, codec_ids}, 
         parallelism::Scheduler, 
-        stream_v2::{
-            compression_worker::{CodecInfo, GpuCompressionBackend, run_compression_worker}, 
+        stream::{
+            compression_worker::{CodecInfo, GpuCompressionBackend}, 
             segment_worker::EncryptSegmentInput, segmenting::types::SegmentFlags
         }, telemetry::StageTimes
     };

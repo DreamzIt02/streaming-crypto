@@ -4,18 +4,10 @@
 mod tests {
     use std::sync::Arc;
     use bytes::Bytes;
-    use core_api::segmenting::SegmentHeader;
     use crossbeam::channel::unbounded;
-
-    use core_api::crypto::{DigestAlg, KEY_LEN_32};
-    use core_api::headers::HeaderV1;
-    use core_api::parallelism::HybridParallelismProfile;
-    use core_api::recovery::persist::AsyncLogManager;
-    use core_api::stream_v2::segmenting::types::SegmentFlags;
-    use core_api::telemetry::{TelemetryEvent};
-    use core_api::types::StreamError;
+    
+    use core_api::{crypto::{DigestAlg, KEY_LEN_32}, headers::HeaderV1, parallelism::HybridParallelismProfile, recovery::AsyncLogManager, segment_worker::{DecryptContext, DecryptedSegment, EncryptContext, EncryptedSegment}, segmenting::{SegmentHeader, types::SegmentFlags}, telemetry::TelemetryEvent, types::StreamError};
     use core_v3::stream_v3::{segment_worker::{DecryptSegmentWorker3, EncryptSegmentWorker3, SegmentInput}, pipeline::{Monitor, PipelineMonitor}};
-    use core_api::stream_v2::segment_worker::{EncryptContext, DecryptContext, DecryptedSegment, EncryptedSegment};
 
     fn setup_enc_context(alg: DigestAlg) -> (EncryptContext, Arc<AsyncLogManager>) {
         let header = HeaderV1::test_header();

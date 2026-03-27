@@ -8,7 +8,7 @@ use tracing::{error, info, warn};
 use core_api::{
     crypto::{AadHeader, AeadImpl, build_aad, derive_nonce_12_tls_style}, 
     headers::HeaderV1, 
-    stream_v2::{
+    stream::{
         frame_worker::{EncryptedFrame, FrameInput, FrameWorkerError}, framing::{FrameHeader, FrameType, encode::{encode_frame,encode_in_place}}
     }, 
     telemetry::{Stage, StageTimes}, 

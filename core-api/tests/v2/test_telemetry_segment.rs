@@ -19,20 +19,22 @@ mod tests {
     use std::{sync::{Arc, atomic::AtomicBool}, time::Duration};
     use bytes::Bytes;
     use crossbeam::channel::{Receiver, Sender, bounded, unbounded};
+
     use core_api::{
         crypto::DigestAlg,
         headers::HeaderV1,
-        stream_v2::{
+        stream::{
             frame_worker::{
-                DecryptedFrame, EncryptedFrame, FrameInput, FrameWorkerError, decrypt::DecryptFrameWorker1, encrypt::EncryptFrameWorker1
+                DecryptedFrame, EncryptedFrame, FrameInput, FrameWorkerError,
             },
             segment_worker::{
-                DecryptSegmentInput, EncryptSegmentInput, EncryptedSegment, SegmentWorkerError, dec_helpers::process_decrypt_segment_1, enc_helpers::process_encrypt_segment_1
+                DecryptSegmentInput, EncryptSegmentInput, EncryptedSegment, SegmentWorkerError, 
             },
             segmenting::{SegmentHeader, types::SegmentFlags},
         },
         telemetry::{Stage, StageTimes, TelemetryCounters},
     };
+    use core_api::v2::{frame_worker::{DecryptFrameWorker1, EncryptFrameWorker1}, segment_worker::{dec_helpers::process_decrypt_segment_1, enc_helpers::process_encrypt_segment_1}};
     
     // ## 1️⃣ Helpers
     fn make_encrypt_channels() -> (

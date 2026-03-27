@@ -51,7 +51,9 @@ pub mod recovery;
 pub mod parallelism;
 
 // Stream layers
-pub mod stream_v2;
+pub mod stream;
+pub mod v2;
+pub mod v3;
 
 // Benchmark shared
 pub mod benchmarks;
@@ -63,4 +65,4 @@ pub mod prelude {
 
 }
 
-pub use stream_v2::*;
+pub use stream::*;

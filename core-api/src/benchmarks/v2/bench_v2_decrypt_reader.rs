@@ -9,13 +9,13 @@ use crate::{
         bench_results::{BenchmarkResult, make_result},
         bench_utils::{dummy_master_key, measure_memory_mb},
     },
+    stream::{InputSource, OutputSink},
     compression::CompressionCodec,
     parallelism::ParallelismConfig,
-    stream_v2::{
-        ApiConfig, DecryptParams, InputSource, OutputSink, decrypt_stream_v2,
-    },
     utils::enum_name_or_hex,
 };
+
+use crate::v2::stream::{core::{ApiConfig, DecryptParams}, decrypt_stream_v2,};
 
 // ### 📖 Reader Input Decrypt Macro
 macro_rules! bench_v2_decrypt_reader {

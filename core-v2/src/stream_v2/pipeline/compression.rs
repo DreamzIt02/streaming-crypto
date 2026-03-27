@@ -1,0 +1,169 @@
+// ## 📦 `src/stream_v2/pipeline/compression.rs`
+
+use std::sync::{Arc, Mutex};
+use crossbeam::channel::{Receiver, Sender};
+
+use core_api::{
+    parallelism::{HybridParallelismProfile, Scheduler, WorkerTarget},
+    stream::{ 
+        compression_worker::{CodecInfo, CompressionWorkerError, make_backend,},
+        segment_worker::{DecryptedSegment, EncryptSegmentInput}
+    }
+};
+
+use crate::compression_worker::{run_compression_worker, run_decompression_worker};
+
+pub fn spawn_compression_workers(
+    profile: HybridParallelismProfile,
+    codec_info: CodecInfo,
+    comp_rx: Receiver<EncryptSegmentInput>,
+    out_tx: Sender<Result<EncryptSegmentInput, CompressionWorkerError>>,
+) {
+    eprintln!("[SPAWN] spawning {} CPU + {} GPU workers", profile.cpu_workers(), profile.gpu_workers());
+
+    let scheduler = Arc::new(Mutex::new(Scheduler::new(
+        profile.cpu_workers(),
+        profile.gpu_workers(),
+        profile.gpu_threshold(),
+    )));
+    let workers = (profile.cpu_workers() / 2).max(1);
+    
+    // spawn CPU workers
+    for i in 0..workers {
+        eprintln!("[SPAWN] spawning CPU worker {}", i);
+
+        let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = comp_rx.clone();
+        let tx = out_tx.clone();
+        std::thread::spawn(move || run_compression_worker(rx, tx, backend, sched));
+    }
+
+    // spawn GPU workers
+    for i in 0..profile.gpu_workers() {
+        eprintln!("[SPAWN] spawning GPU worker {}", i);
+
+        let backend = make_backend(WorkerTarget::Gpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = comp_rx.clone();
+        let tx = out_tx.clone();
+        std::thread::spawn(move || run_compression_worker(rx, tx, backend, sched));
+    }
+    drop(comp_rx);  // Explicit drop
+}
+
+pub fn spawn_compression_workers_scoped<'scope>(
+    scope: &'scope std::thread::Scope<'scope, '_>,
+    profile: HybridParallelismProfile,
+    codec_info: CodecInfo,
+    comp_rx: Receiver<EncryptSegmentInput>,
+    out_tx: Sender<Result<EncryptSegmentInput, CompressionWorkerError>>,
+) {
+    eprintln!("[SPAWN] spawning {} CPU + {} GPU workers", profile.cpu_workers(), profile.gpu_workers());
+
+    let scheduler = Arc::new(Mutex::new(Scheduler::new(
+        profile.cpu_workers(),
+        profile.gpu_workers(),
+        profile.gpu_threshold(),
+    )));
+    let workers = (profile.cpu_workers() / 2).max(1);
+
+    // spawn CPU workers IN SCOPE
+    for i in 0..workers {
+        let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = comp_rx.clone();
+        let tx = out_tx.clone();
+        
+        scope.spawn(move || {  // Use scope.spawn instead of std::thread::spawn
+            run_compression_worker(rx, tx, backend, sched);
+        });
+    }
+
+    // spawn GPU workers IN SCOPE
+    for i in 0..profile.gpu_workers() {
+        let backend = make_backend(WorkerTarget::Gpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = comp_rx.clone();
+        let tx = out_tx.clone();
+        
+        scope.spawn(move || {  // Use scope.spawn instead of std::thread::spawn
+            run_compression_worker(rx, tx, backend, sched);
+        });
+    }
+}
+
+/// Decompression worker entry point
+pub fn spawn_decompression_workers(
+    profile: HybridParallelismProfile,
+    codec_info: CodecInfo,
+    decomp_rx: Receiver<DecryptedSegment>,
+    out_tx: Sender<Result<DecryptedSegment, CompressionWorkerError>>,
+) {
+    eprintln!("[SPAWN] spawning {} CPU + {} GPU workers", profile.cpu_workers(), profile.gpu_workers());
+   
+    let scheduler = Arc::new(Mutex::new(Scheduler::new(
+        profile.cpu_workers(),
+        profile.gpu_workers(),
+        profile.gpu_threshold(),
+    )));
+    let workers = (profile.cpu_workers() / 2).max(1);
+
+    // spawn CPU workers
+    for i in 0..workers {
+        let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = decomp_rx.clone();
+        let tx = out_tx.clone();
+        std::thread::spawn(move || run_decompression_worker(rx, tx, backend, sched));
+    }
+
+    // spawn GPU workers
+    for i in 0..profile.gpu_workers() {
+        let backend = make_backend(WorkerTarget::Gpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = decomp_rx.clone();
+        let tx = out_tx.clone();
+        std::thread::spawn(move || run_decompression_worker(rx, tx, backend, sched));
+    }
+}
+
+pub fn spawn_decompression_workers_scoped<'scope>(
+    scope: &'scope std::thread::Scope<'scope, '_>,
+    profile: HybridParallelismProfile,
+    codec_info: CodecInfo,
+    decomp_rx: Receiver<DecryptedSegment>,
+    out_tx: Sender<Result<DecryptedSegment, CompressionWorkerError>>,
+) {
+    eprintln!("[SPAWN] spawning {} CPU + {} GPU workers", profile.cpu_workers(), profile.gpu_workers());
+   
+    let scheduler = Arc::new(Mutex::new(Scheduler::new(
+        profile.cpu_workers(),
+        profile.gpu_workers(),
+        profile.gpu_threshold(),
+    )));
+    let workers = (profile.cpu_workers() / 2).max(1);
+
+    // spawn CPU workers
+    for i in 0..workers {
+        let backend = make_backend(WorkerTarget::Cpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = decomp_rx.clone();
+        let tx = out_tx.clone();
+        scope.spawn(move || {  // Use scope.spawn instead of std::thread::spawn
+            run_decompression_worker(rx, tx, backend, sched);
+        });
+    }
+
+    // spawn GPU workers
+    for i in 0..profile.gpu_workers() {
+        let backend = make_backend(WorkerTarget::Gpu(i), codec_info.clone());
+        let sched = scheduler.clone();
+        let rx = decomp_rx.clone();
+        let tx = out_tx.clone();
+        scope.spawn(move || {  // Use scope.spawn instead of std::thread::spawn
+            run_decompression_worker(rx, tx, backend, sched);
+        });
+    }
+}
+

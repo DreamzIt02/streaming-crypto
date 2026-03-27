@@ -2,9 +2,11 @@
 
 use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId, Throughput};
 use crossbeam::channel::unbounded;
-use core_api::{constants::cipher_ids, headers::HeaderV1, stream_v2::{frame_worker::{FrameInput, decrypt::DecryptFrameWorker1, encrypt::EncryptFrameWorker1}, framing::FrameType}, types::StreamError};
 use rand::Rng;
 use bytes::Bytes;
+
+use core_api::{constants::cipher_ids, headers::HeaderV1, stream::{frame_worker::{FrameInput}, framing::FrameType}, types::StreamError};
+use core_api::v2::frame_worker::{DecryptFrameWorker1, EncryptFrameWorker1};
 
 fn bench_frame_worker(c: &mut Criterion) {
     let mut rng = rand::thread_rng();

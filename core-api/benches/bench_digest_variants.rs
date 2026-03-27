@@ -1,17 +1,14 @@
 // `benches/bench_digest_variants.rs`
-
-use criterion::{criterion_group, criterion_main, Criterion};
-use core_api::benchmarks::bench_utils::dummy_master_key;
-use core_api::crypto::DigestAlg;
-use core_api::headers::HeaderV1;
-use core_api::stream_v2::{
-    encrypt_stream_v2, decrypt_stream_v2,
-    InputSource, OutputSink,
-    EncryptParams, DecryptParams,
-    ApiConfig,
-};
 use std::fs::File;
 use std::io::Write;
+use core_api::OutputSink;
+use core_api::{InputSource, benchmarks::bench_utils::dummy_master_key};
+use core_api::crypto::DigestAlg;
+use core_api::headers::HeaderV1;
+use core_api::v2::core::DecryptParams;
+use core_api::v2::decrypt_stream_v2;
+use core_api::v2::{core::{ApiConfig, EncryptParams}, encrypt_stream_v2};
+use criterion::{Criterion, criterion_group, criterion_main};
 use tempfile::tempdir;
 
 fn dummy_header() -> HeaderV1 {

@@ -20,6 +20,14 @@
 #[cfg(feature = "core-api")]
 pub use core_api::*; // re-export everything from core_api
 
+// Default re-export (currently v2)
+// #[cfg(feature = "core-api")]
+// pub use v2::*;
+
+// In future, switch default to v3
+// #[cfg(feature = "core-api")]
+// pub use v3::*;
+
 /// FFI wrapper for encryption.
 ///
 /// # Safety

@@ -16,17 +16,12 @@
 mod tests {
 
     use bytes::Bytes;
-    use core_api::crypto::KEY_LEN_32;
-    use core_api::headers::types::HeaderV1;
-    use core_api::stream_v2::frame_worker::{
-        DecryptedFrame, EncryptedFrame, FrameInput, FrameWorkerError,
-    };
+    
+    use core_api::{crypto::KEY_LEN_32, frame_worker::{DecryptedFrame, EncryptedFrame, FrameInput, FrameWorkerError}, framing::FrameType, headers::HeaderV1, types::StreamError};
     use core_v3::stream_v3::{
         frame_worker::{encrypt::EncryptFrameWorker3, decrypt::DecryptFrameWorker3},
         pipeline::{Monitor},
     };
-    use core_api::stream_v2::framing::FrameType;
-    use core_api::types::StreamError;
 
     fn test_key() -> Vec<u8> {
         vec![0x42u8; KEY_LEN_32]

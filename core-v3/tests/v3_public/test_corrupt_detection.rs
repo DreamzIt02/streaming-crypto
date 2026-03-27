@@ -3,9 +3,9 @@
 #[cfg(test)]
 mod tests {
     use core_api::{headers::HeaderV1,
-        stream_v2::{InputSource, OutputSink, core::{ApiConfig, DecryptParams, EncryptParams, MasterKey}, framing::FrameHeader, segmenting::SegmentHeader},
+        stream::{InputSource, OutputSink, core::{MasterKey}, framing::FrameHeader, segmenting::SegmentHeader},
         types::StreamError};
-    use core_v3::stream_v3::{ decrypt_stream_v3, encrypt_stream_v3 };
+    use core_v3::{core::{ApiConfig, DecryptParams, EncryptParams, decrypt_stream_v3, encrypt_stream_v3 }};
     
     use std::{io::{Read, Write}, sync::atomic::{AtomicUsize, Ordering}};
 

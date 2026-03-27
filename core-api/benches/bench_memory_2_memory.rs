@@ -1,8 +1,12 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 #[cfg(feature = "benchmarks")]
 use core_api::{benchmarks::{
-    bench_v2_encrypt_memory::bench_v2_encrypt_memory_2_memory_sync, 
     bench_utils::{random_bytes}}, compression::CompressionCodec, parallelism::ParallelismConfig}; // adjust path
+
+#[cfg(feature = "benchmarks")]
+use core_api::benchmarks::{
+    bench_v2_encrypt_memory::bench_v2_encrypt_memory_2_memory_sync, 
+};
 
 fn bench_memory(c: &mut Criterion) {
     #[cfg(feature = "benchmarks")]

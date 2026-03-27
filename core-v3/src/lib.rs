@@ -3,6 +3,7 @@
 pub mod stream_v3;
 
 // Benchmark shared
+#[cfg(feature = "benchmarks")]
 pub mod benchmarks;
 
 // -----------------------------------------------------------------------------

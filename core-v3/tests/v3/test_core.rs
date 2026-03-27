@@ -5,12 +5,12 @@ mod tests {
     use core_api::{
         constants::{MAGIC_DICT, MIN_DICT_LEN}, 
         headers::HeaderV1, 
-        stream_v2::{
+        stream::{
             InputSource, OutputSink, 
-            core::{ApiConfig, DecryptParams, EncryptParams, MasterKey, validate_decrypt_params, validate_dictionary, validate_encrypt_params}, 
+            core::{MasterKey}, 
         },
     };
-    use core_v3::stream_v3::{ decrypt_stream_v3, encrypt_stream_v3 };
+    use core_v3::{core::{ApiConfig, DecryptParams, EncryptParams, validate_decrypt_params, validate_dictionary, validate_encrypt_params, decrypt_stream_v3, encrypt_stream_v3 }};
 
     fn dummy_master_key() -> MasterKey {
         MasterKey::new(vec![0x11u8; 32]) // valid 32-byte key

@@ -1,4 +1,6 @@
-use crate::{compression::CompressionError, crypto::{AadError, CryptoError, NonceError}, headers::HeaderError, stream_v2::{compression_worker::CompressionWorkerError, frame_worker::FrameWorkerError, framing::FrameError, segment_worker::SegmentWorkerError, segmenting::types::SegmentError}};
+use crate::{compression::CompressionError, crypto::{AadError, CryptoError, NonceError}, headers::HeaderError, 
+    stream::{compression_worker::CompressionWorkerError, frame_worker::FrameWorkerError, framing::FrameError, segment_worker::SegmentWorkerError, segmenting::types::SegmentError}
+};
 
 
 /// Unified stream error covering I/O, frame, crypto, compression, nonce, and generic validation.

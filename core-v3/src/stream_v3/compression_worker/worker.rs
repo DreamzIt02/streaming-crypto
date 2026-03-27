@@ -7,7 +7,7 @@ use tracing::{debug, warn};
 
 use core_api::{
     parallelism::Scheduler, 
-    stream_v2::{
+    stream::{
         segmenting::types::SegmentFlags, 
         compression_worker::CompressionBackend,
         segment_worker::DecryptedSegment

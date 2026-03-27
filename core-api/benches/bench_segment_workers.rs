@@ -2,14 +2,13 @@
 // # 🛠 Parallel Benchmarks for SegmentWorkers
 // # 🔒 Channel-driven run_v1 orchestration, shared buffer for decrypt
 
+use core_api::v2::segment_worker::{DecryptSegmentWorker1, EncryptSegmentWorker1};
 use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId, Throughput};
 use crossbeam::channel::unbounded;
 use core_api::{
-    constants::cipher_ids, crypto::{DigestAlg, KEY_LEN_32}, headers::{CipherSuite, HeaderV1}, recovery::AsyncLogManager, 
-    parallelism::HybridParallelismProfile,
-    stream_v2::{
+    constants::cipher_ids, crypto::{DigestAlg, KEY_LEN_32}, headers::{CipherSuite, HeaderV1}, parallelism::HybridParallelismProfile, recovery::AsyncLogManager, segment_worker::DecryptedSegment, stream::{
         segment_worker::{
-            DecryptContext, DecryptSegmentInput, DecryptSegmentWorker1, EncryptContext, EncryptSegmentInput, EncryptSegmentWorker1, EncryptedSegment
+            DecryptContext, DecryptSegmentInput, EncryptContext, EncryptSegmentInput, EncryptedSegment
         }, segmenting::types::SegmentFlags
     }, types::StreamError
 };
@@ -50,7 +49,7 @@ fn setup_dec_context(alg: DigestAlg, chunk_size: usize, cipher_id: CipherSuite) 
 }
 
 fn run_segment_encrypt(worker: EncryptSegmentWorker1, input: EncryptSegmentInput)
-    -> Result<core_api::stream_v2::segment_worker::EncryptedSegment, StreamError>
+    -> Result<EncryptedSegment, StreamError>
 {
     let (tx, rx) = unbounded();
     let (mid_tx, mid_rx) = unbounded();
@@ -71,7 +70,7 @@ fn run_segment_encrypt(worker: EncryptSegmentWorker1, input: EncryptSegmentInput
 }
 
 fn run_segment_decrypt(worker: DecryptSegmentWorker1, input: DecryptSegmentInput)
-    -> Result<core_api::stream_v2::segment_worker::DecryptedSegment, StreamError>
+    -> Result<DecryptedSegment, StreamError>
 {
     let (bridge_tx, bridge_rx) = unbounded();
     let (dec_tx, dec_rx) = unbounded();

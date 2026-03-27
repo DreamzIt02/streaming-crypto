@@ -8,7 +8,7 @@ use tracing::{debug, warn};
 
 use core_api::{
     crypto::{DigestAlg, DigestFrame, SegmentDigestVerifier}, 
-    stream_v2::{frame_worker::DecryptedFrame, framing::{FrameType, FrameError, FrameHeader}, segment_worker::{DecryptedSegment, SegmentWorkerError}, segmenting::{SegmentHeader, types::SegmentFlags}}, 
+    stream::{frame_worker::DecryptedFrame, framing::{FrameType, FrameError, FrameHeader}, segment_worker::{DecryptedSegment, SegmentWorkerError}, segmenting::{SegmentHeader, types::SegmentFlags}}, 
     telemetry::{Stage, StageTimes, TelemetryCounters, TelemetryEvent}, types::StreamError, utils::tracing_logger
 };
 

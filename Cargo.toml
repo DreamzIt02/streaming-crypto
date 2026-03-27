@@ -2,7 +2,7 @@
 members = [
     "core-api", "core-v2", "core-v3",
     "ffi-api",
-    "pyo3-api",
+    "pyo3-api", "pyo3-v2",
     "streaming-crypto"
 ]
 

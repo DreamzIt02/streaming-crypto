@@ -1,8 +1,9 @@
 // 📂 benches/bench_aead_variants.rs
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
-use core_api::{constants::cipher_ids, crypto::{AeadImpl, NONCE_LEN_12}, headers::HeaderV1};
 use rand::Rng;
+
+use core_api::{constants::cipher_ids, crypto::{AeadImpl, NONCE_LEN_12}, headers::HeaderV1};
 
 fn bench_aead(c: &mut Criterion) {
     let mut rng = rand::thread_rng();

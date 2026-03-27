@@ -20,7 +20,8 @@ mod tests {
     use bytes::Bytes;
     use crossbeam::channel::{Receiver, Sender, bounded, unbounded};
     use core_api::{
-        crypto::DigestAlg, headers::HeaderV1, stream_v2::{
+        crypto::DigestAlg, headers::HeaderV1, 
+        stream::{
             frame_worker::{
                 DecryptedFrame, EncryptedFrame, FrameInput,
             },

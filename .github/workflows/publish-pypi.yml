@@ -59,11 +59,11 @@ jobs:
             echo 'os-list=["ubuntu-latest","macos-latest","windows-latest"]' >> $GITHUB_OUTPUT
           fi
 
-  # ✅ prepare-publish
+  # ✅ prepare-pypi
   prepare:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' }}
     needs: [detect-tag]
-    uses: ./.github/workflows/prepare-publish.yml
+    uses: ./.github/workflows/prepare-pypi.yml
     with:
       tag: ${{ needs.detect-tag.outputs.tag_version }}
       modules: |

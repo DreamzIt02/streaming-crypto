@@ -10,15 +10,11 @@ use core_api::{
     },
     compression::CompressionCodec,
     parallelism::ParallelismConfig,
-    stream_v2::{
-        ApiConfig, DecryptParams, InputSource, OutputSink,
-    },
+    stream::{InputSource, OutputSink},
     utils::enum_name_or_hex,
 };
 
-use crate::{
-    stream_v3::{decrypt_stream_v3,},
-};
+use crate::stream_v3::core::{ApiConfig, DecryptParams, decrypt_stream_v3};
 
 // ### 📂 File Input Decrypt Macro
 macro_rules! bench_v3_decrypt_file {

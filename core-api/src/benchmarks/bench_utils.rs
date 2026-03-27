@@ -14,7 +14,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::process;
 use std::fmt;
 
-use crate::stream_v2::core::MasterKey;
+use crate::stream::core::MasterKey;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Uuid([u8; 16]);

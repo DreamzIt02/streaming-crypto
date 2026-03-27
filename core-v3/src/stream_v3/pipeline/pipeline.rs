@@ -12,7 +12,7 @@ use tracing::{debug, error, info, warn};
 use core_api::{
     headers::HeaderV1,
     segmenting::types::SegmentFlags,
-    stream_v2::{io, compression_worker::CodecInfo, pipeline::PipelineConfig, segment_worker::{EncryptContext, EncryptedSegment, DecryptContext, DecryptedSegment}},
+    stream::{io, compression_worker::CodecInfo, segment_worker::{EncryptContext, EncryptedSegment, DecryptContext, DecryptedSegment}},
     recovery::AsyncLogManager,
     telemetry::{Stage, StageTimes, TelemetryCounters, TelemetryEvent, TelemetrySnapshot, TelemetryTimer},
     types::StreamError,
@@ -21,7 +21,7 @@ use core_api::{
 
 use crate::stream_v3::{
     segment_worker::{DecryptSegmentWorker3, EncryptSegmentWorker3, SegmentInput},
-        pipeline::{PipelineMonitor, Monitor, spawn_compress_workers_scoped, spawn_decompress_workers_scoped, spawn_decrypt_readers_scoped, spawn_encrypt_readers_scoped}
+    pipeline::{PipelineConfig, PipelineMonitor, Monitor, spawn_compress_workers_scoped, spawn_decompress_workers_scoped, spawn_decrypt_readers_scoped, spawn_encrypt_readers_scoped}
 };
 
 // ============================================================

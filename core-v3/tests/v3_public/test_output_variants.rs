@@ -3,9 +3,9 @@
 #[cfg(test)]
 mod tests {
     use core_api::{headers::HeaderV1, 
-        stream_v2::{InputSource, OutputSink, core::{ApiConfig, DecryptParams, EncryptParams, MasterKey} },
+        stream::{InputSource, OutputSink, core::{MasterKey} },
     };
-    use core_v3::stream_v3::{ decrypt_stream_v3, encrypt_stream_v3 };
+    use core_v3::{core::{ApiConfig, DecryptParams, EncryptParams, decrypt_stream_v3, encrypt_stream_v3 }};
 
     use std::io::Cursor;
     use tempfile::NamedTempFile;

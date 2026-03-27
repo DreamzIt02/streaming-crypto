@@ -3,10 +3,10 @@
 #[cfg(test)]
 mod tests {
     use core_api::{constants::flags, headers::{AadDomain, HeaderV1}, 
-        stream_v2::{InputSource, OutputSink, core::{ApiConfig, DecryptParams, EncryptParams, MasterKey}, io::PayloadReader }, 
+        stream::{InputSource, OutputSink, core::{MasterKey}, io::PayloadReader }, 
         types::StreamError
     };
-    use core_v3::stream_v3::{ decrypt_stream_v3, encrypt_stream_v3 };
+    use core_v3::{core::{ApiConfig, DecryptParams, EncryptParams, decrypt_stream_v3, encrypt_stream_v3 }};
 
     use std::io::Cursor;
 

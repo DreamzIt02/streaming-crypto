@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use core_api::{
     recovery::AsyncLogManager, 
-    stream_v2::{frame_worker::{DecryptedFrame}, segment_worker::{DecryptContext, DecryptedSegment, SegmentWorkerError}}, 
+    stream::{frame_worker::{DecryptedFrame}, segment_worker::{DecryptContext, DecryptedSegment, SegmentWorkerError}}, 
     types::StreamError, utils::tracing_logger
 };
 

@@ -2,25 +2,18 @@
 
 #[cfg(feature = "benchmarks")]
 use core_api::{
-    benchmarks::{
-        bench_results::BenchmarkResult,
-        bench_runner::{ApiVersion, BenchFuture, bench_main},
-        bench_utils::{dummy_master_key, random_bytes},
-        bench_v2_decrypt_reader::{
-            bench_v2_decrypt_reader_2_file_sync,
-            bench_v2_decrypt_reader_2_memory_sync,
-            bench_v2_decrypt_reader_2_writer_sync
-        },
-        bench_v2_encrypt_reader::{
-            bench_v2_encrypt_reader_2_file_sync,
-            bench_v2_encrypt_reader_2_memory_sync,
-            bench_v2_encrypt_reader_2_writer_sync
-        }
-    },
-    compression::CompressionCodec,
+    benchmarks::{bench_results::BenchmarkResult, bench_runner::{ApiVersion, BenchFuture, bench_main}, bench_utils::{dummy_master_key, random_bytes}}, 
+    compression::CompressionCodec, 
     parallelism::ParallelismConfig,
-    stream_v2::{core::MasterKey}
+    stream::{core::MasterKey}
 };
+
+#[cfg(feature = "benchmarks")]
+use core_api::benchmarks::{
+    bench_v2_decrypt_reader::{bench_v2_decrypt_reader_2_file_sync, bench_v2_decrypt_reader_2_memory_sync, bench_v2_decrypt_reader_2_writer_sync}, 
+    bench_v2_encrypt_reader::{bench_v2_encrypt_reader_2_file_sync, bench_v2_encrypt_reader_2_memory_sync, bench_v2_encrypt_reader_2_writer_sync}
+};
+
 #[cfg(feature = "benchmarks")]
 use std::io::Cursor;
 

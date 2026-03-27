@@ -1,0 +1,15 @@
+[package]
+name    = "pyo3-v2"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+core-api    = { path = "../core-api" }
+core-v2     = { path = "../core-v2" }
+pyo3-api    = { path = "../pyo3-api" }
+pyo3        = { version = "0.22", features = ["auto-initialize"] }
+
+# Utilities
+num_enum.workspace = true
+bytes.workspace = true

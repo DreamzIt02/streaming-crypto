@@ -9,7 +9,7 @@ mod worker_tests {
     use core_api::{
         compression::{CodecLevel, codec_ids},
         parallelism::Scheduler,
-        stream_v2::{compression_worker::{CodecInfo, GpuCompressionBackend}, segmenting::types::SegmentFlags},
+        stream::{compression_worker::{CodecInfo, GpuCompressionBackend}, segmenting::types::SegmentFlags},
         telemetry::TelemetryEvent,
     };
     use core_v3::stream_v3::{compression_worker::run_compress_worker, pipeline::Monitor, segment_worker::SegmentInput};

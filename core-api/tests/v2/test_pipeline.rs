@@ -13,14 +13,20 @@ mod tests {
     use std::io::{Cursor};
     use std::sync::Arc;
 
-    use core_api::constants::DEFAULT_CHUNK_SIZE;
-    use core_api::crypto::{DigestAlg, KEY_LEN_32};
-    use core_api::headers::{HeaderV1, Strategy};
-    use core_api::recovery::AsyncLogManager;
-    use core_api::parallelism::{HybridParallelismProfile, ParallelismConfig};
-    use core_api::stream_v2::{framing::FrameHeader, io::PayloadReader, pipeline::{PipelineConfig, decrypt_pipeline, encrypt_pipeline}, segment_worker::{EncryptContext, DecryptContext, SegmentWorkerError}, segmenting::SegmentHeader};
-    use core_api::telemetry::TelemetrySnapshot;
-    use core_api::types::StreamError;
+    use core_api::{
+        constants::DEFAULT_CHUNK_SIZE,
+        crypto::{DigestAlg, KEY_LEN_32}, 
+        framing::FrameHeader,
+        segmenting::SegmentHeader,
+        headers::{Strategy, HeaderV1}, recovery::AsyncLogManager, 
+        io::PayloadReader,
+        parallelism::{ParallelismConfig, HybridParallelismProfile}, 
+        stream::segment_worker::{DecryptContext, EncryptContext, SegmentWorkerError}, types::StreamError,
+        telemetry::TelemetrySnapshot,
+    };
+
+    use core_api::v2::pipeline::{PipelineConfig, decrypt_pipeline, encrypt_pipeline};
+
 
     // ------------------------------------------------------------
     // Helpers

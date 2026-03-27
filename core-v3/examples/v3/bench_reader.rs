@@ -9,7 +9,7 @@ use core_api::{
     },
     compression::CompressionCodec,
     parallelism::ParallelismConfig,
-    stream_v2::{core::MasterKey}
+    stream::{core::MasterKey}
 };
 #[cfg(feature = "benchmarks")]
 use core_v3::{

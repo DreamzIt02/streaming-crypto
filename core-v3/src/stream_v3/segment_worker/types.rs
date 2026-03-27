@@ -2,7 +2,7 @@
 
 use bytes::Bytes;
 
-use core_api::stream_v2::{segment_worker::EncryptedSegment, segmenting::{SegmentHeader, types::SegmentFlags}};
+use core_api::stream::{segment_worker::EncryptedSegment, segmenting::{SegmentHeader, types::SegmentFlags}};
 
 /// `SegmentInput` is the “raw” form: just plaintext frames.
 /// Input from reader stage (plaintext)

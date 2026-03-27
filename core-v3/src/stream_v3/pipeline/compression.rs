@@ -6,7 +6,7 @@ use crossbeam::thread::Scope;
 use tracing::{info, warn};
 
 use core_api::{
-    stream_v2::{compression_worker::{CodecInfo, make_backend}, segment_worker::DecryptedSegment},
+    stream::{compression_worker::{CodecInfo, make_backend}, segment_worker::DecryptedSegment},
     parallelism::{HybridParallelismProfile, Scheduler, WorkerTarget},
 };
 

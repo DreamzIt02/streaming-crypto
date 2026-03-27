@@ -1,7 +1,7 @@
-core-api = []
-ffi-api  = []
-pyo3-api = ["pyo3"]
-cuda     = ["cudarc"]      # CUDA backend
-metal    = ["wgpu"]        # WGPU backend
-opencl   = ["opencl3"]     # OpenCL backend
-benchmarks = []
+core-api    = []
+ffi-api     = []
+pyo3-api    = ["pyo3"]
+cuda        = ["cudarc"]      # CUDA backend
+metal       = ["wgpu"]        # WGPU backend
+opencl      = ["opencl3"]     # OpenCL backend
+benchmarks  = []

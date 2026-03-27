@@ -20,7 +20,7 @@ mod tests {
     use bytes::Bytes;
     use core_api::{
         crypto::{DigestAlg, SegmentDigestBuilder, DigestError, DigestFrame, SegmentDigestVerifier},
-        stream_v2::{frame_worker::{FrameInput, FrameWorkerError}, framing::FrameType},
+        stream::{frame_worker::{FrameInput, FrameWorkerError}, framing::FrameType},
     };
 
     // ## 1️⃣ Helper

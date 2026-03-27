@@ -2,7 +2,8 @@
 
 #[cfg(test)]
 mod tests {
-    use core_api::{compression::CompressionCodec, headers::{AadDomain, AlgProfile, CipherSuite, HeaderV1, HkdfPrf, Strategy}, stream_v2::{InputSource, OutputSink, core::{ApiConfig, DecryptParams, EncryptParams, MasterKey}, decrypt_stream_v2, encrypt_stream_v2}, types::StreamError};
+    use core_api::{compression::CompressionCodec, headers::{AadDomain, AlgProfile, CipherSuite, HeaderV1, HkdfPrf, Strategy}, stream::{InputSource, OutputSink, core::{MasterKey}}, types::StreamError};
+    use core_api::v2::{core::{ApiConfig, DecryptParams, EncryptParams}, decrypt_stream_v2, encrypt_stream_v2};
 
     fn dummy_master_key() -> MasterKey {
         MasterKey::new(vec![0x11; 32]) // 256‑bit dummy key

@@ -2,7 +2,8 @@
 
 #[cfg(test)]
 mod tests {
-    use core_api::{headers::HeaderV1, stream_v2::{InputSource, OutputSink, core::{ApiConfig, DecryptParams, EncryptParams, MasterKey}, decrypt_stream_v2, encrypt_stream_v2, framing::FrameHeader, segmenting::SegmentHeader}, types::StreamError};
+    use core_api::{headers::HeaderV1, stream::{InputSource, OutputSink, core::{MasterKey}, framing::FrameHeader, segmenting::SegmentHeader}, types::StreamError};
+    use core_api::v2::{core::{ApiConfig, DecryptParams, EncryptParams}, decrypt_stream_v2, encrypt_stream_v2};
     use std::{io::{Read, Write}, sync::atomic::{AtomicUsize, Ordering}};
 
     fn dummy_master_key() -> MasterKey {

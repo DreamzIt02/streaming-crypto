@@ -3,17 +3,8 @@ mod tests {
     use std::io::Cursor;
     use std::sync::Arc;
 
-    use core_api::InputSource;
-    use core_api::constants::DEFAULT_CHUNK_SIZE;
-    use core_api::crypto::{DigestAlg, KEY_LEN_32};
-    use core_api::headers::{HeaderV1, Strategy};
-    use core_api::pipeline::PipelineConfig;
-    use core_api::recovery::AsyncLogManager;
-    use core_api::parallelism::{HybridParallelismProfile, ParallelismConfig};
-    use core_api::stream_v2::{framing::FrameHeader, io::PayloadReader, segment_worker::{EncryptContext, DecryptContext}, segmenting::SegmentHeader};
-    use core_v3::stream_v3::pipeline::{decrypt_read_header, decrypt_pipeline, encrypt_pipeline};
-    use core_api::telemetry::TelemetrySnapshot;
-    use core_api::types::StreamError;
+    use core_api::{InputSource, constants::DEFAULT_CHUNK_SIZE, crypto::{DigestAlg, KEY_LEN_32}, framing::FrameHeader, headers::{HeaderV1, Strategy}, io::PayloadReader, parallelism::{HybridParallelismProfile, ParallelismConfig}, recovery::AsyncLogManager, segment_worker::{DecryptContext, EncryptContext}, segmenting::SegmentHeader, telemetry::TelemetrySnapshot, types::StreamError};
+    use core_v3::{pipeline::PipelineConfig, stream_v3::pipeline::{decrypt_pipeline, decrypt_read_header, encrypt_pipeline}};
 
     fn setup_enc_context(alg: DigestAlg) -> (EncryptContext, Arc<AsyncLogManager>) {
         let header = HeaderV1::test_header();

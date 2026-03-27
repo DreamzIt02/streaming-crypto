@@ -6,7 +6,7 @@ use tracing::{error, info, warn};
 
 use core_api::{
     recovery::AsyncLogManager, 
-    stream_v2::{frame_worker::{EncryptedFrame, FrameInput}, segment_worker::{EncryptContext, EncryptedSegment, SegmentWorkerError}},
+    stream::{frame_worker::{EncryptedFrame, FrameInput}, segment_worker::{EncryptContext, EncryptedSegment, SegmentWorkerError}},
     types::StreamError, utils::tracing_logger
 };
 

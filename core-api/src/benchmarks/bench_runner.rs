@@ -9,7 +9,7 @@ use crate::{
     benchmarks::{
         bench_persists::save_json, bench_results::{BenchmarkResult, print_results}, bench_utils::dummy_master_key
     }, 
-    stream_v2::core::MasterKey
+    stream::core::MasterKey
 };
 
 #[derive(Debug, PartialEq)]

@@ -2,12 +2,16 @@
 
 #[cfg(feature = "benchmarks")]
 use core_api::{
-    benchmarks::{bench_results::BenchmarkResult, bench_runner::{ApiVersion, BenchFuture, bench_main}, bench_utils::{dummy_master_key, random_bytes}, 
-    bench_v2_decrypt_memory::{bench_v2_decrypt_memory_2_file_sync, bench_v2_decrypt_memory_2_memory_sync, bench_v2_decrypt_memory_2_writer_sync}, 
-    bench_v2_encrypt_memory::{bench_v2_encrypt_memory_2_file_sync, bench_v2_encrypt_memory_2_memory_sync, bench_v2_encrypt_memory_2_writer_sync}}, 
+    benchmarks::{bench_results::BenchmarkResult, bench_runner::{ApiVersion, BenchFuture, bench_main}, bench_utils::{dummy_master_key, random_bytes}}, 
     compression::CompressionCodec, 
     parallelism::ParallelismConfig,
-    stream_v2::{core::MasterKey}
+    stream::{core::MasterKey}
+};
+
+#[cfg(feature = "benchmarks")]
+use core_api::benchmarks::{
+    bench_v2_decrypt_memory::{bench_v2_decrypt_memory_2_file_sync, bench_v2_decrypt_memory_2_memory_sync, bench_v2_decrypt_memory_2_writer_sync}, 
+    bench_v2_encrypt_memory::{bench_v2_encrypt_memory_2_file_sync, bench_v2_encrypt_memory_2_memory_sync, bench_v2_encrypt_memory_2_writer_sync}
 };
 
 // Sync benchmarks
