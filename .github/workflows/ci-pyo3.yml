@@ -38,7 +38,7 @@ jobs:
       - id: set-python
         run: |
           if [ "${{ env.ACT }}" = "true" ]; then
-            echo 'python-list=["3.12"]' >> $GITHUB_OUTPUT
+            echo 'python-list=["3.11"]' >> $GITHUB_OUTPUT
           else
             echo 'python-list=["3.11","3.12","3.13"]' >> $GITHUB_OUTPUT
           fi

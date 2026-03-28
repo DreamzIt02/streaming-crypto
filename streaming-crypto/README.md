@@ -62,19 +62,14 @@ pip install streaming-crypto
 
 ## Set environment python for test
 
-1. **Before:** PyO3 was trying to link against Python 3.13 because either a cached build or environment variable made it think our Python was 3.13.
+```bash
+# Dynamically set DYLD_LIBRARY_PATH for Python framework
+PYVER=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+export DYLD_LIBRARY_PATH="/Library/Frameworks/Python.framework/Versions/$PYVER/lib:$DYLD_LIBRARY_PATH"
 
-2. **Action:** We forced PyO3 to use Python 3.12 or current version of `pyenv` explicitly:
+# Ensure PyO3 uses the same Python interpreter
+export PYO3_PYTHON=$(which python3)
 
-    ```bash
-    export PYTHON_SYS_EXECUTABLE="$(pyenv which python3)"
-    export PYO3_PYTHON="$(pyenv which python3)"
-    export PYO3_NO_PYTHON_LINK=1
-
-    cargo clean
-    cargo test -p streaming-crypto --no-default-features --features pyo3-api
-    ```
-
-3. **Result:** Cargo rebuilds PyO3 and all dependent crates from scratch. Now `cargo run --bin check_python` correctly detects Python 3.12.12 and does **not crash on missing libpython3.13.dylib**.
-
-4. **cargo test** will work now
+cargo clean
+cargo test -p streaming-crypto --no-default-features --features pyo3-api
+```

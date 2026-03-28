@@ -54,42 +54,42 @@ jobs:
       # -------------------------------------------------
       # ✅ Copy core-api into publishable crate
       # -------------------------------------------------
-      - name: Copy core-api sources + metadata
-        shell: bash
-        run: |
-          rm -rf streaming-crypto/src/core_api
-          mkdir -p streaming-crypto/src/core_api
+      # - name: Copy core-api sources + metadata
+      #   shell: bash
+      #   run: |
+      #     rm -rf streaming-crypto/src/core_api
+      #     mkdir -p streaming-crypto/src/core_api
 
-          # Copy src folder contents
-          cp -r core-api/src/* streaming-crypto/src/core_api/
+      #     # Copy src folder contents
+      #     cp -r core-api/src/* streaming-crypto/src/core_api/
 
-          # Copy crate-level metadata (optional)
-          cp core-api/README.md streaming-crypto/src/core_api/README.md || true
-          cp core-api/.gitignore streaming-crypto/src/core_api/.gitignore || true
+      #     # Copy crate-level metadata (optional)
+      #     cp core-api/README.md streaming-crypto/src/core_api/README.md || true
+      #     cp core-api/.gitignore streaming-crypto/src/core_api/.gitignore || true
 
-          # Rename lib.rs → mod.rs
-          mv streaming-crypto/src/core_api/lib.rs \
-            streaming-crypto/src/core_api/mod.rs
+      #     # Rename lib.rs → mod.rs
+      #     mv streaming-crypto/src/core_api/lib.rs \
+      #       streaming-crypto/src/core_api/mod.rs
 
       # -------------------------------------------------
       # ✅ Copy ffi-api into publishable crate
       # -------------------------------------------------
-      - name: Copy ffi-api sources + metadata
-        shell: bash
-        run: |
-          rm -rf streaming-crypto/src/ffi_api
-          mkdir -p streaming-crypto/src/ffi_api
+      # - name: Copy ffi-api sources + metadata
+      #   shell: bash
+      #   run: |
+      #     rm -rf streaming-crypto/src/ffi_api
+      #     mkdir -p streaming-crypto/src/ffi_api
 
-          # Copy src folder contents
-          cp -r ffi-api/src/* streaming-crypto/src/ffi_api/
+      #     # Copy src folder contents
+      #     cp -r ffi-api/src/* streaming-crypto/src/ffi_api/
 
-          # Copy crate-level metadata (optional)
-          cp ffi-api/README.md streaming-crypto/src/ffi_api/README.md || true
-          cp ffi-api/.gitignore streaming-crypto/src/ffi_api/.gitignore || true
+      #     # Copy crate-level metadata (optional)
+      #     cp ffi-api/README.md streaming-crypto/src/ffi_api/README.md || true
+      #     cp ffi-api/.gitignore streaming-crypto/src/ffi_api/.gitignore || true
 
-          # Rename lib.rs → mod.rs
-          mv streaming-crypto/src/ffi_api/lib.rs \
-            streaming-crypto/src/ffi_api/mod.rs
+      #     # Rename lib.rs → mod.rs
+      #     mv streaming-crypto/src/ffi_api/lib.rs \
+      #       streaming-crypto/src/ffi_api/mod.rs
 
       # -------------------------------------------------
       # ✅ Copy pyo3-api into publishable crate
@@ -250,7 +250,7 @@ jobs:
               # 3️⃣ Common workspace deps
               if (system("test -f ../Cargo.toml") == 0) {
                 print ""     # <-- FORCE newline boundary
-                system("sed -n \"/# --- DEPENDENCIES COMMON START ---/,/# --- DEPENDENCIES COMMON END ---/p\" ../Cargo.toml")
+                system("sed -n \"/# --- DEPENDENCIES PYO3 START ---/,/# --- DEPENDENCIES PYO3 END ---/p\" ../Cargo.toml")
               }
 
               print end

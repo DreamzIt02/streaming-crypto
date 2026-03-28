@@ -59,6 +59,19 @@ jobs:
             echo 'os-list=["ubuntu-latest","macos-latest","windows-latest"]' >> $GITHUB_OUTPUT
           fi
 
+  pre-python-check:
+    runs-on: ubuntu-latest
+    outputs:
+      python-list: ${{ steps.set-python.outputs.python-list }}
+    steps:
+      - id: set-python
+        run: |
+          if [ "${{ env.ACT }}" = "true" ]; then
+            echo 'python-list=["3.11"]' >> $GITHUB_OUTPUT
+          else
+            echo 'python-list=["3.11"]' >> $GITHUB_OUTPUT
+          fi
+
   # ✅ prepare-pypi
   prepare:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' }}
@@ -73,17 +86,18 @@ jobs:
       features: |
         default = [\"pyo3-api\"]
       dependencies: |
-        core-api = { package=\"streaming-crypto\", version = \"${{ needs.detect-tag.outputs.tag_version }}\", features = [] }
+        core-api     = { package=\"streaming-crypto\", version = \"${{ needs.detect-tag.outputs.tag_version }}\", features = [] }
 
   # ✅ build wheels for many OS
   build:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' && needs.detect-tag.outputs.tag_is_published == 'true' }}
-    needs: [detect-tag, pre-os-check, prepare]
+    needs: [detect-tag, pre-os-check, pre-python-check, prepare]
     name: Build wheels + sdist
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: ${{ fromJson(needs.pre-os-check.outputs.os-list) }}
+        python: ${{ fromJson(needs.pre-python-check.outputs.python-list) }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Mark local run
@@ -122,22 +136,22 @@ jobs:
           rustup target add x86_64-apple-darwin
         # rustup target add aarch64-apple-darwin, github.com has default to arm64 macos
 
-      # - name: Install Python
-      #   if: ${{ env.IS_LOCAL != 'true' }}
-      #   id: setup-python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: '3.12'
+      - name: Install Python
+        # if: ${{ env.IS_LOCAL != 'true' }}
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
 
-      # - name: Export PYO3_PYTHON
-      #   if: ${{ env.IS_LOCAL != 'true' }}
-      #   shell: bash
-      #   run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+      - name: Export PYO3_PYTHON
+        # if: ${{ env.IS_LOCAL != 'true' }}
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
 
       - name: Install build tools
-        if: ${{ env.IS_LOCAL != 'true' }}
+        # if: ${{ env.IS_LOCAL != 'true' }}
         shell: bash
-        run: pip install maturin cibuildwheel twine "packaging>=24.2"
+        run: python3 -m pip install maturin cibuildwheel twine "packaging>=24.2"
 
       # 4️⃣ Cache
       - name: Cache cargo registry
@@ -161,7 +175,7 @@ jobs:
           cibuildwheel --platform auto --output-dir wheelhouse
         env:
           CIBW_BUILD      : cp311-* cp312-* cp313-*             # do not restrict to Python 3.12 only
-          CIBW_SKIP       : "cp314-* cp315-* pp* *-musllinux_*" # skip musllinux and PyPy
+          CIBW_SKIP       : "cp314-* pp* *-musllinux_*"         # skip musllinux and PyPy
           CIBW_ARCHS_LINUX: x86_64                              # skip aarch64
           CIBW_CONTAINER_ENGINE       : docker
           CIBW_MANYLINUX_X86_64_IMAGE : manylinux-custom-x86_64
@@ -186,8 +200,8 @@ jobs:
           mkdir -p wheelhouse
           cibuildwheel --platform auto --output-dir wheelhouse
         env:
-          CIBW_BUILD      : cp311-* cp312-* cp313-*             # do not restrict to Python 3.12 only
-          CIBW_SKIP       : "cp314-* cp315-* pp*"               # skip musllinux and PyPy
+          CIBW_BUILD      : cp311-* cp312-* cp313-*     # do not restrict to Python 3.12 only
+          CIBW_SKIP       : "cp314-* pp*"               # skip musllinux and PyPy
           CIBW_ARCHS_LINUX      : x86_64          # build both Intel + ARM linux wheels (github.com, not ARM supporter)
           CIBW_ARCHS_MACOS      : x86_64 arm64    # build both Intel + ARM macOS wheels
           CIBW_ARCHS_WINDOWS    : AMD64           # build both Intel + ARM winOS wheels (github.com, not ARM supporter)
@@ -230,10 +244,11 @@ jobs:
   publish:
     if: ${{ needs.detect-tag.outputs.tag_is_matched == 'true' && needs.detect-tag.outputs.tag_is_published == 'true' }}
     name: Publish Python Wheel
-    needs: [detect-tag, pre-os-check, build] # Require all
+    needs: [detect-tag, pre-os-check, pre-python-check, build] # Require all
     strategy: 
       matrix: 
         os: [ubuntu-latest] 
+        python: ${{ fromJson(needs.pre-python-check.outputs.python-list) }}
         rust: [stable]
     runs-on: ${{ matrix.os }}
 
@@ -295,9 +310,21 @@ jobs:
         shell: bash
         run: ls -R dist
 
+      - name: Install Python
+        # if: ${{ env.IS_LOCAL != 'true' }}
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Export PYO3_PYTHON
+        # if: ${{ env.IS_LOCAL != 'true' }}
+        shell: bash
+        run: echo "PYO3_PYTHON=${{ steps.setup-python.outputs.python-path }}" >> $GITHUB_ENV
+
       - name: Install twine
         shell: bash
-        run: pip install "twine>=6.2.0" "packaging>=24.2"
+        run: python3 -m pip install "twine>=6.2.0" "packaging>=24.2"
 
       - name: Check artifacts
         working-directory: streaming-crypto
