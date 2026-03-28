@@ -174,7 +174,7 @@ jobs:
           mkdir -p wheelhouse
           cibuildwheel --platform auto --output-dir wheelhouse
         env:
-          CIBW_BUILD      : cp311-* cp312-* cp313-*             # do not restrict to Python 3.12 only
+          CIBW_BUILD      : cp311-* cp312-* cp313-*             # do not restrict to Python version
           CIBW_SKIP       : "cp314-* pp* *-musllinux_*"         # skip musllinux and PyPy
           CIBW_ARCHS_LINUX: x86_64                              # skip aarch64
           CIBW_CONTAINER_ENGINE       : docker
@@ -200,11 +200,12 @@ jobs:
           mkdir -p wheelhouse
           cibuildwheel --platform auto --output-dir wheelhouse
         env:
-          CIBW_BUILD      : cp311-* cp312-* cp313-*     # do not restrict to Python 3.12 only
-          CIBW_SKIP       : "cp314-* pp*"               # skip musllinux and PyPy
+          CIBW_BUILD      : cp311-* cp312-* cp313-*     # do not restrict to Python version
+          CIBW_SKIP       : "cp314-* pp*"               # skip PyPy
           CIBW_ARCHS_LINUX      : x86_64          # build both Intel + ARM linux wheels (github.com, not ARM supporter)
           CIBW_ARCHS_MACOS      : x86_64 arm64    # build both Intel + ARM macOS wheels
           CIBW_ARCHS_WINDOWS    : AMD64           # build both Intel + ARM winOS wheels (github.com, not ARM supporter)
+          MACOSX_DEPLOYMENT_TARGET: 10.12         # wheel is for macOS ≥ 10.12
           
       # Build sdist once for any os (linux/windows/macos) (only on Linux to avoid duplication)
       - name: Build sdist
